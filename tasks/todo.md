@@ -63,7 +63,7 @@
 ## PHASE 7 — Rewards, communication, support et observabilité
 
 - [x] P7-A — projection campagnes et bénéfices DiddiRewards
-- [x] P7-B — notifications DiddiComms et retries
+- [x] P7-B — conversations métier DiddiComms ; notifications événementielles hors contrat
 - [x] P7-C — contexte et cas DiddiSupport
 - [x] P7-D — métriques, traces, alertes et audit
 
@@ -101,3 +101,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S7 — brancher Rewards, Comms, Support et Observe
 - [x] S8 — finaliser Backoffice, staging et recette MVP
 - [x] S9 — activer les tokens DiddiFreeID `client_credentials` par service cible
+- [x] S10 — corriger DiddiComms : conversation métier sans notification événementielle

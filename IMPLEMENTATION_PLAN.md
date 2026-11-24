@@ -39,7 +39,7 @@ reste dans DiddiSend.
 - réclamation acheteur dans les 72 heures après livraison ;
 - remboursement total ou partiel selon décision ;
 - libération vendeur après 72 heures sans réclamation ;
-- notifications via DiddiComms ;
+- ouverture de conversations métier via DiddiComms ;
 - contexte et décision support via DiddiSupport ;
 - observabilité et audit ;
 - lecture et commandes limitées via DiddiBackoffice ;
@@ -251,11 +251,11 @@ acheteur/vendeur, panier multi-boutiques avec remboursement d’une seule comman
 
 #### Communication
 
-- génération de tâches DiddiComms depuis l’outbox ;
-- notifications commande créée, paiement confirmé, confirmation vendeur,
-  expédition, livraison, réclamation et remboursement ;
-- retries et receipts sans modifier l’état de commande ;
-- déduplication par `event_id`.
+- ouverture/récupération de conversations DiddiComms rattachées à une tâche
+  métier ;
+- aucun payload JSON ni déclenchement de SMS/WhatsApp depuis cette route ;
+- contrat séparé à définir pour les notifications déclenchées par événements ;
+- aucune panne de communication ne doit modifier l’état de commande.
 
 #### Support
 
@@ -265,11 +265,11 @@ acheteur/vendeur, panier multi-boutiques avec remboursement d’une seule comman
 - décision support via un use case DiddiShop idempotent ;
 - interdiction d’écriture directe dans les tables `orders` depuis Support.
 
-**Acceptation :** une notification perdue est rejouable sans effet financier ;
-un agent support peut comprendre une commande sans accès aux bases externes ;
+**Acceptation :** une conversation peut être ouverte ou retrouvée sans effet
+financier ; un agent support peut comprendre une commande sans accès aux bases externes ;
 Rewards ne devient pas propriétaire de la commande.
 
-**Tests :** projection de campagne, réservation consommée/libérée, notification
+**Tests :** projection de campagne, réservation consommée/libérée, conversation
 dupliquée, contexte support complet, décision support répétée.
 
 ### P7 — DiddiBackoffice et préparation de production

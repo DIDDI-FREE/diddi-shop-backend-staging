@@ -166,6 +166,15 @@ nouvelle décision la remplacera explicitement si nécessaire.
 - Source : Utilisateur et contrat `SERVICE_TOKEN_CONTRACT.md`
 - Impact : settings, registre d’intégrations, DiddiFreeID, tous les adaptateurs S2S, déploiement secret manager.
 
+### D-019 — DiddiComms conversation distincte des notifications
+- Date : 2026-11-24
+- Phase / sous-lot : S10-A — correction du contrat DiddiComms
+- Décision : DiddiShop utilise la route DiddiComms uniquement pour ouvrir ou retrouver une conversation rattachée à une tâche métier. L’appel ne contient aucun body JSON et ne déclenche pas de SMS, WhatsApp ou notification.
+- Pourquoi : l’OpenAPI staging vérifiée indique que la route reçoit `owner_service`, `task_type` et `task_id` dans l’URL et ne publie pas de contrat d’envoi événementiel.
+- Alternatives écartées : conserver `create_task` avec payload JSON ; déduire un envoi à partir d’un événement Shop ; traiter `Idempotency-Key` comme une garantie de livraison par canal.
+- Source : équipe DiddiComms / OpenAPI staging
+- Impact : intégration DiddiComms, module communication, scopes S2S à confirmer, documentation des événements.
+
 ## Décisions agent à valider
 
 Aucune nouvelle décision agent n’est prise avant réponse aux questions de

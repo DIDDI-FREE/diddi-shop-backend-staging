@@ -63,7 +63,7 @@ orders: PAYMENT_PENDING
 | Disponibilité chauffeur | DiddiSend | jamais exposée au domaine Shop |
 | Binaire produit/photo | DiddiFiles | metadata et URL |
 | Campaignes, benefits, ledger Rewards | DiddiRewards | quote, reservation, consume/release |
-| Tâche SMS/notification | DiddiComms | création et résultat |
+| Conversation rattachée à une tâche métier | DiddiComms | conversation et état |
 | Cas support et actions agent | DiddiSupport | contexte, décision, référence |
 | Logs/traces/metrics | DiddiObserve | export structuré |
 | Identité et tokens S2S | DiddiFreeID | principal/token |
@@ -79,7 +79,7 @@ orders: PAYMENT_PENDING
 | DiddiSend create | `shop:create-delivery:{order_id}:1` | `delivery.created` puis progression |
 | DiddiSend cancel | `shop:cancel-delivery:{order_id}:{operation}` | `delivery.cancelled` |
 | DiddiRewards reserve | `shop:reward-reserve:{checkout_id}:1` | reservation idempotente |
-| DiddiComms task | `shop:notify:{event_id}:1` | receipt/task status |
+| DiddiComms conversation | `shop:conversation:{task_id}:1` | conversation response |
 | DiddiSupport case | `shop:claim-case:{claim_id}:1` | case reference |
 
 ## Gaps explicitement isolés

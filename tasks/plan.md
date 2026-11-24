@@ -210,7 +210,9 @@ métier.
 - DiddiRewards : quote/reserve/confirm/correct ou release selon le contrat
   réel, avec snapshot de campagne/version ;
 - Redis Streams Rewards : outbox producteur et inbox consommateur après commit ;
-- DiddiComms : tâches dérivées des événements avec retry et déduplication ;
+- DiddiComms : ouverture/récupération de conversations rattachées à une tâche
+  métier ; le contrat de notifications événementielles reste hors périmètre
+  tant qu’il n’est pas défini ;
 - DiddiSupport : contexte agrégé, ouverture de cas et décision idempotente ;
 - DiddiObserve : export OTLP/logs/métriques/traces et corrélation ;
 - aucune notification ou panne d’observabilité ne doit modifier la commande.

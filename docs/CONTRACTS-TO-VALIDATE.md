@@ -45,8 +45,16 @@ scopes dédiés. Les secrets ne doivent jamais être committés.
 
 ## DiddiComms
 
-Route observée : `POST /comms/v1/tasks/{owner_service}/{task_type}/{task_id}/conversation`.
-Confirmer enveloppe, scopes, événements de livraison et comportement de retry.
+La route observée `POST /comms/v1/tasks/{owner_service}/{task_type}/{task_id}/conversation`
+ouvre ou retrouve une conversation métier. Elle n’envoie pas de notification et
+n’accepte aucun corps JSON. Les trois paramètres sont dans l’URL et `task_id`
+doit être un UUID. `Idempotency-Key` est facultatif.
+
+Les participants viennent du resolver DiddiComms ; ils ne sont pas fournis par
+DiddiShop. Le couple DiddiShop/type de tâche, l’autorisation S2S (aucun scope
+S2S n’est publié actuellement), les résultats et les retries restent à
+confirmer. Le futur contrat de notifications déclenchées par événements doit
+être défini séparément.
 
 ## DiddiSupport
 

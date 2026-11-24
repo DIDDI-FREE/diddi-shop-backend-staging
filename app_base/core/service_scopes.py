@@ -18,7 +18,8 @@ SERVICE_SCOPES: dict[str, tuple[str, ...]] = {
         "diddirewards:benefits:correct",
         "diddirewards:campaigns:read",
     ),
-    "diddicomms": ("diddishop:comms-task:write", "diddishop:comms-task:read"),
+    # The staging OpenAPI does not publish an S2S scope for this route yet.
+    "diddicomms": (),
     "diddisupport": ("diddishop:support-context:read", "diddishop:support-case:write"),
     "diddiobserve": ("diddiobserve:telemetry:write",),
 }

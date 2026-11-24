@@ -19,9 +19,9 @@ class CommsAdapter:
     def __init__(self):
         self.calls = []
 
-    async def create_task(self, payload, idempotency_key):
-        self.calls.append((payload, idempotency_key))
-        return {"task_id": "task-1"}
+    async def open_conversation(self, owner_service, task_type, task_id, idempotency_key):
+        self.calls.append((owner_service, task_type, task_id, idempotency_key))
+        return {"id": task_id, "state": "open"}
 
 
 def test_rewards_adapter_has_full_benefit_lifecycle():
@@ -44,11 +44,21 @@ async def test_rewards_reservation_is_idempotent_by_operation():
 
 
 @pytest.mark.asyncio
-async def test_comms_uses_event_id_as_idempotency_key():
+async def test_comms_opens_a_conversation_without_notification_payload():
     adapter = CommsAdapter()
     service = CommunicationService(adapter)
-    await service.enqueue({"event_id": "evt-1", "event_type": "order.created", "payload": {"customer_id": "u1"}})
-    assert adapter.calls[0][1] == "shop:notify:evt-1:1"
+    await service.open_conversation(
+        owner_service="diddishop",
+        task_type="order",
+        task_id="11111111-1111-1111-1111-111111111111",
+        idempotency_key="shop:conversation:order-1:1",
+    )
+    assert adapter.calls[0] == (
+        "diddishop",
+        "order",
+        "11111111-1111-1111-1111-111111111111",
+        "shop:conversation:order-1:1",
+    )
 
 
 @pytest.mark.asyncio

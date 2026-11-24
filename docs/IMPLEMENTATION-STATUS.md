@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-24  
-**Phase courante :** S9 terminé localement
+**Phase courante :** S10 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -24,7 +24,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 42 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 43 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | à exécuter avec PostgreSQL staging |
@@ -68,7 +68,9 @@ leurs ports.
 - Checkout multi-boutiques, snapshots de prix, PaymentIntent DiddiPay et machine d’états commande/paiement.
 - DiddiSend comme unique propriétaire de l’expédition, avec livraison prépayée et suivi persistant.
 - Annulations, retours, réclamations et refunds idempotents ; séquestration/release vendeur explicitement reportées en V2.
-- DiddiRewards, DiddiComms, DiddiSupport, DiddiObserve et DiddiBackoffice avec frontières, audit et idempotence.
+- DiddiRewards, DiddiSupport, DiddiObserve et DiddiBackoffice avec frontières,
+  audit et idempotence ; DiddiComms est limité à l’ouverture/récupération de
+  conversations métier, sans déclenchement de notifications.
 
 ## Réponses intégrées
 

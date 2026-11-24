@@ -1,16 +1,24 @@
+from urllib.parse import quote
+from uuid import UUID
+
 from app_base.integrations.base import ServiceAdapter
 
 
 class DiddiCommsAdapter(ServiceAdapter):
-    async def create_task(self, payload: dict, idempotency_key: str) -> dict:
-        owner_service = payload.get("owner_service", "diddishop")
-        task_type = payload.get("task_type", "order")
-        task_id = payload.get("task_id") or payload.get("event_id")
+    async def open_conversation(
+        self,
+        owner_service: str,
+        task_type: str,
+        task_id: str,
+        idempotency_key: str | None = None,
+    ) -> dict:
+        """Open or retrieve a conversation; this route does not send notifications."""
+        UUID(task_id)
         response = await self.request(
             "POST",
-            f"/comms/v1/tasks/{owner_service}/{task_type}/{task_id}/conversation",
-            headers={"Idempotency-Key": idempotency_key},
-            json=payload,
+            "/comms/v1/tasks/"
+            f"{quote(owner_service, safe='')}/{quote(task_type, safe='')}/{quote(task_id, safe='')}/conversation",
+            headers={"Idempotency-Key": idempotency_key} if idempotency_key else None,
         )
         response.raise_for_status()
         return response.json()
