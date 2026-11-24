@@ -3,7 +3,6 @@ SERVICE_SCOPES: dict[str, tuple[str, ...]] = {
         "diddipay:payment-intents:read",
         "diddipay:payment-intents:write",
         "diddipay:payment-intents:refund",
-        "diddipay:marketplace:release",
     ),
     "diddisend": (
         "diddisend:deliveries:quote",

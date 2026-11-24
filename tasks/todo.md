@@ -57,8 +57,8 @@
 
 - [x] P6-A — expiration vendeur et annulations
 - [x] P6-B — retours, attribution et restitution de stock
-- [x] P6-C — réclamations, décisions et blocage de release
-- [x] P6-D — remboursements, release vendeur et réconciliation
+- [x] P6-C — réclamations et décisions, sans release V1
+- [x] P6-D — remboursements et réconciliation ; release vendeur reportée en V2
 
 ## PHASE 7 — Rewards, communication, support et observabilité
 
@@ -78,14 +78,14 @@
 
 - [ ] Provisionner PostgreSQL et Redis dans l’environnement cible.
 - [ ] Provisionner les clients/scopes DiddiFreeID pour DiddiShop.
-- [ ] Valider les contrats DiddiPay marketplace et DiddiSend prépayé.
+- [ ] Valider le contrat DiddiSend prépayé et sa ventilation XAF.
 - [ ] Valider la visibilité des images `diddishop_product_image` dans DiddiFiles.
 - [ ] Configurer les URLs S2S et certificats/secrets hors dépôt.
 - [ ] Exécuter migrations et tests d’intégration contre les services de staging.
 
 ## Idées hors plan
 
-- Aucune pour le moment.
+- V2 : séquestration marketplace et release vendeur DiddiPay après contrat dédié.
 
 ## SUITE — plan staging à exécuter
 

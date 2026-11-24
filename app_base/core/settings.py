@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     order_seller_confirmation_hours: int = 24
     claim_window_hours: int = 72
     seller_release_delay_hours: int = 72
+    seller_release_enabled: bool = False
     seller_commission_bps: int = 1000
 
     def validate_external_configuration(self) -> None:

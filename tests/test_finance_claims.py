@@ -54,10 +54,25 @@ async def test_seller_release_is_requested_only_after_eligibility():
     order.metadata["release_eligible_at"] = datetime(2020, 1, 1, tzinfo=UTC)
     await repo.create(order)
     financial = Financial()
-    service = FinanceService(OrderService(repo, []), InMemoryClaimRepository(), financial)
+    service = FinanceService(OrderService(repo, []), InMemoryClaimRepository(), financial, seller_release_enabled=True)
     await service.release_if_eligible("o1", datetime.now(UTC))
     assert financial.releases[0][0] == "o1"
     assert (await repo.get("o1")).payment_status == PaymentStatus.RELEASE_PENDING
+
+
+@pytest.mark.asyncio
+async def test_mvp_does_not_release_seller_funds():
+    repo = InMemoryOrderRepository()
+    order = Order("o1", "s1", "c1", 1000, fulfillment_status=FulfillmentStatus.DELIVERED, payment_status=PaymentStatus.HELD)
+    order.metadata["release_eligible_at"] = datetime(2020, 1, 1, tzinfo=UTC)
+    await repo.create(order)
+    financial = Financial()
+    service = FinanceService(OrderService(repo, []), InMemoryClaimRepository(), financial)
+
+    await service.release_if_eligible("o1", datetime.now(UTC))
+
+    assert financial.releases == []
+    assert (await repo.get("o1")).payment_status == PaymentStatus.HELD
 
 
 @pytest.mark.asyncio

@@ -24,7 +24,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 39 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 40 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | à exécuter avec PostgreSQL staging |
@@ -42,13 +42,12 @@ leurs ports.
 
 ## Blocages et contrats à valider
 
-1. DiddiPay : hold, remboursement partiel et release vendeur marketplace.
-2. DiddiSend : confirmation du mode prépayé et de la ventilation financière
+1. DiddiSend : confirmation du mode prépayé et de la ventilation financière
    XAF pour DiddiShop ; le schéma staging observé est orienté Food/XOF.
-3. DiddiFiles : visibilité et URL finale des images
+2. DiddiFiles : visibilité et URL finale des images
    `diddishop_product_image`.
-4. DiddiFreeID : provisionnement des clients et scopes S2S.
-5. DiddiObserve : endpoint d’ingestion à rétablir ; l’URL observée répondait
+3. DiddiFreeID : provisionnement des clients et scopes S2S.
+4. DiddiObserve : endpoint d’ingestion à rétablir ; l’URL observée répondait
    `502`.
 
 ## S0 réalisé
@@ -65,12 +64,12 @@ leurs ports.
 - DiddiFiles pour les sessions d’upload, confirmation, métadonnées et URLs.
 - Checkout multi-boutiques, snapshots de prix, PaymentIntent DiddiPay et machine d’états commande/paiement.
 - DiddiSend comme unique propriétaire de l’expédition, avec livraison prépayée et suivi persistant.
-- Annulations, retours, réclamations, refunds idempotents et protection de la release vendeur.
+- Annulations, retours, réclamations et refunds idempotents ; séquestration/release vendeur explicitement reportées en V2.
 - DiddiRewards, DiddiComms, DiddiSupport, DiddiObserve et DiddiBackoffice avec frontières, audit et idempotence.
 
 ## Réponses intégrées
 
-- release vendeur : port abstrait, faux adaptateur, contrat réel à valider ;
+- release vendeur : port conservé pour V2, désactivé par défaut en V1 ;
 - expédition : modèle DiddiFood adapté à `origin_module=diddishop` ;
 - infrastructure : PostgreSQL + Redis ;
 - S2S : scopes dédiés par service ;
@@ -83,5 +82,5 @@ leurs ports.
 - configuration des credentials et scopes S2S ;
 - tests de bout en bout avec DiddiPay, DiddiSend, DiddiFiles et DiddiRewards ;
 - vérification des workers outbox/inbox, DLQ et alertes ;
-- validation du contrat marketplace DiddiPay et de la ventilation XAF DiddiSend ;
+- validation de la ventilation XAF DiddiSend ; le contrat marketplace DiddiPay est hors MVP et planifié en V2 ;
 - rétablissement puis vérification de DiddiObserve.

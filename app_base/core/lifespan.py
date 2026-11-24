@@ -105,6 +105,7 @@ async def lifespan(app: FastAPI):
         app.state.delivery_repository,
         app.state.integrations.diddisend,
         app.state.order_service,
+        seller_release_enabled=app.state.settings.seller_release_enabled,
     )
     app.state.finance_service = FinanceService(
         app.state.order_service,
@@ -112,6 +113,7 @@ async def lifespan(app: FastAPI):
         app.state.integrations.diddipay,
         products=app.state.product_repository,
         delivery=app.state.integrations.diddisend,
+        seller_release_enabled=app.state.settings.seller_release_enabled,
     )
     app.state.rewards_service = RewardsService(app.state.integrations.diddirewards)
     app.state.communication_service = CommunicationService(app.state.integrations.diddicomms)

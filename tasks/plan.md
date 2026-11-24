@@ -183,7 +183,7 @@ de son statut opérationnel.
 **Vérification :** OpenAPI DiddiSend, test `prepaid_by_origin`, retry réseau,
 événements dupliqués, échec de remise et retour à l’expéditeur.
 
-### S6 — Finance, annulations, retours et réclamations
+### S6 — Finance, annulations, retours et réclamations (MVP V1)
 
 **Objectif :** appliquer la matrice financière déjà définie.
 
@@ -191,14 +191,12 @@ de son statut opérationnel.
 - annulation avant prise en charge ;
 - remboursement total/partiel avec clé d’opération ;
 - fenêtre de réclamation de 72 heures ;
-- blocage de release dès ouverture d’une réclamation ;
-- libération vendeur après délai et absence de litige ;
-- garder la release derrière le contrat marketplace DiddiPay ;
+- ne pas séquestrer les fonds et ne pas déclencher de release vendeur en V1 ;
 - distinguer décision locale, demande externe et confirmation financière ;
 - auditer les décisions support et les corrections.
 
-**Acceptation :** aucune libération sans vérification de l’absence de litige ;
-un remboursement confirmé est nécessaire avant le statut financier final ;
+**Acceptation :** aucune release vendeur n’est déclenchée en V1 ; un
+remboursement confirmé est nécessaire avant le statut financier final ;
 chaque opération peut être réconciliée avec DiddiPay.
 
 **Vérification :** annulations concurrentes, refunds partiels, réclamation à
@@ -236,7 +234,7 @@ sensibles, tests avec les endpoints de staging et résolution du `502` Observe.
 - vérification des migrations, workers, scopes, secrets et certificats.
 
 **Acceptation :** aucun accès direct du backoffice aux tables DiddiShop ; les
-scénarios achat, livraison, remboursement, réclamation et release sont
+scénarios achat, livraison, remboursement et réclamation sont
 rejouables et auditables.
 
 ## 5. Dépendances et parallélisation
@@ -252,12 +250,15 @@ rejouables et auditables.
 
 ### Blocages externes à traiter tôt
 
-1. contrat marketplace DiddiPay : hold/refund partiel/release vendeur ;
-2. contrat DiddiSend : `prepaid_by_origin=true` et événements signés ;
+1. contrat DiddiSend : `prepaid_by_origin=true` et événements signés ;
 3. contrat DiddiFiles : URL signée et purpose produit ;
 4. scopes S2S DiddiFreeID par service ;
 5. endpoint et protocole DiddiObserve ;
 6. route et enveloppe DiddiSupport.
+
+La séquestration marketplace DiddiPay et la release vendeur sont hors MVP et
+seront traitées dans un lot V2 dédié. Le port existe uniquement pour permettre
+une activation contrôlée lorsque le contrat sera disponible.
 
 ## 6. Règle de livraison par lot
 

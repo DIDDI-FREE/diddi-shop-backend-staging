@@ -3,7 +3,7 @@
 **Version :** 0.1 — 24 novembre 2026  
 **Base :** `DiddiShop — Specs backend du MVP v1.1 — cadrage.md` et
 `CAPABILITY-MAP.md`  
-**Statut :** plan d’exécution du squelette initial
+**Statut :** MVP V1 cadré ; séquestration/release vendeur reportées en V2
 
 ## 1. Décision d’architecture
 
@@ -37,7 +37,6 @@ reste dans DiddiSend.
 - annulation avant prise en charge ;
 - livraison échouée et retour ;
 - réclamation acheteur dans les 72 heures après livraison ;
-- blocage de la libération vendeur en cas de réclamation ;
 - remboursement total ou partiel selon décision ;
 - libération vendeur après 72 heures sans réclamation ;
 - notifications via DiddiComms ;
@@ -46,6 +45,10 @@ reste dans DiddiSend.
 - lecture et commandes limitées via DiddiBackoffice ;
 - intégration DiddiRewards limitée à l’application de bénéfices et à la
   consommation des campagnes publiées.
+
+La séquestration des fonds et la release vendeur ne font pas partie du MVP V1.
+Le paiement est confirmé et remboursable via DiddiPay ; aucun payout vendeur
+ou mécanisme de hold marketplace n’est déclenché par DiddiShop.
 
 ### Hors périmètre de DiddiShop pour ce MVP
 
@@ -133,10 +136,12 @@ timeouts, erreurs 4xx/5xx, reprise après réponse inconnue.
 
 **Bloquants à obtenir avant activation réelle :**
 
-1. contrat DiddiPay pour hold, remboursement partiel et release vendeur ;
-2. contrat DiddiSend pour créer une livraison déjà payée par DiddiShop ;
-3. visibilité/URL signée du purpose `diddishop_product_image` dans DiddiFiles ;
-4. scopes S2S DiddiShop dans DiddiFreeID.
+1. contrat DiddiSend pour créer une livraison déjà payée par DiddiShop ;
+2. visibilité/URL signée du purpose `diddishop_product_image` dans DiddiFiles ;
+3. scopes S2S DiddiShop dans DiddiFreeID.
+
+Le contrat marketplace DiddiPay de hold/release est explicitement hors V1 et
+sera traité dans le périmètre V2.
 
 ### P2 — Boutiques, catalogue, médias et stock
 
@@ -218,19 +223,17 @@ dupliquée, livraison échouée, retour confirmé, preuve manquante.
 - restitution de stock au maximum une fois ;
 - demande de remboursement DiddiPay avec clé stable ;
 - réclamation dans les 72 h après `DELIVERED` ;
-- blocage `RELEASE_BLOCKED` ;
 - décision support : acheteur, vendeur ou remboursement partiel ;
 - transition `RETURNED` → `CLOSED` après traitement ;
-- libération vendeur après 72 h sans réclamation ;
 - distinction entre décision métier et confirmation financière DiddiPay ;
 - audit de chaque décision et correction.
 
-**Acceptation :** aucun vendeur n’est libéré si une réclamation est ouverte ;
-un timeout DiddiPay reste `processing` et peut être repris avec la même clé ;
+**Acceptation :** aucune release vendeur n’est déclenchée en V1 ; un timeout
+DiddiPay reste `processing` et peut être repris avec la même clé ;
 un remboursement confirmé est la seule preuve de l’état `REFUNDED`.
 
 **Tests :** annulation concurrente avec prise en charge, remboursement reçu deux
-fois, remboursement partiel, réclamation juste avant release, retour imputé
+fois, remboursement partiel, réclamation dans la fenêtre, retour imputé
 acheteur/vendeur, panier multi-boutiques avec remboursement d’une seule commande.
 
 ### P6 — Rewards/campagnes, communication et support
@@ -250,7 +253,7 @@ acheteur/vendeur, panier multi-boutiques avec remboursement d’une seule comman
 
 - génération de tâches DiddiComms depuis l’outbox ;
 - notifications commande créée, paiement confirmé, confirmation vendeur,
-  expédition, livraison, réclamation, remboursement et release ;
+  expédition, livraison, réclamation et remboursement ;
 - retries et receipts sans modifier l’état de commande ;
 - déduplication par `event_id`.
 
@@ -302,7 +305,6 @@ order.delivered
 order.returned
 claim.opened
 claim.decided
-seller.release.requested
 ```
 
 ### Événements reçus
@@ -311,7 +313,6 @@ seller.release.requested
 payment.succeeded
 payment.failed
 payment.refunded
-seller.release.completed
 delivery.created
 delivery.picked_up
 delivery.in_transit
@@ -335,7 +336,6 @@ de carte.
 | Paiement | `shop:create-payment:{checkout_id}:1` | même montant et même checkout |
 | Livraison | `shop:create-delivery:{order_id}:1` | même commande, jamais un nouveau paiement |
 | Refund | `shop:refund:{order_id}:{operation}` | une opération financière = une clé |
-| Release | `shop:release:{order_id}:1` | une seule demande de libération |
 | Notification | `shop:notify:{event_id}:1` | retry sans message métier dupliqué |
 
 ## 7. Jalons de livraison
@@ -346,7 +346,7 @@ de carte.
 | M2 | Catalogue achetable | boutique, produit, stock, médias, permissions |
 | M3 | Checkout payable | panier multi-boutiques, PaymentIntent, webhooks |
 | M4 | Expédition réelle | DiddiSend, événements de livraison, suivi |
-| M5 | Finance complète | annulations, retours, claims, refunds, release |
+| M5 | Finance MVP V1 | annulations, retours, claims, refunds sans release vendeur |
 | M6 | Opérations transverses | Rewards, Comms, Support, Observe |
 | M7 | Exploitation | Backoffice, audit, réconciliation, recette MVP |
 
@@ -364,7 +364,7 @@ Le MVP est accepté lorsque les scénarios suivants passent en intégration :
 8. réclamation gagnée par l’acheteur ;
 9. réclamation gagnée par le vendeur ;
 10. remboursement partiel ;
-11. release automatique après 72 heures ;
+11. absence de release vendeur automatique en V1 ;
 12. événements entrants dupliqués ;
 13. panne outbox puis reprise ;
 14. tâche de notification dupliquée ;
@@ -374,7 +374,7 @@ Le MVP est accepté lorsque les scénarios suivants passent en intégration :
 
 | Risque | Impact | Décision/mitigation |
 | --- | --- | --- |
-| DiddiPay ne formalise pas la release marketplace | argent vendeur impossible à libérer proprement | bloquer P5 jusqu’au contrat signé |
+| Séquestration marketplace reportée en V2 | release vendeur non disponible en V1 | ne déclencher aucun hold/payout ; traiter le contrat en V2 |
 | DiddiSend recrée un PaymentIntent | double débit | contrat `prepaid_by_origin` obligatoire |
 | URL produit DiddiFiles non lisible | catalogue sans image fiable | endpoint signé/public à valider en P2 |
 | événements externes sans signature ou version | fraude et transitions incohérentes | refuser l’événement avant validation |

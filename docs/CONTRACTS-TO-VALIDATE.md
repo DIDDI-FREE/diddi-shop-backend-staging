@@ -20,9 +20,11 @@ Le schéma staging observé expose encore une ventilation financière Food en XO
 ## DiddiPay
 
 Base staging observée : `https://pay-api-staging.diddifree.com/payfund/v1`.
-Confirmer l’API marketplace de hold/release vendeur, refund partiel, scopes et
-événements signés. Le payout existant ne doit pas être considéré comme une
-release vendeur sans contrat métier explicite.
+Pour le MVP V1, DiddiShop utilise uniquement PaymentIntent, annulation,
+remboursement et événements signés. La séquestration marketplace et la release
+vendeur sont reportées en V2. Elles devront faire l’objet d’un contrat séparé
+avant activation ; le payout existant ne doit pas être considéré comme une
+release vendeur.
 
 ## DiddiFiles
 

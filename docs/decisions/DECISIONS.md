@@ -148,6 +148,15 @@ nouvelle décision la remplacera explicitement si nécessaire.
 - Source : Utilisateur
 - Impact : configuration, checkout, intégration DiddiSend, documentation des contrats.
 
+### D-017 — Séquestration et release vendeur reportées en V2
+- Date : 2026-11-24
+- Phase / sous-lot : suite d’implémentation — cadrage MVP/V2
+- Décision : le MVP V1 ne séquestre pas les fonds et ne déclenche aucune release vendeur. DiddiPay couvre le paiement client, les annulations et les remboursements. La séquestration marketplace, l’éligibilité après délai et la release vendeur sont reportées en V2.
+- Pourquoi : réduire le périmètre financier du MVP et éviter d’activer un flux marketplace tant que son contrat DiddiPay n’est pas formellement disponible.
+- Alternatives écartées : utiliser le payout générique comme release ; conserver une release simulée en production ; bloquer le checkout en attendant la V2.
+- Source : Utilisateur
+- Impact : finance, commandes, DiddiPay, scopes S2S, backoffice, documentation MVP/V2.
+
 ## Décisions agent à valider
 
 Aucune nouvelle décision agent n’est prise avant réponse aux questions de

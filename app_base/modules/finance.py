@@ -15,12 +15,21 @@ class FinancialPort:
 
 
 class FinanceService:
-    def __init__(self, orders, claims, financial: FinancialPort, products=None, delivery=None):
+    def __init__(
+        self,
+        orders,
+        claims,
+        financial: FinancialPort,
+        products=None,
+        delivery=None,
+        seller_release_enabled: bool = False,
+    ):
         self.orders = orders
         self.claims = claims
         self.financial = financial
         self.products = products
         self.delivery = delivery
+        self.seller_release_enabled = seller_release_enabled
 
     async def cancel(self, order_id: str, reason: str) -> Order:
         order = await self.orders.get(order_id)
@@ -61,7 +70,8 @@ class FinanceService:
             raise ConflictError("claim already open")
         claim = Claim(str(uuid4()), order_id, customer_id, reason, now)
         order.transition(FulfillmentStatus.DISPUTED, reason="claim.opened", actor=customer_id)
-        order.payment_status = PaymentStatus.RELEASE_BLOCKED
+        if self.seller_release_enabled:
+            order.payment_status = PaymentStatus.RELEASE_BLOCKED
         await self.claims.save(claim)
         await self.orders.repository.save(order)
         return claim
@@ -86,11 +96,12 @@ class FinanceService:
                 await self.financial.refund(payment_id, amount, operation)
                 order.metadata["refund_operation"] = operation
         else:
-            order.payment_status = PaymentStatus.RELEASE_PENDING
-            operation = f"shop:release:{order.id}:1"
-            if order.metadata.get("release_operation") != operation:
-                await self.financial.release(order.id, order.metadata.get("net_seller_minor", order.total_minor), operation)
-                order.metadata["release_operation"] = operation
+            if self.seller_release_enabled:
+                order.payment_status = PaymentStatus.RELEASE_PENDING
+                operation = f"shop:release:{order.id}:1"
+                if order.metadata.get("release_operation") != operation:
+                    await self.financial.release(order.id, order.metadata.get("net_seller_minor", order.total_minor), operation)
+                    order.metadata["release_operation"] = operation
         order.transition(FulfillmentStatus.CLOSED, reason=f"claim.decided:{decision.value}", actor="support")
         await self.claims.save(claim)
         await self.orders.repository.save(order)
@@ -98,6 +109,8 @@ class FinanceService:
 
     async def release_if_eligible(self, order_id: str, now: datetime | None = None) -> Order:
         order = await self.orders.get(order_id)
+        if not self.seller_release_enabled:
+            return order
         if order.fulfillment_status != FulfillmentStatus.DELIVERED:
             raise ConflictError("release requires delivered order")
         if await self.claims.get_open_for_order(order_id):

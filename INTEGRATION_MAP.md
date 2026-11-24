@@ -47,7 +47,7 @@ orders: PAYMENT_PENDING
                                                 v
                              PICKED_UP / IN_TRANSIT / DELIVERED
                                                 |
-                              claim window / seller release
+                              claim window / seller release (V2)
                                                 v
                                  DiddiPay refund ou release
 ```
@@ -58,7 +58,7 @@ orders: PAYMENT_PENDING
 | --- | --- | --- |
 | Produit, stock, prix de commande | DiddiShop | — |
 | PaymentIntent, webhook, refund technique | DiddiPay | statut et confirmation |
-| Hold/release marketplace | DiddiPay après contrat à définir | résultat de release |
+| Hold/release marketplace (V2) | DiddiPay après contrat à définir | résultat de release |
 | Quote/delivery/status coursier | DiddiSend | quote et événements |
 | Disponibilité chauffeur | DiddiSend | jamais exposée au domaine Shop |
 | Binaire produit/photo | DiddiFiles | metadata et URL |
@@ -75,7 +75,7 @@ orders: PAYMENT_PENDING
 | --- | --- | --- |
 | DiddiPay create | `shop:create-payment:{checkout_id}:1` | `payment.succeeded` / `payment.failed` |
 | DiddiPay refund | `shop:refund:{order_id}:{operation}` | `payment.refunded` |
-| DiddiPay release | `shop:release:{order_id}:1` | `seller.release.completed` |
+| DiddiPay release (V2) | `shop:release:{order_id}:1` | `seller.release.completed` |
 | DiddiSend create | `shop:create-delivery:{order_id}:1` | `delivery.created` puis progression |
 | DiddiSend cancel | `shop:cancel-delivery:{order_id}:{operation}` | `delivery.cancelled` |
 | DiddiRewards reserve | `shop:reward-reserve:{checkout_id}:1` | reservation idempotente |

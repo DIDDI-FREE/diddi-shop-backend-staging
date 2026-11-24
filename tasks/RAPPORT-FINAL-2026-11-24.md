@@ -27,7 +27,7 @@ f54c115 feat(s8): secure backoffice and readiness checks
 
 ## Vérifications locales
 
-- `pytest -q` : 39 tests passés ;
+- `pytest -q` : 40 tests passés ;
 - `ruff check .` : OK ;
 - `python -m compileall -q app_base tests alembic` : OK ;
 - `alembic upgrade head --sql` : OK ;
@@ -37,13 +37,15 @@ f54c115 feat(s8): secure backoffice and readiness checks
 
 - PostgreSQL et Redis réels, migrations et workers staging ;
 - credentials/scopes S2S DiddiFreeID ;
-- contrat marketplace DiddiPay pour hold, refund partiel et release vendeur ;
 - contrat DiddiSend pour prépaiement et ventilation XAF, le schéma observé
   étant Food/XOF ;
 - visibilité des images DiddiFiles ;
 - enveloppes finales Comms/Support ;
 - rétablissement et validation de DiddiObserve, observé en `502` ;
 - tests end-to-end staging et alertes opérationnelles.
+
+La séquestration des fonds et la release vendeur ne sont pas des éléments
+bloquants du MVP : elles sont explicitement reportées en V2.
 
 Ces points sont documentés dans `docs/IMPLEMENTATION-STATUS.md` et
 `docs/CONTRACTS-TO-VALIDATE.md`. Aucun fallback financier silencieux n’a été

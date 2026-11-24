@@ -8,10 +8,11 @@ from app_base.shared_kernel.contracts.delivery import DeliveryCommand
 
 
 class DeliveryService:
-    def __init__(self, repository, sender, orders: OrderService):
+    def __init__(self, repository, sender, orders: OrderService, seller_release_enabled: bool = False):
         self.repository = repository
         self.sender = sender
         self.orders = orders
+        self.seller_release_enabled = seller_release_enabled
 
     async def request_for_order(self, order_id: str) -> DeliveryProjection:
         existing = await self.repository.get_by_order(order_id)
@@ -65,6 +66,7 @@ class DeliveryService:
         if target == DeliveryStatus.DELIVERED:
             now = datetime.now(UTC)
             order.metadata["delivered_at"] = now
-            order.metadata["release_eligible_at"] = now + timedelta(hours=72)
+            if self.seller_release_enabled:
+                order.metadata["release_eligible_at"] = now + timedelta(hours=72)
             await self.orders.repository.save(order)
         return delivery
