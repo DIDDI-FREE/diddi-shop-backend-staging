@@ -1,7 +1,11 @@
 from dataclasses import dataclass
 
 from app_base.core.outbox import OutboxMessage, new_outbox_message
-from app_base.modules.checkout.domain_interfaces import CheckoutPaymentPort, CheckoutPricingPort, CheckoutRewardsPort
+from app_base.modules.checkout.domain_interfaces import (
+    CheckoutPaymentPort,
+    CheckoutPricingPort,
+    CheckoutRewardsPort,
+)
 
 
 @dataclass

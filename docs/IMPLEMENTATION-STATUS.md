@@ -1,8 +1,8 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-24  
-**Phase courante :** PHASE 8 — DiddiBackoffice et recette  
-**Statut :** PHASES 1 à 7 terminées localement ; exécution autonome en cours
+**Phase courante :** terminée localement  
+**Statut :** toutes les phases du plan sont implémentées et vérifiées localement
 
 ## État global
 

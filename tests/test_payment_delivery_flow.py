@@ -1,6 +1,5 @@
 import pytest
 
-from app_base.core.outbox import OutboxMessage
 from app_base.modules.delivery.application import DeliveryService
 from app_base.modules.delivery.infra import InMemoryDeliveryRepository
 from app_base.modules.orders.application.services import OrderService

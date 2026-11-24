@@ -3,7 +3,6 @@ from app_base.modules.orders.application.services import OrderService
 from app_base.modules.orders.domain.entities import FulfillmentStatus
 from app_base.shared_kernel.contracts.events import ExternalEvent
 
-
 DELIVERY_TARGETS = {
     "delivery.created": None,
     "delivery.picked_up": FulfillmentStatus.PICKED_UP,

@@ -1,5 +1,5 @@
 from app_base.integrations.diddisend import DiddiSendAdapter
-from app_base.shared_kernel.contracts.delivery import DeliveryCommand, DeliveryRequest
+from app_base.shared_kernel.contracts.delivery import DeliveryRequest
 
 
 def test_diddisend_request_matches_food_style_contract():

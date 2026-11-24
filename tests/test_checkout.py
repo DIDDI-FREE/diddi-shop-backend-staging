@@ -3,9 +3,12 @@ import pytest
 from app_base.modules.cart.infra import InMemoryCartRepository
 from app_base.modules.catalog.domain import Product, ProductStatus
 from app_base.modules.catalog.infra import InMemoryProductRepository
-from app_base.modules.checkout.application.checkout_service import CheckoutApplicationService, DeliveryQuotePort, PaymentIntentPort
+from app_base.modules.checkout.application.checkout_service import (
+    CheckoutApplicationService,
+    DeliveryQuotePort,
+    PaymentIntentPort,
+)
 from app_base.modules.checkout.infra import InMemoryCheckoutRepository
-from app_base.modules.orders.domain.entities import Order
 from app_base.modules.orders.infra.repositories import InMemoryOrderRepository
 
 

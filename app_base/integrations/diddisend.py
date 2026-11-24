@@ -1,5 +1,5 @@
-from app_base.integrations.base import ServiceAdapter
 from app_base.core.request_context import get_request_context
+from app_base.integrations.base import ServiceAdapter
 from app_base.shared_kernel.contracts.delivery import DeliveryCommand, DeliveryRequest
 
 

@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, Request
 
-from app_base.core.deps import get_order_service
 from app_base.modules.delivery.application import DeliveryService
 
 router = APIRouter(prefix="/v1/deliveries", tags=["delivery"])

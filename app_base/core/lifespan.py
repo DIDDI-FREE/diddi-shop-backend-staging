@@ -1,33 +1,36 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from redis.asyncio import Redis
 
-from app_base.core.outbox import OutboxMessage
 from app_base.core.database import build_engine, build_session_factory
 from app_base.core.integration_registry import build_integrations
+from app_base.core.outbox import OutboxMessage
 from app_base.core.settings import get_settings
-from redis.asyncio import Redis
-from app_base.modules.orders.infra.repositories import InMemoryOrderRepository
-from app_base.modules.orders.application.services import OrderService
+from app_base.integrations.checkout_ports import (
+    DiddiPayPaymentIntentPort,
+    DiddiSendDeliveryQuotePort,
+)
+from app_base.modules.admin.application import AdminService
+from app_base.modules.audit.application import AuditService
 from app_base.modules.cart.application import CartService
 from app_base.modules.cart.infra import InMemoryCartRepository
 from app_base.modules.catalog.application import CatalogService
 from app_base.modules.catalog.infra import InMemoryProductRepository
-from app_base.modules.shops.application import ShopService
-from app_base.modules.shops.infra import InMemoryShopRepository
-from app_base.integrations.checkout_ports import DiddiPayPaymentIntentPort, DiddiSendDeliveryQuotePort
 from app_base.modules.checkout.application.checkout_service import CheckoutApplicationService
 from app_base.modules.checkout.infra import InMemoryCheckoutRepository
+from app_base.modules.claims.infra import InMemoryClaimRepository
+from app_base.modules.comms.application import CommunicationService
 from app_base.modules.delivery.application import DeliveryService
 from app_base.modules.delivery.infra import InMemoryDeliveryRepository
-from app_base.modules.webhooks import router as webhooks_router
-from app_base.workers.in_memory_inbox import InMemoryProcessedEvents
-from app_base.modules.claims.infra import InMemoryClaimRepository
 from app_base.modules.finance import FinanceService
-from app_base.modules.audit.application import AuditService
-from app_base.modules.comms.application import CommunicationService
+from app_base.modules.orders.application.services import OrderService
+from app_base.modules.orders.infra.repositories import InMemoryOrderRepository
 from app_base.modules.rewards.application import RewardsService
+from app_base.modules.shops.application import ShopService
+from app_base.modules.shops.infra import InMemoryShopRepository
 from app_base.modules.support.application import SupportContextService
+from app_base.workers.in_memory_inbox import InMemoryProcessedEvents
 
 
 @asynccontextmanager
@@ -76,6 +79,13 @@ async def lifespan(app: FastAPI):
         OrderService(app.state.order_repository, app.state.outbox),
         app.state.delivery_repository,
         app.state.claim_repository,
+    )
+    app.state.admin_service = AdminService(
+        OrderService(app.state.order_repository, app.state.outbox),
+        app.state.claim_repository,
+        app.state.finance_service,
+        app.state.audit_service,
+        app.state.delivery_repository,
     )
     app.state.outbox: list[OutboxMessage] = []
     try:

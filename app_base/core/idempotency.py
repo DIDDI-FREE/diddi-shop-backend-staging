@@ -1,6 +1,6 @@
+import json
 from dataclasses import dataclass
 from hashlib import sha256
-import json
 
 from app_base.core.errors import ConflictError
 

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from app_base.core.errors import ConflictError
@@ -43,7 +43,7 @@ class FinanceService:
 
     async def open_claim(self, order_id: str, customer_id: str, reason: str, now: datetime | None = None) -> Claim:
         order = await self.orders.get(order_id)
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         if order.fulfillment_status != FulfillmentStatus.DELIVERED:
             raise ConflictError("claim requires delivered order")
         delivered_at = order.metadata.get("delivered_at")
@@ -66,7 +66,7 @@ class FinanceService:
         claim.status = ClaimStatus.DECIDED
         claim.decision = decision
         claim.amount_to_refund = amount_to_refund
-        claim.decided_at = datetime.now(timezone.utc)
+        claim.decided_at = datetime.now(UTC)
         if decision in {ClaimDecision.BUYER, ClaimDecision.PARTIAL}:
             amount = amount_to_refund or order.total_minor
             order.payment_status = PaymentStatus.REFUND_PENDING
@@ -88,7 +88,7 @@ class FinanceService:
             await self.orders.repository.save(order)
             return order
         eligible_at = order.metadata.get("release_eligible_at")
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         if eligible_at and now < eligible_at:
             raise ConflictError("release delay has not elapsed")
         order.payment_status = PaymentStatus.RELEASE_PENDING

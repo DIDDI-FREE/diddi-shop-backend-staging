@@ -1,5 +1,6 @@
 import pytest
 
+from app_base.core.errors import ConflictError
 from app_base.core.idempotency import IdempotencyRecord, replay_or_none, request_hash
 from app_base.core.service_scopes import required_scopes
 from app_base.integrations.auth import ServiceCredential, s2s_headers
@@ -22,7 +23,7 @@ async def test_idempotency_replays_same_body_and_rejects_conflict():
     body = {"amount": 1200, "currency": "XAF"}
     await store.save(IdempotencyRecord("checkout-1", request_hash(body), 201, {"ok": True}))
     assert (await replay_or_none(store, "checkout-1", body)).response_body == {"ok": True}
-    with pytest.raises(Exception):
+    with pytest.raises(ConflictError):
         await replay_or_none(store, "checkout-1", {"amount": 999, "currency": "XAF"})
 
 

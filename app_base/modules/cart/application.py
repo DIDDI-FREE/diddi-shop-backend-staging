@@ -1,4 +1,3 @@
-from uuid import uuid4
 
 from app_base.core.errors import ConflictError
 from app_base.modules.cart.domain import Cart, CartLine, CartRepository

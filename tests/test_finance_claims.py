@@ -1,15 +1,15 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
+from app_base.modules.catalog.domain import Product, ProductStatus
+from app_base.modules.catalog.infra import InMemoryProductRepository
 from app_base.modules.claims.domain import ClaimDecision
 from app_base.modules.claims.infra import InMemoryClaimRepository
 from app_base.modules.finance import FinanceService
 from app_base.modules.orders.application.services import OrderService
 from app_base.modules.orders.domain.entities import FulfillmentStatus, Order, PaymentStatus
 from app_base.modules.orders.infra.repositories import InMemoryOrderRepository
-from app_base.modules.catalog.domain import Product, ProductStatus
-from app_base.modules.catalog.infra import InMemoryProductRepository
 
 
 class Financial:
@@ -36,7 +36,7 @@ class Delivery:
 async def test_claim_blocks_release_and_buyer_decision_requests_refund():
     repo = InMemoryOrderRepository()
     order = Order("o1", "s1", "c1", 1000, fulfillment_status=FulfillmentStatus.DELIVERED, payment_status=PaymentStatus.HELD)
-    order.metadata["delivered_at"] = datetime.now(timezone.utc)
+    order.metadata["delivered_at"] = datetime.now(UTC)
     await repo.create(order)
     financial = Financial()
     service = FinanceService(OrderService(repo, []), InMemoryClaimRepository(), financial)
@@ -51,11 +51,11 @@ async def test_claim_blocks_release_and_buyer_decision_requests_refund():
 async def test_seller_release_is_requested_only_after_eligibility():
     repo = InMemoryOrderRepository()
     order = Order("o1", "s1", "c1", 1000, fulfillment_status=FulfillmentStatus.DELIVERED)
-    order.metadata["release_eligible_at"] = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    order.metadata["release_eligible_at"] = datetime(2020, 1, 1, tzinfo=UTC)
     await repo.create(order)
     financial = Financial()
     service = FinanceService(OrderService(repo, []), InMemoryClaimRepository(), financial)
-    await service.release_if_eligible("o1", datetime.now(timezone.utc))
+    await service.release_if_eligible("o1", datetime.now(UTC))
     assert financial.releases[0][0] == "o1"
     assert (await repo.get("o1")).payment_status == PaymentStatus.RELEASE_PENDING
 

@@ -68,10 +68,10 @@
 
 ## PHASE 8 — DiddiBackoffice et recette
 
-- [ ] P8-A — routes admin DiddiShop et commandes idempotentes
-- [ ] P8-B — audit opérateur, réconciliation et runbook
-- [ ] P8-C — tests intégration MVP et sécurité S2S
-- [ ] P8-D — rapport final
+- [x] P8-A — routes admin DiddiShop et commandes idempotentes
+- [x] P8-B — audit opérateur, réconciliation et runbook
+- [x] P8-C — tests intégration MVP et sécurité S2S
+- [x] P8-D — rapport final
 
 ## Vérifications de déploiement en attente
 

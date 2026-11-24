@@ -1,5 +1,6 @@
-from app_base.modules.cart.domain import Cart
 from uuid import uuid4
+
+from app_base.modules.cart.domain import Cart
 
 
 class InMemoryCartRepository:

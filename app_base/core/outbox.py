@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -11,7 +11,7 @@ class OutboxMessage:
     aggregate_type: str
     aggregate_id: str
     payload: dict[str, Any]
-    available_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    available_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     attempts: int = 0
     published_at: datetime | None = None
     last_error: str | None = None
