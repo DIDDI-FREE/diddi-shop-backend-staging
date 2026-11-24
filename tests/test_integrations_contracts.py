@@ -29,3 +29,28 @@ def test_diddisend_adapter_exposes_only_delivery_boundary():
     assert hasattr(DiddiSendAdapter, "create_delivery")
     assert hasattr(DiddiSendAdapter, "cancel_delivery")
     assert not hasattr(DiddiSendAdapter, "assign_courier")
+
+
+def test_diddisend_delivery_request_contains_prepaid_origin_and_recipient_identity():
+    request = DeliveryRequest(
+        order_reference="shop-order:ord-1",
+        idempotency_key="shop:create-delivery:ord-1:1",
+        sender_user_id="seller-1",
+        customer_user_id="buyer-1",
+        recipient_user_id="buyer-1",
+        recipient_name="Buyer",
+        recipient_phone="690000000",
+        pickup_location={"lat": 3.86, "lng": 11.52, "address": "Pickup"},
+        pickup_address="Pickup",
+        dropoff_location={"lat": 3.87, "lng": 11.53, "address": "Dropoff"},
+        dropoff_address="Dropoff",
+        package={
+            "label": "Order",
+            "description": "Goods",
+            "category": "physical_goods",
+            "declared_value": 1500,
+        },
+        quoted_price="1500",
+    )
+    assert request.prepaid_by_origin is True
+    assert request.recipient_user_id == "buyer-1"

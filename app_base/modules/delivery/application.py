@@ -31,6 +31,7 @@ class DeliveryService:
         projection = DeliveryProjection(delivery["id"], order.id, DeliveryStatus.REQUESTED)
         await self.repository.save(projection)
         order.delivery_id = projection.id
+        await self.orders.repository.save(order)
         return projection
 
     async def apply_event(self, order_id: str, event_type: str, payload: dict) -> DeliveryProjection:

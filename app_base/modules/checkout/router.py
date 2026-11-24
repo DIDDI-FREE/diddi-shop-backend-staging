@@ -13,4 +13,11 @@ def checkout_service(request: Request) -> CheckoutApplicationService:
 
 @router.post("")
 async def create_checkout(body: CreateCheckoutRequest, actor: Actor = Depends(current_actor), service: CheckoutApplicationService = Depends(checkout_service)):
-    return await service.create(actor.subject, body.idempotency_key)
+    context = body.model_dump(exclude={"idempotency_key"}, exclude_none=True)
+    if {"dropoff_address", "dropoff_latitude", "dropoff_longitude"} <= context.keys():
+        context["dropoff_location"] = {
+            "lat": context.pop("dropoff_latitude"),
+            "lng": context.pop("dropoff_longitude"),
+            "address": context["dropoff_address"],
+        }
+    return await service.create(actor.subject, body.idempotency_key, context or None)

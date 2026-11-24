@@ -20,9 +20,9 @@ class DiddiSendDeliveryQuotePort:
     def __init__(self, adapter: DiddiSendAdapter):
         self.adapter = adapter
 
-    async def quote(self, shop_id: str, lines: list[dict]) -> int:
+    async def quote(self, shop_id: str, lines: list[dict], delivery_context: dict | None = None) -> int:
         serializable = [
             {"product_id": line["product"].id, "quantity": line["quantity"], "declared_value": line["product"].price_minor * line["quantity"]}
             for line in lines
         ]
-        return await self.adapter.quote(shop_id, serializable)
+        return await self.adapter.quote(shop_id, serializable, delivery_context)

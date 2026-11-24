@@ -94,6 +94,7 @@ async def lifespan(app: FastAPI):
         delivery_quotes=DiddiSendDeliveryQuotePort(app.state.integrations.diddisend),
         payments=DiddiPayPaymentIntentPort(app.state.integrations.diddipay),
         outbox=app.state.outbox,
+        shops=app.state.shop_repository,
     )
     app.state.order_service = OrderService(app.state.order_repository, app.state.outbox)
     app.state.delivery_service = DeliveryService(

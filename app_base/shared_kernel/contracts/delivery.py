@@ -23,9 +23,12 @@ class DeliveryRequest(BaseModel):
     idempotency_key: str
     sender_user_id: str
     customer_user_id: str
+    recipient_user_id: str | None = None
     recipient_name: str
     recipient_phone: str
+    recipient_email: str | None = None
     sender_phone: str | None = None
+    sender_email: str | None = None
     pickup_location: dict
     pickup_address: str
     dropoff_location: dict

@@ -13,7 +13,7 @@ from app_base.modules.orders.infra.repositories import InMemoryOrderRepository
 
 
 class Quote(DeliveryQuotePort):
-    async def quote(self, shop_id, cart_lines):
+    async def quote(self, shop_id, cart_lines, delivery_context=None):
         return 500
 
 

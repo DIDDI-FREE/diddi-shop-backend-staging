@@ -8,6 +8,7 @@ from app_base.modules.catalog.domain import ProductRepository
 from app_base.modules.checkout.domain import Checkout, CheckoutRepository
 from app_base.modules.orders.domain.entities import Order
 from app_base.modules.orders.domain.interfaces import OrderRepository
+from app_base.modules.shops.domain import ShopRepository
 
 
 class DeliveryQuotePort:
@@ -29,8 +30,9 @@ class CheckoutApplicationService:
     delivery_quotes: DeliveryQuotePort
     payments: PaymentIntentPort
     outbox: list[OutboxMessage]
+    shops: ShopRepository | None = None
 
-    async def create(self, customer_id: str, idempotency_key: str) -> Checkout:
+    async def create(self, customer_id: str, idempotency_key: str, delivery_context: dict | None = None) -> Checkout:
         cart = await self.carts.get_or_create(customer_id)
         if not cart.lines:
             raise ConflictError("cart is empty")
@@ -52,7 +54,15 @@ class CheckoutApplicationService:
         try:
             for shop_id, lines in grouped.items():
                 items_total = sum(item["product"].price_minor * item["quantity"] for item in lines)
-                delivery_fee = await self.delivery_quotes.quote(shop_id, lines)
+                shop = await self.shops.get(shop_id) if self.shops is not None else None
+                quote_context = dict(delivery_context or {})
+                if shop is not None:
+                    quote_context.setdefault("pickup_location", {
+                        "lat": shop.pickup_latitude,
+                        "lng": shop.pickup_longitude,
+                        "address": shop.pickup_address,
+                    })
+                delivery_fee = await self.delivery_quotes.quote(shop_id, lines, quote_context or None)
                 order_id = str(uuid4())
                 for item in lines:
                     await self.products.apply_stock(
@@ -78,6 +88,23 @@ class CheckoutApplicationService:
                             }
                             for item in lines
                         ],
+                        "delivery_request": {
+                            **quote_context,
+                            "customer_user_id": customer_id,
+                            "recipient_user_id": customer_id,
+                            "sender_user_id": shop.owner_id if shop is not None else "diddishop-system",
+                            "recipient_name": quote_context.get("recipient_name", customer_id),
+                            "recipient_phone": quote_context.get("recipient_phone", "unknown"),
+                            "pickup_address": quote_context.get("pickup_location", {}).get("address", ""),
+                            "dropoff_address": quote_context.get("dropoff_location", {}).get("address", ""),
+                            "package": {
+                                "label": f"DiddiShop order {order_id}",
+                                "description": "DiddiShop physical goods",
+                                "category": "physical_goods",
+                                "declared_value": items_total,
+                            },
+                            "quoted_price": delivery_fee,
+                        },
                     },
                 )
                 await self.orders.create(order)
