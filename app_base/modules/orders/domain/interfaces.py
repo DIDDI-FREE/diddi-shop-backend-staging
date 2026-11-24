@@ -1,0 +1,27 @@
+from typing import Protocol
+
+from app_base.core.outbox import OutboxMessage
+from app_base.modules.orders.domain.entities import FulfillmentStatus, Order
+
+
+class OrderRepository(Protocol):
+    async def get(self, order_id: str) -> Order | None: ...
+    async def save(self, order: Order) -> None: ...
+
+
+class OrderEventPublisher(Protocol):
+    async def publish(self, message: OutboxMessage) -> None: ...
+
+
+class PaymentPort(Protocol):
+    async def refund(self, order_id: str, amount_minor: int, idempotency_key: str) -> None: ...
+    async def request_release(self, order_id: str, amount_minor: int, idempotency_key: str) -> None: ...
+
+
+class DeliveryPort(Protocol):
+    async def create(self, order_id: str, idempotency_key: str) -> str: ...
+    async def cancel(self, delivery_id: str, idempotency_key: str) -> None: ...
+
+
+class OrderStatePort(Protocol):
+    async def transition(self, order_id: str, target: FulfillmentStatus, reason: str, actor: str) -> Order: ...

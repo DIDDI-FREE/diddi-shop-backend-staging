@@ -1,0 +1,1 @@
+"""DiddiShop bounded contexts."""

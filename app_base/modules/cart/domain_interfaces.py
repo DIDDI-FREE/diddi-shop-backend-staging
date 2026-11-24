@@ -1,0 +1,6 @@
+from typing import Protocol
+
+
+class CartPort(Protocol):
+    async def get(self, cart_id: str) -> dict: ...
+    async def clear(self, cart_id: str) -> None: ...

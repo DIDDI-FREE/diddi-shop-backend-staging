@@ -1,0 +1,1 @@
+"""Campaign projection HTTP presentation."""

@@ -1,0 +1,1 @@
+"""Shop/seller bounded context."""

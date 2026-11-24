@@ -1,0 +1,6 @@
+from typing import Protocol
+
+
+class ShopAdminPort(Protocol):
+    async def read_order(self, order_id: str) -> dict: ...
+    async def decide_claim(self, claim_id: str, decision: str, actor: str, operation_id: str) -> dict: ...

@@ -1,0 +1,1 @@
+"""DiddiShop application package."""
