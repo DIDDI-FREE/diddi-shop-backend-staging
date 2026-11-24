@@ -8,8 +8,13 @@ from app_base.modules.orders.domain.interfaces import OrderRepository
 
 
 async def session_dep(request: Request) -> AsyncIterator[object]:
-    """Placeholder for the DB session factory and central DI seam."""
-    yield request.app.state.db_session_factory() if hasattr(request.app.state, "db_session_factory") else None
+    """Central session seam; handlers never construct a DB session themselves."""
+    factory = getattr(request.app.state, "db_session_factory", None)
+    if factory is None:
+        yield None
+        return
+    async with factory() as session:
+        yield session
 
 
 def get_app_settings() -> Settings:

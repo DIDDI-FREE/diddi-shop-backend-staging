@@ -1,6 +1,10 @@
 from fastapi import FastAPI
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
 from app_base.core.lifespan import lifespan
+from app_base.core.middleware import CorrelationMiddleware
+from app_base.core.errors import DiddiShopError
 from app_base.modules.admin.presentation.router import router as admin_router
 from app_base.modules.campaigns.presentation.router import router as campaigns_router
 from app_base.modules.comms.presentation.router import router as comms_router
@@ -11,6 +15,12 @@ from app_base.modules.support.presentation.router import router as support_route
 
 
 app = FastAPI(title="DiddiShop", version="0.1.0", lifespan=lifespan)
+app.add_middleware(CorrelationMiddleware)
+
+
+@app.exception_handler(DiddiShopError)
+async def handle_domain_error(_request: Request, exc: DiddiShopError):
+    return JSONResponse(status_code=409, content={"error": type(exc).__name__, "message": str(exc)})
 
 app.include_router(orders_router)
 app.include_router(admin_router)
