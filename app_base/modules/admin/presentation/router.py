@@ -1,14 +1,24 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 
 from app_base.core.auth_deps import Actor, current_actor
+from app_base.core.idempotency import IdempotencyRecord, replay_or_none, request_hash
 from app_base.modules.claims.domain import ClaimDecision
 
 router = APIRouter(prefix="/v1/admin/shop", tags=["admin-shop"])
 
 
+async def admin_actor(request: Request, actor: Actor = Depends(current_actor)) -> Actor:
+    if request.app.state.settings.environment == "development":
+        return actor
+    if actor.actor_type not in {"admin", "support", "service"}:
+        raise HTTPException(status_code=403, detail="admin actor required")
+    return actor
+
+
 @router.get("/capabilities")
-async def capabilities():
+async def capabilities(_actor: Actor = Depends(admin_actor)):
     return {
         "service": "diddishop",
         "owner": "diddi-shop",
@@ -24,12 +34,26 @@ class AdminDecisionRequest(BaseModel):
 
 
 @router.get("/orders/{order_id}")
-async def read_order(order_id: str, request: Request, actor: Actor = Depends(current_actor)):
+async def read_order(order_id: str, request: Request, actor: Actor = Depends(admin_actor)):
     return await request.app.state.admin_service.read_order(order_id, actor.subject)
 
 
 @router.post("/claims/{claim_id}/decision")
-async def decide_claim(claim_id: str, body: AdminDecisionRequest, request: Request, actor: Actor = Depends(current_actor)):
-    return await request.app.state.admin_service.decide_claim(
+async def decide_claim(
+    claim_id: str,
+    body: AdminDecisionRequest,
+    request: Request,
+    actor: Actor = Depends(admin_actor),
+    idempotency_key: str = Header(..., alias="Idempotency-Key"),
+):
+    store = request.app.state.idempotency_store_factory(f"admin:claim:{claim_id}")
+    body_data = body.model_dump(mode="json")
+    replay = await replay_or_none(store, idempotency_key, body_data)
+    if replay is not None:
+        return replay.response_body
+    result = await request.app.state.admin_service.decide_claim(
         claim_id, body.decision, body.amount_to_refund, actor.subject, body.reason
     )
+    response_body = jsonable_encoder(result)
+    await store.save(IdempotencyRecord(idempotency_key, request_hash(body_data), 200, response_body))
+    return response_body

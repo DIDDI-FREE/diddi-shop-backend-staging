@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 
 from app_base.core.errors import DiddiShopError
 from app_base.core.lifespan import lifespan
@@ -49,5 +50,18 @@ async def health():
 
 
 @app.get("/ready", tags=["health"])
-async def ready():
-    return {"service": "diddishop", "status": "ready", "dependencies": "skeleton"}
+async def ready(request: Request):
+    dependencies = {"postgres": "unknown", "redis": "unknown"}
+    try:
+        async with request.app.state.db_engine.connect() as connection:
+            await connection.execute(text("SELECT 1"))
+        dependencies["postgres"] = "ok"
+    except Exception:
+        dependencies["postgres"] = "error"
+    try:
+        await request.app.state.redis.ping()
+        dependencies["redis"] = "ok"
+    except Exception:
+        dependencies["redis"] = "error"
+    status = "ready" if all(value == "ok" for value in dependencies.values()) else "not_ready"
+    return {"service": "diddishop", "status": status, "dependencies": dependencies}

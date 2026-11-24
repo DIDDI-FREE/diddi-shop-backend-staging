@@ -14,7 +14,8 @@ from app_base.core.business_repositories import (
     SqlShopRepository,
 )
 from app_base.core.database import build_engine, build_session_factory
-from app_base.core.durable_stores import SqlInboxStore, SqlOutboxStore
+from app_base.core.durable_stores import SqlIdempotencyStore, SqlInboxStore, SqlOutboxStore
+from app_base.core.idempotency import InMemoryIdempotencyStore
 from app_base.core.integration_registry import build_integrations
 from app_base.core.outbox import OutboxMessage
 from app_base.core.settings import get_settings
@@ -60,9 +61,12 @@ async def lifespan(app: FastAPI):
     if app.state.settings.environment == "development":
         app.state.outbox: list[OutboxMessage] = []
         app.state.processed_events = InMemoryProcessedEvents()
+        app.state.idempotency_store = InMemoryIdempotencyStore()
+        app.state.idempotency_store_factory = lambda _scope: app.state.idempotency_store
     else:
         app.state.outbox = SqlOutboxStore(app.state.db_session_factory)
         app.state.processed_events = SqlInboxStore(app.state.db_session_factory)
+        app.state.idempotency_store_factory = lambda scope: SqlIdempotencyStore(app.state.db_session_factory, scope)
     if app.state.settings.environment == "development":
         app.state.order_repository = InMemoryOrderRepository()
         app.state.shop_repository = InMemoryShopRepository()
@@ -111,7 +115,9 @@ async def lifespan(app: FastAPI):
     )
     app.state.rewards_service = RewardsService(app.state.integrations.diddirewards)
     app.state.communication_service = CommunicationService(app.state.integrations.diddicomms)
-    app.state.audit_service = AuditService()
+    app.state.audit_service = AuditService(
+        None if app.state.settings.environment == "development" else app.state.db_session_factory
+    )
     app.state.support_context_service = SupportContextService(
         app.state.order_service,
         app.state.delivery_repository,

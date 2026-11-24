@@ -19,6 +19,9 @@ def actor_from_claims(claims: dict[str, Any]) -> Actor:
     if not subject:
         raise HTTPException(status_code=401, detail="JWT subject is required")
     actor_type = "service" if str(subject).startswith("service:") else str(claims.get("actor_type", "user"))
+    roles = set(claims.get("roles", [])) if isinstance(claims.get("roles", []), list) else set()
+    if roles & {"admin", "support", "backoffice"}:
+        actor_type = "admin" if "admin" in roles or "backoffice" in roles else "support"
     raw_scopes = claims.get("scope", claims.get("scp", ""))
     scopes = frozenset(raw_scopes if isinstance(raw_scopes, list) else str(raw_scopes).split())
     return Actor(subject=subject, actor_type=actor_type, scopes=scopes)

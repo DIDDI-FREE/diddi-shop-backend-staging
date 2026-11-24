@@ -21,6 +21,17 @@ class IdempotencyPort:
         raise NotImplementedError
 
 
+class InMemoryIdempotencyStore(IdempotencyPort):
+    def __init__(self):
+        self.records: dict[str, IdempotencyRecord] = {}
+
+    async def get(self, key: str) -> IdempotencyRecord | None:
+        return self.records.get(key)
+
+    async def save(self, record: IdempotencyRecord) -> None:
+        self.records[record.key] = record
+
+
 def request_hash(body: dict) -> str:
     encoded = json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
     return sha256(encoded).hexdigest()

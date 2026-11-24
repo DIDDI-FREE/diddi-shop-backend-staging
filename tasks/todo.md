@@ -98,4 +98,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S5 — activer l’expédition DiddiSend prépayée
 - [x] S6 — activer annulations, retours, claims et finance
 - [x] S7 — brancher Rewards, Comms, Support et Observe
-- [ ] S8 — finaliser Backoffice, staging et recette MVP
+- [x] S8 — finaliser Backoffice, staging et recette MVP
