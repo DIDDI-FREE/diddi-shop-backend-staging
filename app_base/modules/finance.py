@@ -70,7 +70,8 @@ class FinanceService:
         if decision in {ClaimDecision.BUYER, ClaimDecision.PARTIAL}:
             amount = amount_to_refund or order.total_minor
             order.payment_status = PaymentStatus.REFUND_PENDING
-            await self.financial.refund(order.checkout_id, amount, f"shop:refund:{order.id}:claim:{claim.id}")
+            payment_id = order.metadata.get("payment_intent_id", order.checkout_id)
+            await self.financial.refund(payment_id, amount, f"shop:refund:{order.id}:claim:{claim.id}")
         else:
             order.payment_status = PaymentStatus.RELEASE_PENDING
             await self.financial.release(order.id, order.metadata.get("net_seller_minor", order.total_minor), f"shop:release:{order.id}:1")

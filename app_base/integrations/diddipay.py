@@ -16,7 +16,21 @@ class DiddiPayAdapter(ServiceAdapter):
         response = await self.request(
             "POST", f"/payment-intents/{order_id}/refunds",
             headers={"Idempotency-Key": idempotency_key},
-            json={"amount_minor": amount_minor, "reason": "diddishop_order"},
+            json={
+                "amount_minor": amount_minor,
+                "reason": "diddishop_order",
+                "business_reference": f"diddishop:order:{order_id}",
+            },
+        )
+        response.raise_for_status()
+        return response.json()
+
+    async def cancel_payment_intent(self, payment_intent_id: str, idempotency_key: str) -> dict:
+        response = await self.request(
+            "POST",
+            f"/payment-intents/{payment_intent_id}/cancel",
+            headers={"Idempotency-Key": idempotency_key},
+            json={"reason": "order_expired"},
         )
         response.raise_for_status()
         return response.json()

@@ -95,13 +95,14 @@ async def lifespan(app: FastAPI):
         payments=DiddiPayPaymentIntentPort(app.state.integrations.diddipay),
         outbox=app.state.outbox,
     )
+    app.state.order_service = OrderService(app.state.order_repository, app.state.outbox)
     app.state.delivery_service = DeliveryService(
         app.state.delivery_repository,
         app.state.integrations.diddisend,
-        OrderService(app.state.order_repository, app.state.outbox),
+        app.state.order_service,
     )
     app.state.finance_service = FinanceService(
-        OrderService(app.state.order_repository, app.state.outbox),
+        app.state.order_service,
         app.state.claim_repository,
         app.state.integrations.diddipay,
         products=app.state.product_repository,
@@ -111,12 +112,12 @@ async def lifespan(app: FastAPI):
     app.state.communication_service = CommunicationService(app.state.integrations.diddicomms)
     app.state.audit_service = AuditService()
     app.state.support_context_service = SupportContextService(
-        OrderService(app.state.order_repository, app.state.outbox),
+        app.state.order_service,
         app.state.delivery_repository,
         app.state.claim_repository,
     )
     app.state.admin_service = AdminService(
-        OrderService(app.state.order_repository, app.state.outbox),
+        app.state.order_service,
         app.state.claim_repository,
         app.state.finance_service,
         app.state.audit_service,

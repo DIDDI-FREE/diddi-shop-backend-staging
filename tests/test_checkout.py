@@ -39,3 +39,6 @@ async def test_checkout_creates_one_order_per_shop_and_snapshots_price():
     assert checkout.total_minor == 4000
     assert products.items["p1"].stock == 1
     assert products.items["p2"].stock == 1
+    for order_id in checkout.order_ids:
+        order = await service.orders.get(order_id)
+        assert order.metadata["payment_intent_id"] == "pi-" + checkout.id

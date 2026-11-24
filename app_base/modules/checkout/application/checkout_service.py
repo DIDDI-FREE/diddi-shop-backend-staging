@@ -97,6 +97,8 @@ class CheckoutApplicationService:
         checkout = Checkout(checkout_id, customer_id, total, "XAF", [o.id for o in created_orders], payment.get("payment_intent_id"))
         await self.checkouts.save(checkout)
         for order in created_orders:
+            order.metadata["payment_intent_id"] = checkout.payment_intent_id
+            await self.orders.save(order)
             await append_outbox(self.outbox, new_outbox_message(
                 "order.created", "order", order.id,
                 {"order_id": order.id, "checkout_id": checkout.id, "shop_id": order.shop_id, "total_minor": order.total_minor, "currency": order.currency},
