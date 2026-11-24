@@ -4,6 +4,9 @@
 **Date de démarrage :** 2026-11-24  
 **Statut courant :** PHASE 0 terminée, boucle autonome prête à démarrer
 
+> Le dépôt local est initialisé et le commit initial existe. Le push est en
+> attente car GitHub répond `Repository not found` sur le remote fourni.
+
 ## PHASE 0 — préparation
 
 - [x] P0-A — inventaire du dépôt, plan et commandes de vérification
@@ -11,12 +14,16 @@
 - [x] P0-C — extraction des décisions existantes
 - [x] P0-D — questions bloquantes documentées
 
+## BLOCAGE OPÉRATIONNEL
+
+- [ ] Push du commit initial vers GitHub — EN ATTENTE : remote fourni introuvable
+
 ## PHASE 1 — fondations techniques
 
-- [ ] P1-A — configuration, environnement et gestion d’erreurs
-- [ ] P1-B — PostgreSQL, transactions et migrations réversibles
-- [ ] P1-C — outbox, inbox, idempotence et workers
-- [ ] P1-D — request/correlation/trace context et observabilité de base
+- [x] P1-A — configuration, environnement et gestion d’erreurs
+- [x] P1-B — PostgreSQL, transactions et migrations réversibles
+- [x] P1-C — outbox, inbox, idempotence et workers
+- [x] P1-D — request/correlation/trace context et observabilité de base
 
 ## PHASE 2 — identité et intégrations
 

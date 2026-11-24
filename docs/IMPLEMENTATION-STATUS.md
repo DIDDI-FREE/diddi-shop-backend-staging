@@ -1,8 +1,8 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-24  
-**Phase courante :** PHASE 0 — préparation terminée  
-**Statut :** décisions utilisateur intégrées ; démarrage de la boucle autonome
+**Phase courante :** PHASE 2 — identité et intégrations  
+**Statut :** PHASE 1 fondations terminée localement ; exécution autonome en cours
 
 ## État global
 
@@ -43,6 +43,12 @@ et adaptateurs actuels constituent un socle de contrats et certains stubs.
 3. DiddiFiles : URL signée ou publique pour `diddishop_product_image`.
 4. DiddiFreeID : clients et scopes S2S DiddiShop.
 5. Git : dépôt local à initialiser et remote fourni par l’utilisateur.
+
+## Blocage opérationnel
+
+- Commit local initial créé : `c3216c0`.
+- `git push -u origin main` échoue : `Repository not found` pour le remote
+  fourni. Aucun second remote n’a été inventé et aucun push forcé ne sera tenté.
 
 ## Réponses intégrées
 
