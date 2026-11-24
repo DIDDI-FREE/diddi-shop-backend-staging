@@ -1,13 +1,35 @@
 from app_base.integrations.base import ServiceAdapter
-from app_base.shared_kernel.contracts.delivery import DeliveryCommand
+from app_base.core.request_context import get_request_context
+from app_base.shared_kernel.contracts.delivery import DeliveryCommand, DeliveryRequest
 
 
 class DiddiSendAdapter(ServiceAdapter):
     async def create_delivery(self, command: DeliveryCommand, payload: dict) -> dict:
+        request = DeliveryRequest(
+            order_reference=payload["order_reference"],
+            idempotency_key=command.idempotency_key,
+            sender_user_id=payload.get("sender_user_id", "diddishop-system"),
+            customer_user_id=payload["customer_user_id"],
+            recipient_name=payload["recipient_name"],
+            recipient_phone=payload["recipient_phone"],
+            sender_phone=payload.get("sender_phone"),
+            pickup_location=payload["pickup_location"],
+            pickup_address=payload["pickup_address"],
+            dropoff_location=payload["dropoff_location"],
+            dropoff_address=payload["dropoff_address"],
+            package=payload["package"],
+            ready_at=payload.get("ready_at"),
+            quoted_price=str(payload["quoted_price"]),
+            financial_breakdown=payload.get("financial_breakdown"),
+        )
+        context = get_request_context()
+        headers = {"Idempotency-Key": command.idempotency_key}
+        if context:
+            headers["X-Request-ID"] = context.request_id
         response = await self.request(
             "POST", "/v1/deliveries",
-            headers={"Idempotency-Key": command.idempotency_key},
-            json={**payload, "origin_service": command.origin_service, "prepaid_by_origin": command.prepaid_by_origin},
+            headers=headers,
+            json=request.model_dump(),
         )
         response.raise_for_status()
         return response.json()

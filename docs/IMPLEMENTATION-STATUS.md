@@ -1,8 +1,8 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-24  
-**Phase courante :** PHASE 2 — identité et intégrations  
-**Statut :** PHASE 1 fondations terminée localement ; exécution autonome en cours
+**Phase courante :** PHASE 3 — boutiques, catalogue et stock  
+**Statut :** PHASES 1 et 2 terminées localement ; exécution autonome en cours
 
 ## État global
 

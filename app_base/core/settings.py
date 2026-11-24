@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     service_tokens: dict[str, str] = {}
     service_keys: dict[str, str] = {}
     jwt_audience: str = "diddishop"
+    diddifreeid_issuer: str = ""
+    diddifreeid_jwks_url: str = ""
     order_seller_confirmation_hours: int = 24
     claim_window_hours: int = 72
     seller_release_delay_hours: int = 72

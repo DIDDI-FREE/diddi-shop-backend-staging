@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from app_base.core.settings import Settings
+from app_base.integrations.auth import ServiceCredential
 from app_base.integrations.diddicomms import DiddiCommsAdapter
 from app_base.integrations.diddifiles import DiddiFilesAdapter
 from app_base.integrations.diddifreeid import DiddiFreeIDAdapter
@@ -29,14 +30,21 @@ class IntegrationRegistry:
 
 def build_integrations(settings: Settings) -> IntegrationRegistry:
     timeout = settings.internal_request_timeout_seconds
+    def credential(service: str) -> ServiceCredential:
+        return ServiceCredential(
+            service=service,
+            client_id=settings.service_client_id,
+            access_token=settings.service_tokens.get(service),
+            service_key=settings.service_keys.get(service),
+        )
     return IntegrationRegistry(
-        diddifreeid=DiddiFreeIDAdapter(base_url=settings.diddifreeid_base_url, audience="diddifreeid", timeout=timeout),
-        diddipay=DiddiPayAdapter(base_url=settings.diddipay_base_url, audience="diddipay", timeout=timeout),
-        diddisend=DiddiSendAdapter(base_url=settings.diddisend_base_url, audience="diddisend", timeout=timeout),
-        diddimap=DiddiMapAdapter(base_url=settings.diddimap_base_url, audience="diddimap", timeout=timeout),
-        diddifiles=DiddiFilesAdapter(base_url=settings.diddifiles_base_url, audience="diddifiles", timeout=timeout),
-        diddirewards=DiddiRewardsAdapter(base_url=settings.diddirewards_base_url, audience="diddirewards", timeout=timeout),
-        diddicomms=DiddiCommsAdapter(base_url=settings.diddicomms_base_url, audience="diddicomms", timeout=timeout),
-        diddisupport=DiddiSupportAdapter(base_url=settings.diddisupport_base_url, audience="diddisupport", timeout=timeout),
-        diddiobserve=DiddiObserveAdapter(base_url=settings.diddiobserve_base_url, audience="diddiobserve", timeout=timeout),
+        diddifreeid=DiddiFreeIDAdapter(base_url=settings.diddifreeid_base_url, audience="diddifreeid", timeout=timeout, credential=credential("diddifreeid")),
+        diddipay=DiddiPayAdapter(base_url=settings.diddipay_base_url, audience="diddipay", timeout=timeout, credential=credential("diddipay")),
+        diddisend=DiddiSendAdapter(base_url=settings.diddisend_base_url, audience="diddisend", timeout=timeout, credential=credential("diddisend")),
+        diddimap=DiddiMapAdapter(base_url=settings.diddimap_base_url, audience="diddimap", timeout=timeout, credential=credential("diddimap")),
+        diddifiles=DiddiFilesAdapter(base_url=settings.diddifiles_base_url, audience="diddifiles", timeout=timeout, credential=credential("diddifiles")),
+        diddirewards=DiddiRewardsAdapter(base_url=settings.diddirewards_base_url, audience="diddirewards", timeout=timeout, credential=credential("diddirewards")),
+        diddicomms=DiddiCommsAdapter(base_url=settings.diddicomms_base_url, audience="diddicomms", timeout=timeout, credential=credential("diddicomms")),
+        diddisupport=DiddiSupportAdapter(base_url=settings.diddisupport_base_url, audience="diddisupport", timeout=timeout, credential=credential("diddisupport")),
+        diddiobserve=DiddiObserveAdapter(base_url=settings.diddiobserve_base_url, audience="diddiobserve", timeout=timeout, credential=credential("diddiobserve")),
     )

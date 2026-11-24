@@ -27,10 +27,10 @@
 
 ## PHASE 2 — identité et intégrations
 
-- [ ] P2-A — identité utilisateur et S2S DiddiFreeID
-- [ ] P2-B — ports et adaptateurs DiddiPay/DiddiSend/DiddiFiles
-- [ ] P2-C — ports et adaptateurs DiddiRewards/DiddiComms/DiddiSupport/DiddiObserve
-- [ ] P2-D — tests contractuels et normalisation des erreurs externes
+- [x] P2-A — identité utilisateur et S2S DiddiFreeID
+- [x] P2-B — ports et adaptateurs DiddiPay/DiddiSend/DiddiFiles
+- [x] P2-C — ports et adaptateurs DiddiRewards/DiddiComms/DiddiSupport/DiddiObserve
+- [x] P2-D — tests contractuels et normalisation des erreurs externes
 
 ## PHASE 3 — boutiques, catalogue et stock
 
