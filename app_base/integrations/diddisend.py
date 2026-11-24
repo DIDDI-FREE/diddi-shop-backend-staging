@@ -31,6 +31,9 @@ class DiddiSendAdapter(ServiceAdapter):
         return int(data.get("quoted_price", data.get("amount_minor", data.get("delivery_fee", data.get("quote", 0)))))
 
     async def create_delivery(self, command: DeliveryCommand, payload: dict) -> dict:
+        financial_breakdown = payload.get("financial_breakdown")
+        if financial_breakdown and financial_breakdown.get("currency") not in (None, "XOF"):
+            raise ValueError("DiddiSend financial breakdown must use XOF")
         request = DeliveryRequest(
             order_reference=payload["order_reference"],
             idempotency_key=command.idempotency_key,
@@ -49,7 +52,7 @@ class DiddiSendAdapter(ServiceAdapter):
             package=payload["package"],
             ready_at=payload.get("ready_at"),
             quoted_price=str(payload["quoted_price"]),
-            financial_breakdown=payload.get("financial_breakdown"),
+            financial_breakdown=financial_breakdown,
         )
         context = get_request_context()
         headers = {"Idempotency-Key": command.idempotency_key}

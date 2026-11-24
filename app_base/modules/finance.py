@@ -4,6 +4,7 @@ from uuid import uuid4
 from app_base.core.errors import ConflictError
 from app_base.modules.claims.domain import Claim, ClaimDecision, ClaimStatus
 from app_base.modules.orders.domain.entities import FulfillmentStatus, Order, PaymentStatus
+from app_base.modules.rewards.application import RewardsService
 
 
 class FinancialPort:
@@ -23,6 +24,7 @@ class FinanceService:
         products=None,
         delivery=None,
         seller_release_enabled: bool = False,
+        rewards: RewardsService | None = None,
     ):
         self.orders = orders
         self.claims = claims
@@ -30,6 +32,7 @@ class FinanceService:
         self.products = products
         self.delivery = delivery
         self.seller_release_enabled = seller_release_enabled
+        self.rewards = rewards
 
     async def cancel(self, order_id: str, reason: str) -> Order:
         order = await self.orders.get(order_id)
@@ -37,6 +40,10 @@ class FinanceService:
             return order
         if order.fulfillment_status in {FulfillmentStatus.PICKED_UP, FulfillmentStatus.IN_TRANSIT, FulfillmentStatus.DELIVERED}:
             raise ConflictError("order cannot be cancelled after pickup")
+        if order.payment_status == PaymentStatus.PENDING and self.rewards and order.metadata.get("rewards"):
+            reward = self.rewards.from_metadata(order.metadata["rewards"])
+            if not reward.consumption_id:
+                await self.rewards.release(reward)
         order.transition(FulfillmentStatus.CANCELLED, reason=reason, actor="buyer")
         order.payment_status = PaymentStatus.REFUND_PENDING
         if self.products:

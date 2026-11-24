@@ -3,6 +3,7 @@ from enum import StrEnum
 from typing import Any
 
 from app_base.core.errors import InvalidTransitionError
+from app_base.shared_kernel.currency import require_xof
 
 
 class FulfillmentStatus(StrEnum):
@@ -53,12 +54,15 @@ class Order:
     shop_id: str
     checkout_id: str
     total_minor: int
-    currency: str = "XAF"
+    currency: str = "XOF"
     fulfillment_status: FulfillmentStatus = FulfillmentStatus.PAYMENT_PENDING
     payment_status: PaymentStatus = PaymentStatus.PENDING
     delivery_id: str | None = None
     version: int = 0
     metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        require_xof(self.currency)
 
     def transition(self, target: FulfillmentStatus, *, reason: str, actor: str) -> dict[str, Any]:
         if target not in ALLOWED_TRANSITIONS.get(self.fulfillment_status, set()):

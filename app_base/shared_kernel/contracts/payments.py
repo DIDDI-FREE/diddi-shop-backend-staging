@@ -7,7 +7,7 @@ class PaymentIntentCommand(BaseModel):
     checkout_id: str
     business_reference: str
     amount_minor: int
-    currency: str = "XAF"
+    currency: Literal["XOF"] = "XOF"
     idempotency_key: str
 
 
@@ -16,4 +16,4 @@ class PaymentStatus(BaseModel):
     business_reference: str
     status: Literal["pending", "succeeded", "failed", "refunded", "partially_refunded"]
     amount_minor: int
-    currency: str
+    currency: Literal["XOF"]

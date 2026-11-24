@@ -78,7 +78,7 @@
 
 - [ ] Provisionner PostgreSQL et Redis dans l’environnement cible.
 - [ ] Provisionner les clients/scopes DiddiFreeID pour DiddiShop.
-- [ ] Valider le contrat DiddiSend prépayé et sa ventilation XAF.
+- [ ] Valider le contrat DiddiSend prépayé et sa ventilation XOF.
 - [ ] Valider la visibilité des images `diddishop_product_image` dans DiddiFiles.
 - [ ] Configurer les URLs S2S et certificats/secrets hors dépôt.
 - [ ] Exécuter migrations et tests d’intégration contre les services de staging.
@@ -102,3 +102,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S8 — finaliser Backoffice, staging et recette MVP
 - [x] S9 — activer les tokens DiddiFreeID `client_credentials` par service cible
 - [x] S10 — corriger DiddiComms : conversation métier sans notification événementielle
+- [x] S11 — aligner DiddiRewards et imposer XOF exclusivement

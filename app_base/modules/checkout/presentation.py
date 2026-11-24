@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from pydantic import BaseModel
 
 
@@ -9,3 +11,4 @@ class CreateCheckoutRequest(BaseModel):
     dropoff_address: str | None = None
     dropoff_latitude: float | None = None
     dropoff_longitude: float | None = None
+    rewards_campaign_id: UUID | None = None

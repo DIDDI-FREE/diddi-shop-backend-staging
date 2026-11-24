@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Protocol
 
+from app_base.shared_kernel.currency import require_xof
+
 
 class ProductStatus(StrEnum):
     DRAFT = "draft"
@@ -22,6 +24,9 @@ class Product:
     category: str
     photo_file_ids: list[str]
     status: ProductStatus = ProductStatus.DRAFT
+
+    def __post_init__(self) -> None:
+        require_xof(self.currency)
 
 
 class ProductRepository(Protocol):

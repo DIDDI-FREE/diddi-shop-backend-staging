@@ -26,7 +26,7 @@ class CatalogService:
                     raise ConflictError("file purpose is not a DiddiShop product image")
                 if metadata.get("status") not in {None, "confirmed", "ready", "available"}:
                     raise ConflictError("product image is not confirmed")
-        product = Product(str(uuid4()), shop_id, title, description, price_minor, "XAF", stock, category, photo_file_ids)
+        product = Product(str(uuid4()), shop_id, title, description, price_minor, "XOF", stock, category, photo_file_ids)
         await self.repository.save(product)
         return product
 

@@ -83,7 +83,7 @@ async def test_cancel_restores_stock_and_cancels_delivery_before_refund():
     order.metadata["lines"] = [{"product_id": "p1", "quantity": 1}]
     await repo.create(order)
     products = InMemoryProductRepository()
-    await products.save(Product("p1", "s1", "Item", "", 1000, "XAF", 0, "x", [], ProductStatus.PUBLISHED))
+    await products.save(Product("p1", "s1", "Item", "", 1000, "XOF", 0, "x", [], ProductStatus.PUBLISHED))
     financial = Financial()
     delivery = Delivery()
     service = FinanceService(OrderService(repo, []), InMemoryClaimRepository(), financial, products, delivery)

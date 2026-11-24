@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class DeliveryQuote(BaseModel):
     amount_minor: int
-    currency: str = "XAF"
+    currency: Literal["XOF"] = "XOF"
     expires_at: str | None = None
     provider_reference: str
 

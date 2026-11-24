@@ -177,7 +177,7 @@ Obligations :
 - `correlation_id` relie les événements d'un même checkout ;
 - `causation_id` relie un événement à l'action qui l'a déclenché ;
 - aucun secret, token, adresse complète ou donnée de carte bancaire n'est publié ;
-- les montants sont toujours des entiers CFA et portent leur devise (`XAF`) dans le contrat métier si le bus est multi-devises.
+- les montants sont toujours des entiers en XOF dans le contrat métier ; aucune conversion de devise n'est autorisée.
 
 ### 4.2 Événements publiés par DiddiShop
 
@@ -316,4 +316,3 @@ Le MVP est considéré techniquement prêt lorsque les scénarios suivants sont 
 - réclamation ouverte juste avant la demande de libération ;
 - retry après timeout de l'appel remboursement ou libération ;
 - panne du worker outbox puis reprise sans événement perdu ni doublé.
-

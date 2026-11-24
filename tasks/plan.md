@@ -128,7 +128,7 @@ absence de secret dans les logs.
 - implémenter upload/confirmation et URL signée via DiddiFiles ;
 - confirmer le purpose `diddishop_product_image` ;
 - implémenter boutiques, membres, suspension et permissions vendeur ;
-- implémenter produits, catégories, prix XAF, publication et stock ;
+- implémenter produits, catégories, prix XOF, publication et stock ;
 - ne conserver dans DiddiShop que les références et snapshots nécessaires ;
 - décrémenter et restituer le stock de façon atomique et idempotente.
 

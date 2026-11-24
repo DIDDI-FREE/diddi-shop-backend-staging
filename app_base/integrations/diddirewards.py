@@ -3,25 +3,41 @@ from app_base.shared_kernel.contracts.rewards import RewardQuote, RewardReservat
 
 
 class DiddiRewardsAdapter(ServiceAdapter):
+    _shop_prefix = "/internal/v1/rewards/integrations/diddishop"
+
     async def quote(self, payload: dict) -> RewardQuote:
-        response = await self.request("POST", "/internal/v1/rewards/benefits/quote", json=payload)
+        response = await self.request("POST", f"{self._shop_prefix}/benefits/quote", json=payload)
         response.raise_for_status()
         return RewardQuote.model_validate(response.json())
 
-    async def reserve(self, payload: dict) -> RewardReservation:
-        response = await self.request("POST", "/internal/v1/rewards/benefits/reservations", json=payload)
+    async def reserve(self, payload: dict, idempotency_key: str) -> RewardReservation:
+        response = await self.request(
+            "POST",
+            f"{self._shop_prefix}/benefits/reserve",
+            headers={"Idempotency-Key": idempotency_key},
+            json=payload,
+        )
         response.raise_for_status()
         return RewardReservation.model_validate(response.json())
 
-    async def consume(self, payload: dict) -> dict:
-        response = await self.request("POST", "/internal/v1/rewards/benefits/consumptions", json=payload)
+    async def confirm(self, payload: dict, idempotency_key: str) -> dict:
+        response = await self.request(
+            "POST",
+            f"{self._shop_prefix}/benefits/confirm",
+            headers={"Idempotency-Key": idempotency_key},
+            json=payload,
+        )
         response.raise_for_status()
         return response.json()
+
+    async def consume(self, payload: dict, idempotency_key: str) -> dict:
+        """Compatibility alias for the Rewards 'confirm' operation."""
+        return await self.confirm(payload, idempotency_key)
 
     async def release(self, reservation_id: str, idempotency_key: str) -> dict:
         response = await self.request(
             "POST",
-            f"/internal/v1/rewards/benefits/reservations/{reservation_id}/release",
+            f"{self._shop_prefix}/benefits/reservations/{reservation_id}/release",
             headers={"Idempotency-Key": idempotency_key},
         )
         response.raise_for_status()
@@ -30,7 +46,7 @@ class DiddiRewardsAdapter(ServiceAdapter):
     async def correct(self, payload: dict, idempotency_key: str) -> dict:
         response = await self.request(
             "POST",
-            "/internal/v1/rewards/benefits/corrections",
+            f"{self._shop_prefix}/benefits/correct",
             headers={"Idempotency-Key": idempotency_key},
             json=payload,
         )

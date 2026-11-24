@@ -150,7 +150,7 @@ sera traité dans le périmètre V2.
 À implémenter :
 
 - `shops` : création, mise à jour, suspension, adresse de retrait ;
-- `catalog` : produit, catégorie, prix XAF, statut de publication ;
+- `catalog` : produit, catégorie, prix XOF, statut de publication ;
 - références `file_id` et validation du purpose via DiddiFiles ;
 - lecture publique du catalogue ;
 - stock disponible et décrément atomique ;

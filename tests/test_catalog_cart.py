@@ -28,7 +28,7 @@ async def test_product_publication_and_cart_grouping():
 async def test_stock_decrement_and_restore_are_idempotent():
     repo = InMemoryProductRepository()
     from app_base.modules.catalog.domain import Product, ProductStatus
-    product = Product("p1", "s1", "Item", "", 100, "XAF", 1, "misc", [], ProductStatus.PUBLISHED)
+    product = Product("p1", "s1", "Item", "", 100, "XOF", 1, "misc", [], ProductStatus.PUBLISHED)
     await repo.save(product)
     await repo.apply_stock("p1", -1, "checkout:1:p1")
     await repo.apply_stock("p1", -1, "checkout:1:p1")

@@ -1,17 +1,3 @@
-from dataclasses import dataclass
+from app_base.shared_kernel.contracts.rewards import CampaignSnapshot, RewardReservation
 
-
-@dataclass(frozen=True)
-class CampaignSnapshot:
-    campaign_id: str
-    campaign_version: int
-    benefit_id: str
-    discount_minor: int
-    currency: str = "XAF"
-
-
-@dataclass
-class RewardReservation:
-    reservation_id: str
-    operation_id: str
-    snapshot: CampaignSnapshot
+__all__ = ["CampaignSnapshot", "RewardReservation"]

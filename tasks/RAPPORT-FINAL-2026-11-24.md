@@ -40,8 +40,7 @@ aaf37f3 feat(s2s): add per-service client credentials tokens
 
 - PostgreSQL et Redis réels, migrations et workers staging ;
 - credentials/scopes S2S DiddiFreeID ;
-- contrat DiddiSend pour prépaiement et ventilation XAF, le schéma observé
-  étant Food/XOF ;
+- contrat DiddiSend pour prépaiement et ventilation XOF ;
 - visibilité des images DiddiFiles ;
 - enveloppes finales Comms/Support ;
 - rétablissement et validation de DiddiObserve, observé en `502` ;

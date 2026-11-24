@@ -20,11 +20,11 @@ class MemoryIdempotency:
 @pytest.mark.asyncio
 async def test_idempotency_replays_same_body_and_rejects_conflict():
     store = MemoryIdempotency()
-    body = {"amount": 1200, "currency": "XAF"}
+    body = {"amount": 1200, "currency": "XOF"}
     await store.save(IdempotencyRecord("checkout-1", request_hash(body), 201, {"ok": True}))
     assert (await replay_or_none(store, "checkout-1", body)).response_body == {"ok": True}
     with pytest.raises(ConflictError):
-        await replay_or_none(store, "checkout-1", {"amount": 999, "currency": "XAF"})
+        await replay_or_none(store, "checkout-1", {"amount": 999, "currency": "XOF"})
 
 
 def test_service_scopes_are_isolated_and_headers_are_explicit():

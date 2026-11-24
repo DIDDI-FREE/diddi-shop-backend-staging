@@ -17,7 +17,17 @@ class CheckoutService:
 
     async def validate(self, cart_id: str, customer_id: str, idempotency_key: str) -> dict:
         priced = await self.pricing.price(cart_id, customer_id)
-        reward = await self.rewards.quote_and_reserve(priced, f"checkout:{cart_id}") if self.rewards else None
+        campaign_id = priced.get("rewards_campaign_id")
+        reward = (
+            await self.rewards.quote_and_reserve(
+                customer_id,
+                campaign_id,
+                int(priced["total_minor"]),
+                f"diddishop:benefit-reservation:{cart_id}:1",
+            )
+            if self.rewards and campaign_id
+            else None
+        )
         payment = await self.payment.create_payment({"pricing": priced, "reward": reward}, idempotency_key)
         checkout_id = payment["checkout_id"]
         await append_outbox(self.outbox, new_outbox_message(

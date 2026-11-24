@@ -14,7 +14,7 @@ async def test_sql_product_stock_operation_is_idempotent_and_persists():
         await connection.run_sync(Base.metadata.create_all)
     factory = async_sessionmaker(engine, expire_on_commit=False)
     products = SqlProductRepository(factory)
-    product = Product("product-1", "shop-1", "Item", "Description", 1000, "XAF", 2, "cat", [], ProductStatus.PUBLISHED)
+    product = Product("product-1", "shop-1", "Item", "Description", 1000, "XOF", 2, "cat", [], ProductStatus.PUBLISHED)
     await products.save(product)
     await products.apply_stock(product.id, -1, "checkout-1")
     await products.apply_stock(product.id, -1, "checkout-1")

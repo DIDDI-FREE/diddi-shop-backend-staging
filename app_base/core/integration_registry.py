@@ -34,7 +34,9 @@ def build_integrations(settings: Settings) -> IntegrationRegistry:
     )
 
     def credential(service: str) -> ServiceCredential:
-        client_id = settings.service_client_ids.get(service, "").strip() or settings.service_client_id
+        # Every target has its own DiddiFreeID client. Do not fall back to a
+        # shared service_client_id: that would silently widen S2S authority.
+        client_id = settings.service_client_ids.get(service, "").strip()
         client_secret = settings.service_client_secrets.get(service, "").strip()
         provider = None
         if client_secret:

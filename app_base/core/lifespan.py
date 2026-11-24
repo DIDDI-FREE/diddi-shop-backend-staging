@@ -90,6 +90,7 @@ async def lifespan(app: FastAPI):
         app.state.integrations.diddifiles,
     )
     app.state.cart_service = CartService(app.state.cart_repository, app.state.product_repository)
+    app.state.rewards_service = RewardsService(app.state.integrations.diddirewards)
     app.state.checkout_service = CheckoutApplicationService(
         carts=app.state.cart_repository,
         products=app.state.product_repository,
@@ -99,8 +100,9 @@ async def lifespan(app: FastAPI):
         payments=DiddiPayPaymentIntentPort(app.state.integrations.diddipay),
         outbox=app.state.outbox,
         shops=app.state.shop_repository,
+        rewards=app.state.rewards_service,
     )
-    app.state.order_service = OrderService(app.state.order_repository, app.state.outbox)
+    app.state.order_service = OrderService(app.state.order_repository, app.state.outbox, app.state.rewards_service)
     app.state.delivery_service = DeliveryService(
         app.state.delivery_repository,
         app.state.integrations.diddisend,
@@ -114,8 +116,8 @@ async def lifespan(app: FastAPI):
         products=app.state.product_repository,
         delivery=app.state.integrations.diddisend,
         seller_release_enabled=app.state.settings.seller_release_enabled,
+        rewards=app.state.rewards_service,
     )
-    app.state.rewards_service = RewardsService(app.state.integrations.diddirewards)
     app.state.communication_service = CommunicationService(app.state.integrations.diddicomms)
     app.state.audit_service = AuditService(
         None if app.state.settings.environment == "development" else app.state.db_session_factory

@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from app_base.shared_kernel.currency import require_xof
+
 
 class CheckoutStatus(StrEnum):
     PAYMENT_PENDING = "payment_pending"
@@ -17,6 +19,9 @@ class Checkout:
     order_ids: list[str] = field(default_factory=list)
     payment_intent_id: str | None = None
     status: CheckoutStatus = CheckoutStatus.PAYMENT_PENDING
+
+    def __post_init__(self) -> None:
+        require_xof(self.currency)
 
 
 class CheckoutRepository:

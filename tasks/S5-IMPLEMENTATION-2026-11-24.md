@@ -18,5 +18,5 @@
 ## Déploiement en attente
 
 - Confirmer le contrat DiddiSend pour `prepaid_by_origin` et le breakdown
-  financier DiddiShop/XAF.
+  financier DiddiShop/XOF.
 - Tester quote/create/cancel avec un credential S2S staging.

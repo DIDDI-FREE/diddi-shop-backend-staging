@@ -10,4 +10,10 @@ class CheckoutPaymentPort(Protocol):
 
 
 class CheckoutRewardsPort(Protocol):
-    async def quote_and_reserve(self, checkout: dict, operation_id: str) -> dict: ...
+    async def quote_and_reserve(
+        self,
+        customer_id: str,
+        campaign_id: str,
+        amount_initial_minor: int,
+        operation_id: str,
+    ) -> dict: ...

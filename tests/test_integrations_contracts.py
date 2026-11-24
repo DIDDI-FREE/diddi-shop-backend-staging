@@ -16,13 +16,13 @@ def test_diddisend_request_matches_food_style_contract():
         dropoff_address="Buyer dropoff",
         package={"label": "DiddiShop order", "category": "physical_goods"},
         quoted_price="1500",
-        financial_breakdown={"version": "1", "currency": "XAF", "delivery_fee": "1500"},
+        financial_breakdown={"version": "1", "currency": "XOF", "delivery_fee": "1500"},
     )
     payload = request.model_dump()
     assert payload["origin_module"] == "diddishop"
     assert payload["order_reference"] == "shop-order:ord-1"
     assert payload["prepaid_by_origin"] is True
-    assert payload["financial_breakdown"]["currency"] == "XAF"
+    assert payload["financial_breakdown"]["currency"] == "XOF"
 
 
 def test_diddisend_adapter_exposes_only_delivery_boundary():

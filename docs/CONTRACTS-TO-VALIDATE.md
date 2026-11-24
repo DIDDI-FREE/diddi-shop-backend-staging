@@ -14,7 +14,7 @@ package, `quoted_price`, `financial_breakdown`, `payment_method=diddipay` et
 checkout déjà payé par DiddiShop.
 
 Le schéma staging observé expose encore une ventilation financière Food en XOF.
-À confirmer pour DiddiShop : ventilation XAF, `prepaid_by_origin=true` et
+À confirmer pour DiddiShop : ventilation XOF, `prepaid_by_origin=true` et
 événements signés de suivi.
 
 ## DiddiPay
@@ -42,6 +42,25 @@ distinct par cible, un token court mis en cache jusqu’à expiration et le head
 
 Provisionner un client DiddiShop distinct pour chaque service appelé, avec ses
 scopes dédiés. Les secrets ne doivent jamais être committés.
+
+## DiddiRewards
+
+Base staging vérifiée : `https://diddi-rewards-staging.diddifree.com`.
+DiddiShop utilise les routes dédiées `/internal/v1/rewards/integrations/diddishop`
+pour `quote`, `reserve`, `confirm`, `release` et `correct`. Les montants sont
+exclusivement en XOF. `reserve`, `confirm`, `release` et `correct` portent une
+clé `Idempotency-Key` stable.
+
+À provisionner et vérifier : client S2S Shop, scopes `quote`, `reserve`,
+`consume` et `correct`, campagne publiée et budget doté, expiration de
+réservation par défaut de 30 minutes, ainsi que la ventilation
+`professional_payout_minor` en V1. Le scope `diddirewards:benefits:release`
+est réservé à la route release dédiée DiddiGo et n'est pas ajouté au client
+Shop sans changement explicite du contrat Rewards.
+
+DiddiShop ne choisit pas automatiquement une campagne « pour tous » : le
+checkout reçoit un `rewards_campaign_id` explicite. L'attribution automatique
+et le moteur de campagne restent la propriété de DiddiRewards.
 
 ## DiddiComms
 

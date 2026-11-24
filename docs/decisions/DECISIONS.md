@@ -175,6 +175,16 @@ nouvelle décision la remplacera explicitement si nécessaire.
 - Source : équipe DiddiComms / OpenAPI staging
 - Impact : intégration DiddiComms, module communication, scopes S2S à confirmer, documentation des événements.
 
+### D-020 — Devise unique XOF pour DiddiFree
+- Date : 2026-11-24
+- Phase / sous-lot : S11-A — alignement DiddiRewards
+- Décision : tous les montants et contrats financiers DiddiShop utilisent exclusivement XOF. Aucune conversion XAF/XOF ne doit être ajoutée, même si une ancienne documentation ou une instruction ultérieure mentionne XAF.
+- Pourquoi : DiddiRewards et les contrats interservices DiddiFree sont exprimés en XOF ; une conversion implicite créerait une incohérence financière non traçable.
+- Alternatives écartées : conserver XAF côté Shop ; convertir automatiquement entre XAF et XOF ; accepter une devise variable par intégration.
+- Source : Utilisateur
+- Impact : catalogue, checkout, commandes, DiddiPay, DiddiSend, DiddiRewards, tests et documentation.
+- Remplace : D-005 pour la devise.
+
 ## Décisions agent à valider
 
 Aucune nouvelle décision agent n’est prise avant réponse aux questions de
