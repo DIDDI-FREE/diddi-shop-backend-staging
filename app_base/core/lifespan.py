@@ -24,6 +24,10 @@ from app_base.modules.webhooks import router as webhooks_router
 from app_base.workers.in_memory_inbox import InMemoryProcessedEvents
 from app_base.modules.claims.infra import InMemoryClaimRepository
 from app_base.modules.finance import FinanceService
+from app_base.modules.audit.application import AuditService
+from app_base.modules.comms.application import CommunicationService
+from app_base.modules.rewards.application import RewardsService
+from app_base.modules.support.application import SupportContextService
 
 
 @asynccontextmanager
@@ -64,6 +68,14 @@ async def lifespan(app: FastAPI):
         app.state.integrations.diddipay,
         products=app.state.product_repository,
         delivery=app.state.integrations.diddisend,
+    )
+    app.state.rewards_service = RewardsService(app.state.integrations.diddirewards)
+    app.state.communication_service = CommunicationService(app.state.integrations.diddicomms)
+    app.state.audit_service = AuditService()
+    app.state.support_context_service = SupportContextService(
+        OrderService(app.state.order_repository, app.state.outbox),
+        app.state.delivery_repository,
+        app.state.claim_repository,
     )
     app.state.outbox: list[OutboxMessage] = []
     try:

@@ -61,10 +61,10 @@
 
 ## PHASE 7 — Rewards, communication, support et observabilité
 
-- [ ] P7-A — projection campagnes et bénéfices DiddiRewards
-- [ ] P7-B — notifications DiddiComms et retries
-- [ ] P7-C — contexte et cas DiddiSupport
-- [ ] P7-D — métriques, traces, alertes et audit
+- [x] P7-A — projection campagnes et bénéfices DiddiRewards
+- [x] P7-B — notifications DiddiComms et retries
+- [x] P7-C — contexte et cas DiddiSupport
+- [x] P7-D — métriques, traces, alertes et audit
 
 ## PHASE 8 — DiddiBackoffice et recette
 

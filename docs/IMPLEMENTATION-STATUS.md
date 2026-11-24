@@ -1,8 +1,8 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-24  
-**Phase courante :** PHASE 7 — Rewards, communication, support et observabilité  
-**Statut :** PHASES 1 à 6 terminées localement ; exécution autonome en cours
+**Phase courante :** PHASE 8 — DiddiBackoffice et recette  
+**Statut :** PHASES 1 à 7 terminées localement ; exécution autonome en cours
 
 ## État global
 
