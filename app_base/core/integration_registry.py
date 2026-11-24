@@ -64,5 +64,7 @@ def build_integrations(settings: Settings) -> IntegrationRegistry:
         diddirewards=DiddiRewardsAdapter(base_url=settings.diddirewards_base_url, audience="diddirewards", timeout=timeout, credential=credential("diddirewards")),
         diddicomms=DiddiCommsAdapter(base_url=settings.diddicomms_base_url, audience="diddicomms", timeout=timeout, credential=credential("diddicomms")),
         diddisupport=DiddiSupportAdapter(base_url=settings.diddisupport_base_url, audience="diddisupport", timeout=timeout, credential=credential("diddisupport")),
-        diddiobserve=DiddiObserveAdapter(base_url=settings.diddiobserve_base_url, audience="diddiobserve", timeout=timeout, credential=credential("diddiobserve")),
+        # Observability has its own OTLP transport and credential. Never reuse
+        # a business S2S client for telemetry.
+        diddiobserve=DiddiObserveAdapter(base_url=settings.diddiobserve_base_url, audience="diddiobserve", timeout=timeout, credential=None),
     )

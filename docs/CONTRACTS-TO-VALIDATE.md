@@ -83,6 +83,31 @@ Confirmer enveloppe, scopes et statuts de dossier.
 
 ## DiddiObserve
 
-L’URL `https://logs-otel.diddifree.com` a répondu `502` lors de l’observation.
-Confirmer l’endpoint OTLP/logs/métriques/traces et son scope S2S après
-rétablissement.
+L’ingestion centrale est déclarée rétablie et les routes HTTPS utilisent un
+credential dédié. DiddiShop envoie des protobuf OTLP via le SDK, jamais un JSON
+applicatif brut :
+
+- logs : `https://logs-otel.diddifree.com/otlp/diddishop/v1/logs` ;
+- traces : `https://logs-otel.diddifree.com/otlp/diddishop/v1/traces` ;
+- protocole : `http/protobuf` ; `Content-Type` est géré par l’exporteur ;
+- `OTEL_EXPORTER_OTLP_HEADERS` contient le Basic credential dédié, injecté par
+  `secrets/onboarding/diddishop.env` hors Git ; aucun secret métier ou scope
+  DiddiFreeID n’est réutilisé.
+
+Le resource set comprend `service.name=diddishop`, namespace `diddi`, version,
+instance, environnement, déploiement et `diddi.component` (`api`, `worker` ou
+`scheduler`). Les requêtes entrantes et appels sortants propagent
+`traceparent`; les événements conservent les vrais `trace_id` et `span_id` en
+plus de `request_id`/`correlation_id`.
+
+Les exports sont asynchrones, par lots, avec files bornées, limite de 64 KiB par
+événement, 4 MiB par requête, timeout 5 secondes, backoff exponentiel avec
+jitter, respect de `Retry-After` et retries uniquement sur réseau/429/502/503/504.
+Les pertes et rejets sont comptés sans bloquer le métier. Les champs secrets,
+authentification, paiement sensible, corps complets et données personnelles
+sont filtrés par défaut.
+
+À vérifier côté plateforme : SHA réel et contact du déploiement, marqueurs
+synthétiques API/worker, URLs/ports/chemins Prometheus, token de scrape dédié,
+refus/succès du scrape et panne collecteur sans transaction réelle. Le scrape
+DiddiShop reste désactivé jusqu’à ces vérifications.

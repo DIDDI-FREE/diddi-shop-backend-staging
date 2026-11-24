@@ -8,6 +8,8 @@ class RequestContext:
     correlation_id: str
     actor_id: str | None = None
     actor_type: str = "system"
+    trace_id: str | None = None
+    span_id: str | None = None
 
 
 _current_context: ContextVar[RequestContext | None] = ContextVar("diddi_shop_context", default=None)

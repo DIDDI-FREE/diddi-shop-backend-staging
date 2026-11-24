@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
 from sqlalchemy import text
 
 from app_base.core.errors import DiddiShopError
@@ -22,6 +23,10 @@ from app_base.modules.webhooks import router as webhooks_router
 
 app = FastAPI(title="DiddiShop", version="0.1.0", lifespan=lifespan)
 app.add_middleware(CorrelationMiddleware)
+# Added after correlation so the incoming span is current while application
+# middleware and route handlers emit logs. It also propagates traceparent on
+# incoming requests without exposing request bodies or authentication headers.
+app.add_middleware(OpenTelemetryMiddleware)
 
 
 @app.exception_handler(DiddiShopError)

@@ -19,6 +19,7 @@ from app_base.core.idempotency import InMemoryIdempotencyStore
 from app_base.core.integration_registry import build_integrations
 from app_base.core.outbox import OutboxMessage
 from app_base.core.settings import get_settings
+from app_base.core.telemetry import configure_telemetry
 from app_base.integrations.checkout_ports import (
     DiddiPayPaymentIntentPort,
     DiddiSendDeliveryQuotePort,
@@ -49,6 +50,7 @@ from app_base.workers.in_memory_inbox import InMemoryProcessedEvents
 async def lifespan(app: FastAPI):
     app.state.settings = get_settings()
     app.state.settings.validate_external_configuration()
+    app.state.telemetry = configure_telemetry(app.state.settings)
     app.state.jwt_verifier = JwtVerifier(
         jwks_url=app.state.settings.diddifreeid_jwks_url,
         audience=app.state.settings.jwt_audience,
@@ -138,6 +140,7 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        app.state.telemetry.shutdown()
         await app.state.redis.aclose()
         await app.state.db_engine.dispose()
     if isinstance(app.state.outbox, list):

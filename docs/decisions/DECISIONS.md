@@ -187,5 +187,22 @@ nouvelle décision la remplacera explicitement si nécessaire.
 
 ## Décisions agent à valider
 
-Aucune nouvelle décision agent n’est prise avant réponse aux questions de
-`tasks/QUESTIONS-2026-11-24.md`.
+Les décisions agent à valider sont conservées explicitement dans cette section.
+
+### D-021 — DiddiObserve hors S2S métier
+- Date : 2026-11-24
+- Phase / sous-lot : S12-A à S12-C
+- Décision : utiliser exclusivement OTLP HTTP/protobuf avec le Basic credential dédié fourni hors Git ; ne pas provisionner ni réutiliser de client/scope DiddiFreeID pour DiddiObserve.
+- Pourquoi : la remise plateforme confirme une authentification d’observabilité dédiée et précise qu’aucun scope OAuth/S2S métier n’est requis.
+- Alternatives écartées : réutiliser le client `diddiobserve` dans la map S2S ; envoyer du JSON applicatif ; committer le secret d’onboarding.
+- Source : Utilisateur / remise DiddiShop du 2026-11-24
+- Impact : settings, telemetry, intégration DiddiObserve, Compose, déploiement.
+
+### D-022 — Scrape Prometheus différé
+- Date : 2026-11-24
+- Phase / sous-lot : S12-D
+- Décision : ne pas activer le scrape DiddiShop tant que la plateforme n’a pas fourni et vérifié URLs, ports, chemins et `METRICS_BEARER_TOKEN` dédié.
+- Pourquoi : la remise indique explicitement que les cinq scrapes existants sont UP mais que le scrape DiddiShop reste désactivé en attente des informations producteur.
+- Alternatives écartées : exposer un scrape sans token ; réutiliser l’authentification OTLP ; déclarer la conformité à partir des seuls signaux synthétiques centraux.
+- Source : Utilisateur / remise DiddiShop du 2026-11-24
+- Impact : observabilité, déploiement, plateforme, recette staging.

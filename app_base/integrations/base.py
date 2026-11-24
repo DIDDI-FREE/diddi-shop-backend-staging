@@ -1,9 +1,13 @@
 from typing import Any
 
 import httpx
+from opentelemetry import propagate, trace
+from opentelemetry.trace import Status, StatusCode
 
 from app_base.core.errors import NotConfiguredError
 from app_base.integrations.auth import ServiceCredential, s2s_headers_async
+
+_tracer = trace.get_tracer("diddishop.integrations")
 
 
 class ServiceAdapter:
@@ -22,5 +26,18 @@ class ServiceAdapter:
         merged_headers = dict(headers or {})
         if self.credential is not None:
             merged_headers = {**await s2s_headers_async(self.credential), **merged_headers}
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
-            return await client.request(method, self._url(path), headers=merged_headers, **kwargs)
+        propagate.inject(merged_headers)
+        with _tracer.start_as_current_span(f"{self.audience}.request") as span:
+            span.set_attribute("diddi.target_service", self.audience)
+            span.set_attribute("http.request.method", method.upper())
+            try:
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.request(method, self._url(path), headers=merged_headers, **kwargs)
+            except Exception as exc:
+                span.record_exception(exc)
+                span.set_status(Status(StatusCode.ERROR))
+                raise
+            span.set_attribute("http.response.status_code", response.status_code)
+            if response.status_code >= 500:
+                span.set_status(Status(StatusCode.ERROR))
+            return response

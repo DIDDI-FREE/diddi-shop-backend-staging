@@ -21,7 +21,9 @@ SERVICE_SCOPES: dict[str, tuple[str, ...]] = {
     # The staging OpenAPI does not publish an S2S scope for this route yet.
     "diddicomms": (),
     "diddisupport": ("diddishop:support-context:read", "diddishop:support-case:write"),
-    "diddiobserve": ("diddiobserve:telemetry:write",),
+    # DiddiObserve is authenticated with its dedicated OTLP Basic credential;
+    # it does not use a DiddiFreeID business scope.
+    "diddiobserve": (),
 }
 
 

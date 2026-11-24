@@ -2,7 +2,7 @@
 
 **Référence :** `IMPLEMENTATION_PLAN.md`  
 **Date de démarrage :** 2026-11-24  
-**Statut courant :** S0 à S8 terminés localement ; recette staging en attente
+**Statut courant :** S0 à S12 terminés localement ; recette staging en attente
 
 > Le dépôt local est initialisé et les lots S0 à S8 sont poussés sur `main`.
 > Les seules cases restantes concernent la recette et le provisionnement
@@ -103,3 +103,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S9 — activer les tokens DiddiFreeID `client_credentials` par service cible
 - [x] S10 — corriger DiddiComms : conversation métier sans notification événementielle
 - [x] S11 — aligner DiddiRewards et imposer XOF exclusivement
+- [x] S12 — intégrer DiddiObserve OTLP HTTP/protobuf, corrélation et filtrage de confidentialité

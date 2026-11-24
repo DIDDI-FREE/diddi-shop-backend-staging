@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,7 +8,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DIDDI_SHOP_", extra="ignore")
 
     app_name: str = "diddi-shop"
-    environment: str = "development"
+    environment: str = Field(
+        default="development",
+        validation_alias=AliasChoices("DIDDI_SHOP_ENVIRONMENT", "ENVIRONMENT", "environment"),
+    )
     database_url: str = "postgresql+asyncpg://diddishop:change-me@localhost:5432/diddishop"
     redis_url: str = "redis://localhost:6379/0"
     diddifreeid_base_url: str = ""
@@ -21,6 +24,77 @@ class Settings(BaseSettings):
     diddisupport_base_url: str = ""
     diddiobserve_base_url: str = ""
     internal_request_timeout_seconds: float = 10.0
+    # DiddiObserve uses a dedicated OTLP HTTP credential, not a DiddiFreeID
+    # business credential. Keep these aliases compatible with both Compose
+    # variables and direct Settings(...) construction in tests.
+    otel_service_name: str = Field(
+        default="diddishop",
+        validation_alias=AliasChoices("OTEL_SERVICE_NAME", "DIDDI_SHOP_OTEL_SERVICE_NAME", "otel_service_name"),
+    )
+    otel_environment: str = Field(
+        default="",
+        validation_alias=AliasChoices("OTEL_ENVIRONMENT", "DIDDI_SHOP_OTEL_ENVIRONMENT", "otel_environment"),
+    )
+    deployment_id: str = Field(
+        default="",
+        validation_alias=AliasChoices("DEPLOYMENT_ID", "DIDDI_SHOP_DEPLOYMENT_ID", "deployment_id"),
+    )
+    otel_service_version: str = Field(
+        default="0.1.0",
+        validation_alias=AliasChoices("OTEL_SERVICE_VERSION", "DIDDI_SHOP_OTEL_SERVICE_VERSION", "otel_service_version"),
+    )
+    otel_instance_id: str = Field(
+        default="",
+        validation_alias=AliasChoices("OTEL_INSTANCE_ID", "DIDDI_SHOP_OTEL_INSTANCE_ID", "otel_instance_id"),
+    )
+    diddi_component: str = Field(
+        default="api",
+        validation_alias=AliasChoices("DIDDI_COMPONENT", "DIDDI_SHOP_DIDDI_COMPONENT", "diddi_component"),
+    )
+    otel_exporter_otlp_protocol: str = Field(
+        default="http/protobuf",
+        validation_alias=AliasChoices(
+            "OTEL_EXPORTER_OTLP_PROTOCOL",
+            "DIDDI_SHOP_OTEL_EXPORTER_OTLP_PROTOCOL",
+            "otel_exporter_otlp_protocol",
+        ),
+    )
+    otel_logs_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("OTEL_LOGS_ENABLED", "DIDDI_SHOP_OTEL_LOGS_ENABLED", "otel_logs_enabled"),
+    )
+    otel_exporter_otlp_endpoint: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "DIDDI_SHOP_OTEL_EXPORTER_OTLP_ENDPOINT",
+            "otel_exporter_otlp_endpoint",
+        ),
+    )
+    otel_exporter_otlp_logs_endpoint: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
+            "DIDDI_SHOP_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
+            "otel_exporter_otlp_logs_endpoint",
+        ),
+    )
+    otel_exporter_otlp_traces_endpoint: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+            "DIDDI_SHOP_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+            "otel_exporter_otlp_traces_endpoint",
+        ),
+    )
+    otel_exporter_otlp_headers: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "OTEL_EXPORTER_OTLP_HEADERS",
+            "DIDDI_SHOP_OTEL_EXPORTER_OTLP_HEADERS",
+            "otel_exporter_otlp_headers",
+        ),
+    )
     # Legacy/static values are development-only compatibility inputs.
     service_client_id: str = "diddishop"
     service_tokens: dict[str, str] = Field(default_factory=dict)
@@ -68,7 +142,6 @@ class Settings(BaseSettings):
             "diddirewards",
             "diddicomms",
             "diddisupport",
-            "diddiobserve",
         )
         missing_client_ids = sorted(name for name in token_targets if not self.service_client_ids.get(name, "").strip())
         if missing_client_ids:
@@ -76,6 +149,23 @@ class Settings(BaseSettings):
         missing_client_secrets = sorted(name for name in token_targets if not self.service_client_secrets.get(name, "").strip())
         if missing_client_secrets:
             raise ValueError(f"Missing S2S client secrets: {', '.join(missing_client_secrets)}")
+        if self.otel_logs_enabled:
+            if self.otel_exporter_otlp_protocol != "http/protobuf":
+                raise ValueError("DiddiObserve requires OTLP HTTP/protobuf")
+            telemetry_endpoints = {
+                "otel_exporter_otlp_logs_endpoint": self.otel_exporter_otlp_logs_endpoint,
+                "otel_exporter_otlp_traces_endpoint": self.otel_exporter_otlp_traces_endpoint,
+            }
+            missing_telemetry = sorted(name for name, value in telemetry_endpoints.items() if not value.strip())
+            if missing_telemetry:
+                raise ValueError(f"Missing DiddiObserve OTLP endpoints: {', '.join(missing_telemetry)}")
+            insecure_telemetry = sorted(
+                name for name, value in telemetry_endpoints.items() if not value.lower().startswith("https://")
+            )
+            if insecure_telemetry:
+                raise ValueError(f"HTTPS is required for DiddiObserve OTLP endpoints: {', '.join(insecure_telemetry)}")
+            if not self.otel_exporter_otlp_headers.strip():
+                raise ValueError("Missing DiddiObserve OTLP headers")
 
 
 @lru_cache

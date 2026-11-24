@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-24  
-**Phase courante :** S11 terminé localement
+**Phase courante :** S12 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -24,7 +24,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 46 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 50 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | à exécuter avec PostgreSQL staging |
@@ -48,8 +48,9 @@ leurs ports.
    `diddishop_product_image`.
 3. DiddiFreeID : provisionnement des clients et scopes S2S supporté par le
    code ; il reste à injecter les valeurs dans le secret manager staging.
-4. DiddiObserve : endpoint d’ingestion à rétablir ; l’URL observée répondait
-   `502`.
+4. DiddiObserve : l’ingestion centrale est rétablie. Il reste à injecter le
+   credential OTLP Basic dédié hors Git et à vérifier les marqueurs synthétiques
+   API/worker ainsi que la corrélation réelle dans Loki/Tempo.
 5. DiddiRewards : confirmer le provisioning du client Shop, une campagne
    publiée avec budget, et le contrat de ventilation `professional_payout_minor`
    en V1.
@@ -61,7 +62,7 @@ leurs ports.
 - Configuration non développement fail-closed sur les URLs externes.
 - Initialisation de l’outbox corrigée.
 
-## Réalisations S1 à S11
+## Réalisations S1 à S12
 
 - PostgreSQL/Alembic pour les agrégats métier, inbox, outbox, idempotence et audit ; Redis pour la publication et la coordination des workers.
 - JWT/JWKS DiddiFreeID, scopes S2S dédiés et signatures HMAC des webhooks.
@@ -76,6 +77,10 @@ leurs ports.
   impose XOF exclusivement. DiddiSupport, DiddiObserve et DiddiBackoffice
   conservent leurs frontières, audit et idempotence ; DiddiComms est limité à
   l’ouverture/récupération de conversations métier.
+- DiddiObserve utilise le SDK OpenTelemetry en OTLP HTTP/protobuf, avec files
+  bornées, retry réseau/429/502/503/504, timeout de requête de 5 secondes,
+  flush d’arrêt borné et credential Basic dédié hors Git. Aucun client ou scope
+  S2S DiddiFreeID n’est utilisé pour la télémétrie.
 
 ## Réponses intégrées
 
@@ -95,4 +100,10 @@ leurs ports.
 - validation de la ventilation XOF DiddiSend ; le contrat marketplace DiddiPay est hors MVP et planifié en V2 ;
 - validation du contrat DiddiRewards Shop en staging avec quote, reserve,
   confirm, release et correct ;
-- rétablissement puis vérification de DiddiObserve.
+- injection de `secrets/onboarding/diddishop.env` par Compose, déploiement,
+  SHA/contact/marqueurs synthétiques API et worker DiddiObserve ;
+- exposition des endpoints Prometheus, token de scrape distinct et test
+  refus/succès avant activation du scrape DiddiShop ;
+- vérification de la corrélation traceparent/trace_id/span_id, de l’absence de
+  données sensibles et du comportement collecteur indisponible sans transaction
+  réelle.

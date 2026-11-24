@@ -21,7 +21,6 @@ def _staging_settings(**overrides: str) -> Settings:
             "diddirewards": "diddishop-staging-diddirewards",
             "diddicomms": "diddishop-staging-diddicomms",
             "diddisupport": "diddishop-staging-diddisupport",
-            "diddiobserve": "diddishop-staging-diddiobserve",
         },
         "service_client_secrets": {
             "diddipay": "pay-secret",
@@ -30,7 +29,6 @@ def _staging_settings(**overrides: str) -> Settings:
             "diddirewards": "rewards-secret",
             "diddicomms": "comms-secret",
             "diddisupport": "support-secret",
-            "diddiobserve": "observe-secret",
         },
     }
     values.update(overrides)
