@@ -139,6 +139,15 @@ nouvelle décision la remplacera explicitement si nécessaire.
 - Source : Utilisateur
 - Impact : suivi, commits, livraison.
 
+### D-016 — DiddiSend possède la validation opérationnelle de livraison
+- Date : 2026-11-24
+- Phase / sous-lot : suite d’implémentation — cadrage staging
+- Décision : DiddiShop ne dépend pas de DiddiMap. DiddiSend reçoit les adresses de retrait et de destination, applique ses propres règles de validation opérationnelle et reste propriétaire de l’expédition.
+- Pourquoi : éviter une dépendance supplémentaire et conserver une seule frontière logistique pour le marketplace.
+- Alternatives écartées : ajouter DiddiMap au checkout ; géocoder ou valider localement dans DiddiShop.
+- Source : Utilisateur
+- Impact : configuration, checkout, intégration DiddiSend, documentation des contrats.
+
 ## Décisions agent à valider
 
 Aucune nouvelle décision agent n’est prise avant réponse aux questions de

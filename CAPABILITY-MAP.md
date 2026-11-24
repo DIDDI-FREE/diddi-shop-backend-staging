@@ -47,7 +47,7 @@ Les identifiants sont stables et seront utilisés dans les specs, tickets et dos
 | `platform-runtime` | Base technique commune minimale | configuration, DB session, migrations, outbox, inbox, clock, idempotence | — |
 | `observability` | Logs, traces, métriques, corrélation et alertes | conventions de télémétrie DiddiShop | `platform-runtime` |
 | `identity-access` | Vérification du JWT et autorisation locale | contexte utilisateur, rôles boutique, politiques d'accès | `platform-runtime`, `observability` |
-| `external-integrations` | Ports et adaptateurs vers les services Diddi | clients DiddiPay, DiddiSend, DiddiFiles, DiddiMap, Notifications | `platform-runtime`, `identity-access`, `observability` |
+| `external-integrations` | Ports et adaptateurs vers les services Diddi | clients DiddiPay, DiddiSend, DiddiFiles, Notifications | `platform-runtime`, `identity-access`, `observability` |
 | `shops` | Boutique, profil vendeur, membres et suspension | boutiques et autorisations boutique | `platform-runtime`, `identity-access`, `external-integrations` |
 | `catalog` | Catégories, articles physiques, stock et médias | catalogue, stock, statuts de publication | `shops`, `external-integrations` |
 | `cart` | Panier et lignes de panier | panier acheteur, lignes et quantités | `catalog`, `shops`, `identity-access` |
@@ -156,8 +156,6 @@ FilePort
 NotificationPort
   send()
 
-LocationPort
-  validate_pickup_address()
 ```
 
 Les méthodes sont des ports métier. Les détails HTTP, JWT S2S, HMAC, Redis et URLs restent dans les adaptateurs.
@@ -274,7 +272,6 @@ Le support appelle les use cases de `claims`, `checkout-orders` et `shops`. Il n
 | DiddiFiles | octets et métadonnées fichier | `file_id`, purpose, statut utile |
 | DiddiPay | PaymentIntent, remboursements, argent | références, snapshots financiers et statuts synchronisés |
 | DiddiSend | devis, livraison, coursier, preuves | `delivery_id`, statut et événements synchronisés |
-| DiddiMap | localités et géocodage | référence d'adresse validée |
 | Notifications/DiddiComms | remise des messages | statut de tentative et accusé |
 
 ## 5. Squelette de dossiers appliqué

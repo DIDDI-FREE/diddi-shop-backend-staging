@@ -61,7 +61,6 @@ orders: PAYMENT_PENDING
 | Hold/release marketplace | DiddiPay après contrat à définir | résultat de release |
 | Quote/delivery/status coursier | DiddiSend | quote et événements |
 | Disponibilité chauffeur | DiddiSend | jamais exposée au domaine Shop |
-| Validation d’adresse / géocodage | DiddiMap | référence d’adresse normalisée |
 | Binaire produit/photo | DiddiFiles | metadata et URL |
 | Campaignes, benefits, ledger Rewards | DiddiRewards | quote, reservation, consume/release |
 | Tâche SMS/notification | DiddiComms | création et résultat |

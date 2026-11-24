@@ -122,7 +122,7 @@ inbox, conflit de clé d’idempotence.
 - `CommunicationPort` vers DiddiComms ;
 - `SupportPort` vers DiddiSupport ;
 - export télémétrie vers DiddiObserve ;
-- validation d’adresse via DiddiMap si nécessaire au devis DiddiSend ;
+- validation opérationnelle des adresses par DiddiSend dans le contrat de livraison ;
 - timeout, retry borné, circuit-breaker ou état `processing` pour chaque appel.
 
 **Acceptation :** aucun use case ne construit une URL HTTP et aucun module ne
