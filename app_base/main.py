@@ -8,6 +8,7 @@ from app_base.core.errors import DiddiShopError
 from app_base.modules.admin.presentation.router import router as admin_router
 from app_base.modules.cart.router import router as cart_router
 from app_base.modules.catalog.router import router as catalog_router
+from app_base.modules.checkout.router import router as checkout_router
 from app_base.modules.campaigns.presentation.router import router as campaigns_router
 from app_base.modules.comms.presentation.router import router as comms_router
 from app_base.modules.observability.presentation.router import router as observability_router
@@ -29,6 +30,7 @@ app.include_router(orders_router)
 app.include_router(shops_router)
 app.include_router(catalog_router)
 app.include_router(cart_router)
+app.include_router(checkout_router)
 app.include_router(admin_router)
 app.include_router(campaigns_router)
 app.include_router(comms_router)

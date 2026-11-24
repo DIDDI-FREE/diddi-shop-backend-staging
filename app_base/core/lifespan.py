@@ -14,6 +14,9 @@ from app_base.modules.catalog.application import CatalogService
 from app_base.modules.catalog.infra import InMemoryProductRepository
 from app_base.modules.shops.application import ShopService
 from app_base.modules.shops.infra import InMemoryShopRepository
+from app_base.integrations.checkout_ports import DiddiPayPaymentIntentPort, DiddiSendDeliveryQuotePort
+from app_base.modules.checkout.application.checkout_service import CheckoutApplicationService
+from app_base.modules.checkout.infra import InMemoryCheckoutRepository
 
 
 @asynccontextmanager
@@ -30,6 +33,16 @@ async def lifespan(app: FastAPI):
     app.state.shop_service = ShopService(app.state.shop_repository)
     app.state.catalog_service = CatalogService(app.state.product_repository, app.state.shop_repository)
     app.state.cart_service = CartService(app.state.cart_repository, app.state.product_repository)
+    app.state.checkout_repository = InMemoryCheckoutRepository()
+    app.state.checkout_service = CheckoutApplicationService(
+        carts=app.state.cart_repository,
+        products=app.state.product_repository,
+        checkouts=app.state.checkout_repository,
+        orders=app.state.order_repository,
+        delivery_quotes=DiddiSendDeliveryQuotePort(app.state.integrations.diddisend),
+        payments=DiddiPayPaymentIntentPort(app.state.integrations.diddipay),
+        outbox=app.state.outbox,
+    )
     app.state.outbox: list[OutboxMessage] = []
     try:
         yield

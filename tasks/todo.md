@@ -41,10 +41,10 @@
 
 ## PHASE 4 — panier, checkout et commandes
 
-- [ ] P4-A — panier multi-boutiques
-- [ ] P4-B — pricing, frais DiddiSend et snapshots financiers
-- [ ] P4-C — création checkout, commandes par boutique et PaymentIntent
-- [ ] P4-D — machine à états, historique et événements de commande
+- [x] P4-A — panier multi-boutiques
+- [x] P4-B — pricing, frais DiddiSend et snapshots financiers
+- [x] P4-C — création checkout, commandes par boutique et PaymentIntent
+- [x] P4-D — machine à états, historique et événements de commande
 
 ## PHASE 5 — paiement confirmé et expédition
 

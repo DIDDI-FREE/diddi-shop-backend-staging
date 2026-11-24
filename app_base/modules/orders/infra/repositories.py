@@ -8,5 +8,10 @@ class InMemoryOrderRepository:
     async def get(self, order_id: str) -> Order | None:
         return self._orders.get(order_id)
 
+    async def create(self, order: Order) -> None:
+        if order.id in self._orders:
+            raise ValueError(f"order {order.id} already exists")
+        self._orders[order.id] = order
+
     async def save(self, order: Order) -> None:
         self._orders[order.id] = order

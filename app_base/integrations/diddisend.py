@@ -4,6 +4,15 @@ from app_base.shared_kernel.contracts.delivery import DeliveryCommand, DeliveryR
 
 
 class DiddiSendAdapter(ServiceAdapter):
+    async def quote(self, shop_id: str, lines: list[dict]) -> int:
+        response = await self.request(
+            "POST", "/v1/deliveries/quote",
+            json={"origin_module": "diddishop", "shop_id": shop_id, "lines": lines},
+        )
+        response.raise_for_status()
+        data = response.json()
+        return int(data.get("quoted_price", data.get("amount_minor", data.get("delivery_fee", 0))))
+
     async def create_delivery(self, command: DeliveryCommand, payload: dict) -> dict:
         request = DeliveryRequest(
             order_reference=payload["order_reference"],
