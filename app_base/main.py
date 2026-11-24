@@ -6,12 +6,15 @@ from app_base.core.lifespan import lifespan
 from app_base.core.middleware import CorrelationMiddleware
 from app_base.core.errors import DiddiShopError
 from app_base.modules.admin.presentation.router import router as admin_router
+from app_base.modules.cart.router import router as cart_router
+from app_base.modules.catalog.router import router as catalog_router
 from app_base.modules.campaigns.presentation.router import router as campaigns_router
 from app_base.modules.comms.presentation.router import router as comms_router
 from app_base.modules.observability.presentation.router import router as observability_router
 from app_base.modules.orders.presentation.router import router as orders_router
 from app_base.modules.rewards.presentation.router import router as rewards_router
 from app_base.modules.support.presentation.router import router as support_router
+from app_base.modules.shops.router import router as shops_router
 
 
 app = FastAPI(title="DiddiShop", version="0.1.0", lifespan=lifespan)
@@ -23,6 +26,9 @@ async def handle_domain_error(_request: Request, exc: DiddiShopError):
     return JSONResponse(status_code=409, content={"error": type(exc).__name__, "message": str(exc)})
 
 app.include_router(orders_router)
+app.include_router(shops_router)
+app.include_router(catalog_router)
+app.include_router(cart_router)
 app.include_router(admin_router)
 app.include_router(campaigns_router)
 app.include_router(comms_router)

@@ -34,10 +34,10 @@
 
 ## PHASE 3 — boutiques, catalogue et stock
 
-- [ ] P3-A — boutiques, vendeurs et permissions
-- [ ] P3-B — produits, catégories, publication et médias DiddiFiles
-- [ ] P3-C — stock atomique et restitution idempotente
-- [ ] P3-D — API de lecture catalogue
+- [x] P3-A — boutiques, vendeurs et permissions
+- [x] P3-B — produits, catégories, publication et médias DiddiFiles
+- [x] P3-C — stock atomique et restitution idempotente
+- [x] P3-D — API de lecture catalogue
 
 ## PHASE 4 — panier, checkout et commandes
 
