@@ -2,7 +2,7 @@
 
 **Référence :** `IMPLEMENTATION_PLAN.md`  
 **Date de démarrage :** 2026-11-24  
-**Statut courant :** PHASE 0 terminée, boucle autonome prête à démarrer
+**Statut courant :** S0 terminé, boucle autonome en cours
 
 > Le dépôt local est initialisé et le commit initial existe. Le push est en
 > attente car GitHub répond `Repository not found` sur le remote fourni.
@@ -16,7 +16,7 @@
 
 ## BLOCAGE OPÉRATIONNEL
 
-- [ ] Push du commit initial vers GitHub — EN ATTENTE : remote fourni introuvable
+- [x] Dépôt Git initialisé et synchronisé avec GitHub
 
 ## PHASE 1 — fondations techniques
 
@@ -90,7 +90,7 @@
 
 Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 
-- [ ] S0 — retirer DiddiMap et aligner les URLs/configurations HTTPS
+- [x] S0 — retirer DiddiMap et aligner les URLs/configurations HTTPS
 - [ ] S1 — finaliser la persistance et les workers PostgreSQL/Redis
 - [ ] S2 — activer DiddiFreeID et les scopes S2S réels
 - [ ] S3 — brancher DiddiFiles, boutiques, catalogue et médias

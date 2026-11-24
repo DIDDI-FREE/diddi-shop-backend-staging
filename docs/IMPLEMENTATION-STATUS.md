@@ -1,8 +1,8 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-24  
-**Phase courante :** terminée localement  
-**Statut :** toutes les phases du plan sont implémentées et vérifiées localement
+**Phase courante :** S0 terminé, S1 en préparation  
+**Statut :** squelette initial vérifié ; raccordement staging en cours
 
 ## État global
 
@@ -21,16 +21,16 @@ et adaptateurs actuels constituent un socle de contrats et certains stubs.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests` | compilation Python | disponible |
-| `pytest -q` | tests unitaires/squelette | disponible, dernier résultat : 2 passed |
-| `ruff check .` | lint | dépendance déclarée, non exécutée en PHASE 0 |
-| `alembic upgrade head` | migrations | indisponible : Alembic et migrations non présents |
+| `pytest -q` | tests unitaires/squelette | disponible, dernier résultat : 22 passed |
+| `ruff check .` | lint | disponible, dernier résultat : OK |
+| `alembic upgrade head` | migrations | à exécuter avec PostgreSQL staging |
 | tests PostgreSQL/Redis | intégration | indisponibles : infrastructure non configurée |
 
 ## Phase 0 réalisée
 
 - plan et documents d’architecture lus ;
 - dépôt inspecté ;
-- absence de dépôt Git local constatée ;
+- dépôt Git local initialisé et synchronisé avec le remote GitHub ;
 - fichiers de suivi créés ;
 - décisions existantes extraites ;
 - questions bloquantes regroupées dans `tasks/QUESTIONS-2026-11-24.md`.
@@ -44,11 +44,12 @@ et adaptateurs actuels constituent un socle de contrats et certains stubs.
 4. DiddiFreeID : clients et scopes S2S DiddiShop.
 5. Git : dépôt local à initialiser et remote fourni par l’utilisateur.
 
-## Blocage opérationnel
+## S0 réalisé
 
-- Commit local initial créé : `c3216c0`.
-- `git push -u origin main` échoue : `Repository not found` pour le remote
-  fourni. Aucun second remote n’a été inventé et aucun push forcé ne sera tenté.
+- DiddiMap retiré du registre et de la configuration.
+- URLs HTTPS staging documentées dans `.env.example`.
+- Configuration non développement fail-closed sur les URLs externes.
+- Initialisation de l’outbox corrigée.
 
 ## Réponses intégrées
 

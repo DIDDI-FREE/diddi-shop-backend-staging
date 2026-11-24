@@ -5,7 +5,6 @@ from app_base.integrations.auth import ServiceCredential
 from app_base.integrations.diddicomms import DiddiCommsAdapter
 from app_base.integrations.diddifiles import DiddiFilesAdapter
 from app_base.integrations.diddifreeid import DiddiFreeIDAdapter
-from app_base.integrations.diddimap import DiddiMapAdapter
 from app_base.integrations.diddiobserve import DiddiObserveAdapter
 from app_base.integrations.diddipay import DiddiPayAdapter
 from app_base.integrations.diddirewards import DiddiRewardsAdapter
@@ -20,7 +19,6 @@ class IntegrationRegistry:
     diddifreeid: DiddiFreeIDAdapter
     diddipay: DiddiPayAdapter
     diddisend: DiddiSendAdapter
-    diddimap: DiddiMapAdapter
     diddifiles: DiddiFilesAdapter
     diddirewards: DiddiRewardsAdapter
     diddicomms: DiddiCommsAdapter
@@ -41,7 +39,6 @@ def build_integrations(settings: Settings) -> IntegrationRegistry:
         diddifreeid=DiddiFreeIDAdapter(base_url=settings.diddifreeid_base_url, audience="diddifreeid", timeout=timeout, credential=credential("diddifreeid")),
         diddipay=DiddiPayAdapter(base_url=settings.diddipay_base_url, audience="diddipay", timeout=timeout, credential=credential("diddipay")),
         diddisend=DiddiSendAdapter(base_url=settings.diddisend_base_url, audience="diddisend", timeout=timeout, credential=credential("diddisend")),
-        diddimap=DiddiMapAdapter(base_url=settings.diddimap_base_url, audience="diddimap", timeout=timeout, credential=credential("diddimap")),
         diddifiles=DiddiFilesAdapter(base_url=settings.diddifiles_base_url, audience="diddifiles", timeout=timeout, credential=credential("diddifiles")),
         diddirewards=DiddiRewardsAdapter(base_url=settings.diddirewards_base_url, audience="diddirewards", timeout=timeout, credential=credential("diddirewards")),
         diddicomms=DiddiCommsAdapter(base_url=settings.diddicomms_base_url, audience="diddicomms", timeout=timeout, credential=credential("diddicomms")),

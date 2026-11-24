@@ -36,10 +36,12 @@ from app_base.workers.in_memory_inbox import InMemoryProcessedEvents
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.settings = get_settings()
+    app.state.settings.validate_external_configuration()
     app.state.integrations = build_integrations(app.state.settings)
     app.state.db_engine = build_engine(app.state.settings.database_url)
     app.state.db_session_factory = build_session_factory(app.state.db_engine)
     app.state.redis = Redis.from_url(app.state.settings.redis_url, decode_responses=False)
+    app.state.outbox: list[OutboxMessage] = []
     app.state.order_repository = InMemoryOrderRepository()
     app.state.shop_repository = InMemoryShopRepository()
     app.state.product_repository = InMemoryProductRepository()
@@ -87,7 +89,6 @@ async def lifespan(app: FastAPI):
         app.state.audit_service,
         app.state.delivery_repository,
     )
-    app.state.outbox: list[OutboxMessage] = []
     try:
         yield
     finally:
