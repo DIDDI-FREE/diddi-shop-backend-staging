@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     jwt_audience: str = "diddishop"
     diddifreeid_issuer: str = ""
     diddifreeid_jwks_url: str = ""
+    diddipay_webhook_secret: str = ""
+    diddisend_webhook_secret: str = ""
     order_seller_confirmation_hours: int = 24
     claim_window_hours: int = 72
     seller_release_delay_hours: int = 72

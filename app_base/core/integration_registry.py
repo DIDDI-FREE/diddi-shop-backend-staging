@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from app_base.core.service_scopes import required_scopes
 from app_base.core.settings import Settings
 from app_base.integrations.auth import ServiceCredential
 from app_base.integrations.diddicomms import DiddiCommsAdapter
@@ -34,6 +35,7 @@ def build_integrations(settings: Settings) -> IntegrationRegistry:
             client_id=settings.service_client_id,
             access_token=settings.service_tokens.get(service),
             service_key=settings.service_keys.get(service),
+            scopes=required_scopes(service),
         )
     return IntegrationRegistry(
         diddifreeid=DiddiFreeIDAdapter(base_url=settings.diddifreeid_base_url, audience="diddifreeid", timeout=timeout, credential=credential("diddifreeid")),

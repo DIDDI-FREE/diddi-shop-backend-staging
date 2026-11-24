@@ -7,6 +7,7 @@ class ServiceCredential:
     client_id: str
     access_token: str | None = None
     service_key: str | None = None
+    scopes: tuple[str, ...] = ()
 
 
 def s2s_headers(credential: ServiceCredential, *, origin_service: str = "diddishop", user_id: str = "diddishop-system", request_id: str | None = None, idempotency_key: str | None = None) -> dict[str, str]:
@@ -22,4 +23,6 @@ def s2s_headers(credential: ServiceCredential, *, origin_service: str = "diddish
         headers["X-Request-ID"] = request_id
     if idempotency_key:
         headers["Idempotency-Key"] = idempotency_key
+    if credential.scopes:
+        headers["X-Service-Scopes"] = " ".join(credential.scopes)
     return headers

@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from redis.asyncio import Redis
 
+from app_base.core.auth_deps import JwtVerifier
 from app_base.core.business_repositories import (
     SqlCartRepository,
     SqlCheckoutRepository,
@@ -47,6 +48,11 @@ from app_base.workers.in_memory_inbox import InMemoryProcessedEvents
 async def lifespan(app: FastAPI):
     app.state.settings = get_settings()
     app.state.settings.validate_external_configuration()
+    app.state.jwt_verifier = JwtVerifier(
+        jwks_url=app.state.settings.diddifreeid_jwks_url,
+        audience=app.state.settings.jwt_audience,
+        issuer=app.state.settings.diddifreeid_issuer,
+    )
     app.state.integrations = build_integrations(app.state.settings)
     app.state.db_engine = build_engine(app.state.settings.database_url)
     app.state.db_session_factory = build_session_factory(app.state.db_engine)

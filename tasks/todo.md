@@ -92,7 +92,7 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 
 - [x] S0 — retirer DiddiMap et aligner les URLs/configurations HTTPS
 - [x] S1 — finaliser la persistance et les workers PostgreSQL/Redis
-- [ ] S2 — activer DiddiFreeID et les scopes S2S réels
+- [x] S2 — activer DiddiFreeID et les scopes S2S réels
 - [ ] S3 — brancher DiddiFiles, boutiques, catalogue et médias
 - [ ] S4 — brancher DiddiPay, checkout et commandes persistantes
 - [ ] S5 — activer l’expédition DiddiSend prépayée
