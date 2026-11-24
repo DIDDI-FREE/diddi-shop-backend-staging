@@ -1,55 +1,50 @@
 # DiddiShop — rapport final d’implémentation
 
 **Date :** 2026-11-24  
-**Statut :** implémentation locale terminée ; déploiement en attente
+**Statut :** implémentation locale complète ; recette staging en attente
 
 ## Phases terminées
 
-- PHASE 0 — suivi, décisions, architecture et questions ;
-- PHASE 1 — PostgreSQL/Alembic, Redis, contexte, outbox/inbox, idempotence ;
-- PHASE 2 — identité S2S et adaptateurs externes ;
-- PHASE 3 — boutiques, catalogue, médias, stock et panier ;
-- PHASE 4 — checkout multi-boutiques, snapshots et PaymentIntent ;
-- PHASE 5 — webhooks DiddiPay, expédition et projection DiddiSend ;
-- PHASE 6 — annulations, retours, réclamations, refunds et release ;
-- PHASE 7 — Rewards/campagnes, Comms, Support, Observe et audit ;
-- PHASE 8 — DiddiBackoffice, runbook et recette locale.
+S0 à S8 sont terminées localement : frontières et configuration, PostgreSQL/
+Redis, identité et scopes, DiddiFiles, catalogue, checkout, DiddiPay,
+DiddiSend, finance, Rewards, Comms, Support, Observe et DiddiBackoffice.
+DiddiMap est hors périmètre ; DiddiSend est l’unique propriétaire de
+l’expédition.
 
-## Commits locaux
+## Commits poussés sur `main`
 
 ```text
-c3216c0 chore: initialize DiddiShop backend skeleton
-1338215 feat(p1-a): add postgres foundation and migrations
-c5e9276 feat(p1-b): add redis ports and lifecycle wiring
-5726740 feat(p1-c): add request context and service scopes
-f23e562 test(p1-d): verify idempotency and scope contracts
-aff5956 feat(p2): add identity and external service contracts
-5ab674d feat(p3): add shops catalog stock and cart
-c51839b feat(p4): implement multi-shop checkout and orders
-f49fa32 feat(p5): add payment webhooks and DiddiSend delivery projection
-6bd3b9e feat(p6): add cancellations claims refunds and release flow
-2c40402 feat(p7): add rewards communications support and audit boundaries
-ed2f08a feat(p8): add backoffice operations and final verification
+d5b0795 feat(s0): align staging boundaries and configuration
+98024e4 feat(s1): add durable persistence and event workers
+6c8ec0e feat(s2): enforce jwt scopes and webhook signatures
+7d2796f feat(s3): integrate diddifiles and persistent catalog
+47db843 feat(s4): persist payment references and order orchestration
+1442acd feat(s5): align prepaid delivery with diddisend
+42abcdf feat(s6): harden claims refunds and delivery failures
+10152dc feat(s7): wire rewards communications support and observe
+f54c115 feat(s8): secure backoffice and readiness checks
 ```
 
 ## Vérifications locales
 
-- `python -m compileall -q app_base tests alembic` : OK ;
-- `pytest -q` : 19 tests passés ;
+- `pytest -q` : 39 tests passés ;
 - `ruff check .` : OK ;
-- `alembic upgrade head --sql` : OK.
+- `python -m compileall -q app_base tests alembic` : OK ;
+- `alembic upgrade head --sql` : OK ;
+- `git diff --check` : OK.
 
-## Éléments en attente
+## Bloqué ou en attente de recette
 
-- push GitHub impossible : le remote fourni répond `Repository not found` ;
-- PostgreSQL et Redis réels non provisionnés dans cet environnement ;
-- contrats marketplace DiddiPay à confirmer ;
-- mode prépayé DiddiSend à confirmer ;
-- credentials/scopes S2S DiddiFreeID à provisionner ;
-- signatures webhook à brancher sur les secrets de staging ;
-- URL image `diddishop_product_image` à confirmer dans DiddiFiles ;
-- endpoints réels DiddiComms, DiddiSupport et DiddiObserve à confirmer.
+- PostgreSQL et Redis réels, migrations et workers staging ;
+- credentials/scopes S2S DiddiFreeID ;
+- contrat marketplace DiddiPay pour hold, refund partiel et release vendeur ;
+- contrat DiddiSend pour prépaiement et ventilation XAF, le schéma observé
+  étant Food/XOF ;
+- visibilité des images DiddiFiles ;
+- enveloppes finales Comms/Support ;
+- rétablissement et validation de DiddiObserve, observé en `502` ;
+- tests end-to-end staging et alertes opérationnelles.
 
 Ces points sont documentés dans `docs/IMPLEMENTATION-STATUS.md` et
-`docs/CONTRACTS-TO-VALIDATE.md` et ne sont pas masqués par des fallbacks
-financiers silencieux.
+`docs/CONTRACTS-TO-VALIDATE.md`. Aucun fallback financier silencieux n’a été
+introduit.

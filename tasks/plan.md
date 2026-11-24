@@ -3,7 +3,7 @@
 **Date :** 2026-11-24  
 **Base :** `IMPLEMENTATION_PLAN.md`, `CAPABILITY-MAP.md`, contrats de staging
 observés et décision D-016  
-**Statut :** à exécuter après validation du cadrage
+**Statut :** implémenté localement ; recette staging en attente
 
 ## 1. État de départ
 

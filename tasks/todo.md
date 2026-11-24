@@ -2,10 +2,11 @@
 
 **Référence :** `IMPLEMENTATION_PLAN.md`  
 **Date de démarrage :** 2026-11-24  
-**Statut courant :** S0 terminé, boucle autonome en cours
+**Statut courant :** S0 à S8 terminés localement ; recette staging en attente
 
-> Le dépôt local est initialisé et le commit initial existe. Le push est en
-> attente car GitHub répond `Repository not found` sur le remote fourni.
+> Le dépôt local est initialisé et les lots S0 à S8 sont poussés sur `main`.
+> Les seules cases restantes concernent la recette et le provisionnement
+> d’infrastructure/contrats staging.
 
 ## PHASE 0 — préparation
 

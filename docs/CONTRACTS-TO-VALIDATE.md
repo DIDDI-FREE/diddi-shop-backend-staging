@@ -2,28 +2,52 @@
 
 ## DiddiSend
 
+Base staging observée : `https://diddisend-api-staging.diddifree.com`.
+Routes observées : `/health`, `/openapi.json`, `/v1/deliveries/quote`,
+`/v1/deliveries`, `/v1/deliveries/{delivery_id}`,
+`/v1/deliveries/{delivery_id}/cancel`.
+
 `POST /v1/deliveries` doit accepter le contrat DiddiFood adapté :
 `origin_module=diddishop`, `order_reference`, credential S2S, pickup, dropoff,
 package, `quoted_price`, `financial_breakdown`, `payment_method=diddipay` et
 `Idempotency-Key`. DiddiSend ne doit pas créer un second PaymentIntent pour un
 checkout déjà payé par DiddiShop.
 
+Le schéma staging observé expose encore une ventilation financière Food en XOF.
+À confirmer pour DiddiShop : ventilation XAF, `prepaid_by_origin=true` et
+événements signés de suivi.
+
 ## DiddiPay
 
+Base staging observée : `https://pay-api-staging.diddifree.com/payfund/v1`.
 Confirmer l’API marketplace de hold/release vendeur, refund partiel, scopes et
 événements signés. Le payout existant ne doit pas être considéré comme une
 release vendeur sans contrat métier explicite.
 
 ## DiddiFiles
 
-Confirmer la lecture par URL signée du purpose `diddishop_product_image`.
+Routes observées : upload-session, confirmation, métadonnées, download-url et
+public-url. Confirmer la lecture par URL signée du purpose
+`diddishop_product_image` et la politique de visibilité finale.
 
 ## DiddiFreeID
 
 Provisionner un client DiddiShop et des scopes séparés pour chaque service
 appelé. Les secrets ne doivent jamais être committés.
 
-## DiddiObserve, DiddiComms et DiddiSupport
+## DiddiComms
 
-Confirmer les endpoints d’export, de création de tâches et d’ouverture de cas,
-ainsi que leurs enveloppes et scopes S2S.
+Route observée : `POST /comms/v1/tasks/{owner_service}/{task_type}/{task_id}/conversation`.
+Confirmer enveloppe, scopes, événements de livraison et comportement de retry.
+
+## DiddiSupport
+
+Routes observées : `POST /support/v1/internal/cases` et
+`GET /support/v1/internal/context/{origin_service}/{resource_type}/{resource_id}`.
+Confirmer enveloppe, scopes et statuts de dossier.
+
+## DiddiObserve
+
+L’URL `https://logs-otel.diddifree.com` a répondu `502` lors de l’observation.
+Confirmer l’endpoint OTLP/logs/métriques/traces et son scope S2S après
+rétablissement.
