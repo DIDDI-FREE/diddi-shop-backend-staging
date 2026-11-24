@@ -29,6 +29,8 @@ async def diddisend_webhook(event: ExternalEvent, request: Request):
         return {"status": "duplicate"}
     delivery_service = request.app.state.delivery_service
     await delivery_service.apply_event(event.aggregate_id, event.event_type, event.payload)
+    if event.event_type in {"delivery.failed", "delivery.returned"}:
+        await request.app.state.finance_service.handle_delivery_failure(event.aggregate_id, event.event_type)
     result_hash = InMemoryProcessedEvents.hash_payload(event.payload)
     await inbox.mark("diddishop-diddisend", event, result_hash)
     return {"status": "processed"}

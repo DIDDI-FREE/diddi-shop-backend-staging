@@ -35,7 +35,7 @@ ALLOWED_TRANSITIONS: dict[FulfillmentStatus, set[FulfillmentStatus]] = {
     FulfillmentStatus.PAYMENT_PENDING: {FulfillmentStatus.TO_CONFIRM, FulfillmentStatus.CANCELLED},
     FulfillmentStatus.TO_CONFIRM: {FulfillmentStatus.TO_PREPARE, FulfillmentStatus.CANCELLED},
     FulfillmentStatus.TO_PREPARE: {FulfillmentStatus.READY_FOR_PICKUP, FulfillmentStatus.CANCELLED},
-    FulfillmentStatus.READY_FOR_PICKUP: {FulfillmentStatus.PICKED_UP, FulfillmentStatus.CANCELLED},
+    FulfillmentStatus.READY_FOR_PICKUP: {FulfillmentStatus.PICKED_UP, FulfillmentStatus.RETURNED, FulfillmentStatus.FAILED, FulfillmentStatus.CANCELLED},
     FulfillmentStatus.PICKED_UP: {FulfillmentStatus.IN_TRANSIT, FulfillmentStatus.DELIVERED, FulfillmentStatus.RETURNED, FulfillmentStatus.FAILED},
     FulfillmentStatus.IN_TRANSIT: {FulfillmentStatus.DELIVERED, FulfillmentStatus.RETURNED, FulfillmentStatus.FAILED},
     FulfillmentStatus.DELIVERED: {FulfillmentStatus.DISPUTED, FulfillmentStatus.CLOSED},

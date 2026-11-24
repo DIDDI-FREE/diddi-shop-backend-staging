@@ -24,6 +24,8 @@ class FinanceService:
 
     async def cancel(self, order_id: str, reason: str) -> Order:
         order = await self.orders.get(order_id)
+        if order.fulfillment_status == FulfillmentStatus.CANCELLED:
+            return order
         if order.fulfillment_status in {FulfillmentStatus.PICKED_UP, FulfillmentStatus.IN_TRANSIT, FulfillmentStatus.DELIVERED}:
             raise ConflictError("order cannot be cancelled after pickup")
         order.transition(FulfillmentStatus.CANCELLED, reason=reason, actor="buyer")
@@ -35,7 +37,11 @@ class FinanceService:
             await self.delivery.cancel_delivery(order.delivery_id, f"shop:cancel-delivery:{order.id}:1")
         await self.orders.repository.save(order)
         payment_id = order.metadata.get("payment_intent_id", order.checkout_id)
-        await self.financial.refund(payment_id, order.total_minor, f"shop:refund:{order.id}:1")
+        if order.metadata.get("refund_operation") != f"shop:refund:{order.id}:1":
+            operation = f"shop:refund:{order.id}:1"
+            await self.financial.refund(payment_id, order.total_minor, operation)
+            order.metadata["refund_operation"] = operation
+            await self.orders.repository.save(order)
         return order
 
     async def expire_seller_confirmation(self, order_id: str) -> Order:
@@ -47,6 +53,8 @@ class FinanceService:
         if order.fulfillment_status != FulfillmentStatus.DELIVERED:
             raise ConflictError("claim requires delivered order")
         delivered_at = order.metadata.get("delivered_at")
+        if isinstance(delivered_at, str):
+            delivered_at = datetime.fromisoformat(delivered_at)
         if delivered_at and now - delivered_at > timedelta(hours=72):
             raise ConflictError("claim window expired")
         if await self.claims.get_open_for_order(order_id):
@@ -63,6 +71,8 @@ class FinanceService:
         if claim is None or claim.status != ClaimStatus.OPEN:
             raise ConflictError("claim is not open")
         order = await self.orders.get(claim.order_id)
+        if decision in {ClaimDecision.BUYER, ClaimDecision.PARTIAL} and amount_to_refund > order.total_minor:
+            raise ConflictError("refund exceeds order total")
         claim.status = ClaimStatus.DECIDED
         claim.decision = decision
         claim.amount_to_refund = amount_to_refund
@@ -71,10 +81,16 @@ class FinanceService:
             amount = amount_to_refund or order.total_minor
             order.payment_status = PaymentStatus.REFUND_PENDING
             payment_id = order.metadata.get("payment_intent_id", order.checkout_id)
-            await self.financial.refund(payment_id, amount, f"shop:refund:{order.id}:claim:{claim.id}")
+            operation = f"shop:refund:{order.id}:claim:{claim.id}"
+            if order.metadata.get("refund_operation") != operation:
+                await self.financial.refund(payment_id, amount, operation)
+                order.metadata["refund_operation"] = operation
         else:
             order.payment_status = PaymentStatus.RELEASE_PENDING
-            await self.financial.release(order.id, order.metadata.get("net_seller_minor", order.total_minor), f"shop:release:{order.id}:1")
+            operation = f"shop:release:{order.id}:1"
+            if order.metadata.get("release_operation") != operation:
+                await self.financial.release(order.id, order.metadata.get("net_seller_minor", order.total_minor), operation)
+                order.metadata["release_operation"] = operation
         order.transition(FulfillmentStatus.CLOSED, reason=f"claim.decided:{decision.value}", actor="support")
         await self.claims.save(claim)
         await self.orders.repository.save(order)
@@ -93,6 +109,22 @@ class FinanceService:
         if eligible_at and now < eligible_at:
             raise ConflictError("release delay has not elapsed")
         order.payment_status = PaymentStatus.RELEASE_PENDING
-        await self.financial.release(order.id, order.metadata.get("net_seller_minor", order.total_minor), f"shop:release:{order.id}:1")
+        operation = f"shop:release:{order.id}:1"
+        if order.metadata.get("release_operation") != operation:
+            await self.financial.release(order.id, order.metadata.get("net_seller_minor", order.total_minor), operation)
+            order.metadata["release_operation"] = operation
+        await self.orders.repository.save(order)
+        return order
+
+    async def handle_delivery_failure(self, order_id: str, event_type: str) -> Order:
+        order = await self.orders.get(order_id)
+        if order.payment_status in {PaymentStatus.REFUNDED, PaymentStatus.PARTIALLY_REFUNDED}:
+            return order
+        operation = f"shop:refund:{order.id}:delivery"
+        order.payment_status = PaymentStatus.REFUND_PENDING
+        payment_id = order.metadata.get("payment_intent_id", order.checkout_id)
+        if order.metadata.get("refund_operation") != operation:
+            await self.financial.refund(payment_id, order.total_minor, operation)
+            order.metadata["refund_operation"] = operation
         await self.orders.repository.save(order)
         return order
