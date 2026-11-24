@@ -10,6 +10,7 @@ from app_base.modules.cart.router import router as cart_router
 from app_base.modules.catalog.router import router as catalog_router
 from app_base.modules.checkout.router import router as checkout_router
 from app_base.modules.delivery.router import router as delivery_router
+from app_base.modules.claims.router import router as claims_router
 from app_base.modules.campaigns.presentation.router import router as campaigns_router
 from app_base.modules.comms.presentation.router import router as comms_router
 from app_base.modules.observability.presentation.router import router as observability_router
@@ -34,6 +35,7 @@ app.include_router(catalog_router)
 app.include_router(cart_router)
 app.include_router(checkout_router)
 app.include_router(delivery_router)
+app.include_router(claims_router)
 app.include_router(admin_router)
 app.include_router(campaigns_router)
 app.include_router(comms_router)

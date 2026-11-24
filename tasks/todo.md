@@ -54,10 +54,10 @@
 
 ## PHASE 6 — annulations, retours, réclamations et finance
 
-- [ ] P6-A — expiration vendeur et annulations
-- [ ] P6-B — retours, attribution et restitution de stock
-- [ ] P6-C — réclamations, décisions et blocage de release
-- [ ] P6-D — remboursements, release vendeur et réconciliation
+- [x] P6-A — expiration vendeur et annulations
+- [x] P6-B — retours, attribution et restitution de stock
+- [x] P6-C — réclamations, décisions et blocage de release
+- [x] P6-D — remboursements, release vendeur et réconciliation
 
 ## PHASE 7 — Rewards, communication, support et observabilité
 

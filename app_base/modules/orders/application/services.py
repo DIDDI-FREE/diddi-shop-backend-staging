@@ -39,5 +39,9 @@ class OrderService:
             order.payment_status = PaymentStatus.PENDING
             if order.fulfillment_status == FulfillmentStatus.PAYMENT_PENDING:
                 return await self.transition(order_id, FulfillmentStatus.CANCELLED, "payment.failed", "diddipay")
+        if event_type == "payment.refunded":
+            order.payment_status = PaymentStatus.PARTIALLY_REFUNDED if payload.get("partial") else PaymentStatus.REFUNDED
+        if event_type == "seller.release.completed":
+            order.payment_status = PaymentStatus.RELEASED
         await self.repository.save(order)
         return order

@@ -23,3 +23,6 @@ class DiddiPayAdapter(ServiceAdapter):
 
     async def request_release(self, order_id: str, amount_minor: int, idempotency_key: str) -> dict:
         raise NotImplementedError("Marketplace seller release must be added to the DiddiPay contract")
+
+    async def release(self, order_id: str, amount_minor: int, idempotency_key: str) -> None:
+        await self.request_release(order_id, amount_minor, idempotency_key)

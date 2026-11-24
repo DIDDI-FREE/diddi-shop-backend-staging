@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from app_base.core.errors import ConflictError
 from app_base.modules.delivery.domain import DeliveryProjection, DeliveryStatus
 from app_base.modules.orders.application.services import OrderService
@@ -59,4 +60,9 @@ class DeliveryService:
         }.get(target)
         if transition and order.fulfillment_status != transition:
             await self.orders.transition(order_id, transition, reason=event_type, actor="diddisend")
+        if target == DeliveryStatus.DELIVERED:
+            now = datetime.now(timezone.utc)
+            order.metadata["delivered_at"] = now
+            order.metadata["release_eligible_at"] = now + timedelta(hours=72)
+            await self.orders.repository.save(order)
         return delivery
