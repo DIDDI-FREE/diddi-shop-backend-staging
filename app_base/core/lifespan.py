@@ -80,7 +80,11 @@ async def lifespan(app: FastAPI):
         app.state.claim_repository = SqlClaimRepository(app.state.db_session_factory)
         app.state.delivery_repository = SqlDeliveryRepository(app.state.db_session_factory)
     app.state.shop_service = ShopService(app.state.shop_repository)
-    app.state.catalog_service = CatalogService(app.state.product_repository, app.state.shop_repository)
+    app.state.catalog_service = CatalogService(
+        app.state.product_repository,
+        app.state.shop_repository,
+        app.state.integrations.diddifiles,
+    )
     app.state.cart_service = CartService(app.state.cart_repository, app.state.product_repository)
     app.state.checkout_service = CheckoutApplicationService(
         carts=app.state.cart_repository,

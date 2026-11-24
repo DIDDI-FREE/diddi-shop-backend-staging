@@ -6,9 +6,10 @@ from app_base.modules.shops.domain import ShopRepository, ShopStatus
 
 
 class CatalogService:
-    def __init__(self, repository: ProductRepository, shops: ShopRepository):
+    def __init__(self, repository: ProductRepository, shops: ShopRepository, files=None):
         self.repository = repository
         self.shops = shops
+        self.files = files
 
     async def create(self, owner_id: str, shop_id: str, title: str, description: str, price_minor: int, stock: int, category: str, photo_file_ids: list[str]) -> Product:
         shop = await self.shops.get(shop_id)
@@ -18,6 +19,13 @@ class CatalogService:
             raise ConflictError("suspended shop cannot publish products")
         if price_minor < 0 or stock < 0:
             raise ValueError("price and stock must be non-negative")
+        if self.files is not None:
+            for file_id in photo_file_ids:
+                metadata = await self.files.metadata(file_id)
+                if metadata.get("purpose") != "diddishop_product_image":
+                    raise ConflictError("file purpose is not a DiddiShop product image")
+                if metadata.get("status") not in {None, "confirmed", "ready", "available"}:
+                    raise ConflictError("product image is not confirmed")
         product = Product(str(uuid4()), shop_id, title, description, price_minor, "XAF", stock, category, photo_file_ids)
         await self.repository.save(product)
         return product
