@@ -1,6 +1,6 @@
 from app_base.core.errors import DiddiShopError
 from app_base.core.outbox import OutboxMessage, new_outbox_message
-from app_base.modules.orders.domain.entities import FulfillmentStatus, Order
+from app_base.modules.orders.domain.entities import FulfillmentStatus, Order, PaymentStatus
 from app_base.modules.orders.domain.interfaces import OrderRepository
 
 
@@ -25,4 +25,19 @@ class OrderService:
             aggregate_id=order.id,
             payload={"order_id": order.id, "shop_id": order.shop_id, "history": history},
         ))
+        return order
+
+    async def apply_payment_event(self, order_id: str, event_type: str, payload: dict) -> Order:
+        order = await self.get(order_id)
+        if event_type == "payment.succeeded":
+            order.payment_status = PaymentStatus.HELD
+            if order.fulfillment_status == FulfillmentStatus.PAYMENT_PENDING:
+                return await self.transition(order_id, FulfillmentStatus.TO_CONFIRM, "payment.succeeded", "diddipay")
+            await self.repository.save(order)
+            return order
+        if event_type == "payment.failed":
+            order.payment_status = PaymentStatus.PENDING
+            if order.fulfillment_status == FulfillmentStatus.PAYMENT_PENDING:
+                return await self.transition(order_id, FulfillmentStatus.CANCELLED, "payment.failed", "diddipay")
+        await self.repository.save(order)
         return order

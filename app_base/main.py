@@ -9,6 +9,7 @@ from app_base.modules.admin.presentation.router import router as admin_router
 from app_base.modules.cart.router import router as cart_router
 from app_base.modules.catalog.router import router as catalog_router
 from app_base.modules.checkout.router import router as checkout_router
+from app_base.modules.delivery.router import router as delivery_router
 from app_base.modules.campaigns.presentation.router import router as campaigns_router
 from app_base.modules.comms.presentation.router import router as comms_router
 from app_base.modules.observability.presentation.router import router as observability_router
@@ -16,6 +17,7 @@ from app_base.modules.orders.presentation.router import router as orders_router
 from app_base.modules.rewards.presentation.router import router as rewards_router
 from app_base.modules.support.presentation.router import router as support_router
 from app_base.modules.shops.router import router as shops_router
+from app_base.modules.webhooks import router as webhooks_router
 
 
 app = FastAPI(title="DiddiShop", version="0.1.0", lifespan=lifespan)
@@ -31,12 +33,14 @@ app.include_router(shops_router)
 app.include_router(catalog_router)
 app.include_router(cart_router)
 app.include_router(checkout_router)
+app.include_router(delivery_router)
 app.include_router(admin_router)
 app.include_router(campaigns_router)
 app.include_router(comms_router)
 app.include_router(observability_router)
 app.include_router(rewards_router)
 app.include_router(support_router)
+app.include_router(webhooks_router)
 
 
 @app.get("/health", tags=["health"])

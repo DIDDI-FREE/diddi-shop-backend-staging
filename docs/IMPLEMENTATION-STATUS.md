@@ -1,8 +1,8 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-24  
-**Phase courante :** PHASE 5 — paiement confirmé et expédition  
-**Statut :** PHASES 1 à 4 terminées localement ; exécution autonome en cours
+**Phase courante :** PHASE 6 — annulations, retours, réclamations et finance  
+**Statut :** PHASES 1 à 5 terminées localement ; exécution autonome en cours
 
 ## État global
 

@@ -48,9 +48,9 @@
 
 ## PHASE 5 — paiement confirmé et expédition
 
-- [ ] P5-A — webhook DiddiPay et transitions financières
-- [ ] P5-B — quote/création/annulation DiddiSend
-- [ ] P5-C — événements de livraison, preuves et suivi
+- [x] P5-A — webhook DiddiPay et transitions financières
+- [x] P5-B — quote/création/annulation DiddiSend
+- [x] P5-C — événements de livraison, preuves et suivi
 
 ## PHASE 6 — annulations, retours, réclamations et finance
 
