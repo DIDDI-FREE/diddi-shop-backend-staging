@@ -157,6 +157,15 @@ nouvelle décision la remplacera explicitement si nécessaire.
 - Source : Utilisateur
 - Impact : finance, commandes, DiddiPay, scopes S2S, backoffice, documentation MVP/V2.
 
+### D-018 — Tokens S2S dynamiques par service cible
+- Date : 2026-11-24
+- Phase / sous-lot : S9-A — authentification sortante DiddiFreeID
+- Décision : chaque cible externe utilise un `client_id` et un `client_secret` DiddiFreeID distincts ; DiddiShop obtient un token via `client_credentials`, avec l’audience et les scopes de la cible, puis le met en cache jusqu’à expiration.
+- Pourquoi : respecter l’isolation des scopes et éviter les tokens statiques partagés entre services.
+- Alternatives écartées : un `service_client_id` global ; tokens statiques en staging/production ; transmettre les scopes uniquement dans un header sans les porter dans le JWT.
+- Source : Utilisateur et contrat `SERVICE_TOKEN_CONTRACT.md`
+- Impact : settings, registre d’intégrations, DiddiFreeID, tous les adaptateurs S2S, déploiement secret manager.
+
 ## Décisions agent à valider
 
 Aucune nouvelle décision agent n’est prise avant réponse aux questions de

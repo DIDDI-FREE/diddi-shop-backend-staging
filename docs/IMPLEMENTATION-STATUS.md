@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-24  
-**Phase courante :** S8 terminé localement
+**Phase courante :** S9 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -24,7 +24,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 40 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 42 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | à exécuter avec PostgreSQL staging |
@@ -46,7 +46,8 @@ leurs ports.
    XAF pour DiddiShop ; le schéma staging observé est orienté Food/XOF.
 2. DiddiFiles : visibilité et URL finale des images
    `diddishop_product_image`.
-3. DiddiFreeID : provisionnement des clients et scopes S2S.
+3. DiddiFreeID : provisionnement des clients et scopes S2S supporté par le
+   code ; il reste à injecter les valeurs dans le secret manager staging.
 4. DiddiObserve : endpoint d’ingestion à rétablir ; l’URL observée répondait
    `502`.
 
@@ -61,6 +62,8 @@ leurs ports.
 
 - PostgreSQL/Alembic pour les agrégats métier, inbox, outbox, idempotence et audit ; Redis pour la publication et la coordination des workers.
 - JWT/JWKS DiddiFreeID, scopes S2S dédiés et signatures HMAC des webhooks.
+- Obtention dynamique DiddiFreeID `client_credentials` par cible, cache court,
+  `X-Client-ID` et fail-closed en staging si un client ou secret manque.
 - DiddiFiles pour les sessions d’upload, confirmation, métadonnées et URLs.
 - Checkout multi-boutiques, snapshots de prix, PaymentIntent DiddiPay et machine d’états commande/paiement.
 - DiddiSend comme unique propriétaire de l’expédition, avec livraison prépayée et suivi persistant.

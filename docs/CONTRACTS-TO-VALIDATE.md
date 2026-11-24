@@ -34,8 +34,14 @@ public-url. Confirmer la lecture par URL signée du purpose
 
 ## DiddiFreeID
 
-Provisionner un client DiddiShop et des scopes séparés pour chaque service
-appelé. Les secrets ne doivent jamais être committés.
+Route de token : `POST /identity/v1/auth/service/token`, avec
+`grant_type=client_credentials`, `client_id`, `client_secret`, `audience` et
+`scope` en `application/x-www-form-urlencoded`. DiddiShop implémente un client
+distinct par cible, un token court mis en cache jusqu’à expiration et le header
+`X-Client-ID` correspondant.
+
+Provisionner un client DiddiShop distinct pour chaque service appelé, avec ses
+scopes dédiés. Les secrets ne doivent jamais être committés.
 
 ## DiddiComms
 

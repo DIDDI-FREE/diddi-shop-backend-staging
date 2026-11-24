@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,9 +21,13 @@ class Settings(BaseSettings):
     diddisupport_base_url: str = ""
     diddiobserve_base_url: str = ""
     internal_request_timeout_seconds: float = 10.0
+    # Legacy/static values are development-only compatibility inputs.
     service_client_id: str = "diddishop"
-    service_tokens: dict[str, str] = {}
-    service_keys: dict[str, str] = {}
+    service_tokens: dict[str, str] = Field(default_factory=dict)
+    service_keys: dict[str, str] = Field(default_factory=dict)
+    diddifreeid_service_token_url: str = ""
+    service_client_ids: dict[str, str] = Field(default_factory=dict)
+    service_client_secrets: dict[str, str] = Field(default_factory=dict)
     jwt_audience: str = "diddishop"
     diddifreeid_issuer: str = ""
     diddifreeid_jwks_url: str = ""
@@ -56,6 +61,21 @@ class Settings(BaseSettings):
         )
         if insecure:
             raise ValueError(f"HTTPS is required for external services: {', '.join(insecure)}")
+        token_targets = (
+            "diddipay",
+            "diddisend",
+            "diddifiles",
+            "diddirewards",
+            "diddicomms",
+            "diddisupport",
+            "diddiobserve",
+        )
+        missing_client_ids = sorted(name for name in token_targets if not self.service_client_ids.get(name, "").strip())
+        if missing_client_ids:
+            raise ValueError(f"Missing S2S client IDs: {', '.join(missing_client_ids)}")
+        missing_client_secrets = sorted(name for name in token_targets if not self.service_client_secrets.get(name, "").strip())
+        if missing_client_secrets:
+            raise ValueError(f"Missing S2S client secrets: {', '.join(missing_client_secrets)}")
 
 
 @lru_cache

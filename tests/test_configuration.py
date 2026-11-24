@@ -14,6 +14,24 @@ def _staging_settings(**overrides: str) -> Settings:
         "diddicomms_base_url": "https://diddi-comm-staging.diddifree.com",
         "diddisupport_base_url": "https://support-backend-staging.diddifree.com",
         "diddiobserve_base_url": "https://logs-otel.diddifree.com",
+        "service_client_ids": {
+            "diddipay": "diddishop-staging-diddipay",
+            "diddisend": "diddishop-staging-diddisend",
+            "diddifiles": "diddishop-staging-diddifiles",
+            "diddirewards": "diddishop-staging-diddirewards",
+            "diddicomms": "diddishop-staging-diddicomms",
+            "diddisupport": "diddishop-staging-diddisupport",
+            "diddiobserve": "diddishop-staging-diddiobserve",
+        },
+        "service_client_secrets": {
+            "diddipay": "pay-secret",
+            "diddisend": "send-secret",
+            "diddifiles": "files-secret",
+            "diddirewards": "rewards-secret",
+            "diddicomms": "comms-secret",
+            "diddisupport": "support-secret",
+            "diddiobserve": "observe-secret",
+        },
     }
     values.update(overrides)
     return Settings(**values)

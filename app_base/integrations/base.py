@@ -3,7 +3,7 @@ from typing import Any
 import httpx
 
 from app_base.core.errors import NotConfiguredError
-from app_base.integrations.auth import ServiceCredential, s2s_headers
+from app_base.integrations.auth import ServiceCredential, s2s_headers_async
 
 
 class ServiceAdapter:
@@ -21,6 +21,6 @@ class ServiceAdapter:
     async def request(self, method: str, path: str, *, headers: dict[str, str] | None = None, **kwargs: Any) -> httpx.Response:
         merged_headers = dict(headers or {})
         if self.credential is not None:
-            merged_headers = {**s2s_headers(self.credential), **merged_headers}
+            merged_headers = {**await s2s_headers_async(self.credential), **merged_headers}
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             return await client.request(method, self._url(path), headers=merged_headers, **kwargs)

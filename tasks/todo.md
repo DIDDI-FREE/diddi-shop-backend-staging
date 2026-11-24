@@ -100,3 +100,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S6 — activer annulations, retours, claims et finance
 - [x] S7 — brancher Rewards, Comms, Support et Observe
 - [x] S8 — finaliser Backoffice, staging et recette MVP
+- [x] S9 — activer les tokens DiddiFreeID `client_credentials` par service cible

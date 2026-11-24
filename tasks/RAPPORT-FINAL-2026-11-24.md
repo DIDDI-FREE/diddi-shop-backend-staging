@@ -5,11 +5,12 @@
 
 ## Phases terminées
 
-S0 à S8 sont terminées localement : frontières et configuration, PostgreSQL/
+S0 à S9 sont terminées localement : frontières et configuration, PostgreSQL/
 Redis, identité et scopes, DiddiFiles, catalogue, checkout, DiddiPay,
 DiddiSend, finance, Rewards, Comms, Support, Observe et DiddiBackoffice.
 DiddiMap est hors périmètre ; DiddiSend est l’unique propriétaire de
-l’expédition.
+l’expédition. Les tokens S2S utilisent maintenant `client_credentials` avec un
+client DiddiFreeID distinct par service cible.
 
 ## Commits poussés sur `main`
 
@@ -27,7 +28,7 @@ f54c115 feat(s8): secure backoffice and readiness checks
 
 ## Vérifications locales
 
-- `pytest -q` : 40 tests passés ;
+- `pytest -q` : 42 tests passés ;
 - `ruff check .` : OK ;
 - `python -m compileall -q app_base tests alembic` : OK ;
 - `alembic upgrade head --sql` : OK ;
