@@ -10,6 +10,9 @@ class CommunicationService:
         return await self.adapter.create_task(
             {
                 "source_service": "diddishop",
+                "owner_service": "diddishop",
+                "task_type": event.get("task_type", "order"),
+                "task_id": event.get("aggregate_id", event_id),
                 "event_id": event_id,
                 "event_type": event["event_type"],
                 "recipient_id": event["payload"].get("customer_id"),

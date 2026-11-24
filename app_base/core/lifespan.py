@@ -116,6 +116,7 @@ async def lifespan(app: FastAPI):
         app.state.order_service,
         app.state.delivery_repository,
         app.state.claim_repository,
+        app.state.integrations.diddisupport,
     )
     app.state.admin_service = AdminService(
         app.state.order_service,

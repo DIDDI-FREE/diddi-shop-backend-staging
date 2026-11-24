@@ -24,6 +24,16 @@ class CommsAdapter:
         return {"task_id": "task-1"}
 
 
+def test_rewards_adapter_has_full_benefit_lifecycle():
+    from app_base.integrations.diddirewards import DiddiRewardsAdapter
+
+    assert hasattr(DiddiRewardsAdapter, "quote")
+    assert hasattr(DiddiRewardsAdapter, "reserve")
+    assert hasattr(DiddiRewardsAdapter, "consume")
+    assert hasattr(DiddiRewardsAdapter, "release")
+    assert hasattr(DiddiRewardsAdapter, "correct")
+
+
 @pytest.mark.asyncio
 async def test_rewards_reservation_is_idempotent_by_operation():
     service = RewardsService(RewardsAdapter())

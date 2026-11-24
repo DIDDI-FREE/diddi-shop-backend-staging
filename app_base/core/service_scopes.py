@@ -19,8 +19,8 @@ SERVICE_SCOPES: dict[str, tuple[str, ...]] = {
         "diddirewards:benefits:correct",
         "diddirewards:campaigns:read",
     ),
-    "diddicomms": ("diddicomms:tasks:write", "diddicomms:context:read"),
-    "diddisupport": ("diddisupport:cases:write", "diddisupport:context:read"),
+    "diddicomms": ("diddishop:comms-task:write", "diddishop:comms-task:read"),
+    "diddisupport": ("diddishop:support-context:read", "diddishop:support-case:write"),
     "diddiobserve": ("diddiobserve:telemetry:write",),
 }
 
