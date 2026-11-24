@@ -29,6 +29,7 @@ c51839b feat(p4): implement multi-shop checkout and orders
 f49fa32 feat(p5): add payment webhooks and DiddiSend delivery projection
 6bd3b9e feat(p6): add cancellations claims refunds and release flow
 2c40402 feat(p7): add rewards communications support and audit boundaries
+ed2f08a feat(p8): add backoffice operations and final verification
 ```
 
 ## Vérifications locales
