@@ -24,6 +24,8 @@ d5b0795 feat(s0): align staging boundaries and configuration
 42abcdf feat(s6): harden claims refunds and delivery failures
 10152dc feat(s7): wire rewards communications support and observe
 f54c115 feat(s8): secure backoffice and readiness checks
+aaf37f3 feat(s2s): add per-service client credentials tokens
+233dae6 fix(comms): separate conversations from notifications
 ```
 
 ## Vérifications locales

@@ -58,7 +58,7 @@ leurs ports.
 - Configuration non développement fail-closed sur les URLs externes.
 - Initialisation de l’outbox corrigée.
 
-## Réalisations S1 à S8
+## Réalisations S1 à S10
 
 - PostgreSQL/Alembic pour les agrégats métier, inbox, outbox, idempotence et audit ; Redis pour la publication et la coordination des workers.
 - JWT/JWKS DiddiFreeID, scopes S2S dédiés et signatures HMAC des webhooks.
