@@ -17,6 +17,14 @@ class OutboxMessage:
     last_error: str | None = None
 
 
+async def append_outbox(target, message: OutboxMessage) -> None:
+    """Append to either the test list or a durable outbox port."""
+    append = target.append
+    result = append(message)
+    if hasattr(result, "__await__"):
+        await result
+
+
 def new_outbox_message(event_type: str, aggregate_type: str, aggregate_id: str, payload: dict) -> OutboxMessage:
     return OutboxMessage(
         event_id=str(uuid4()),

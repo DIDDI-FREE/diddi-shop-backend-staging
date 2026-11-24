@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Protocol
+from uuid import uuid4
 
 
 @dataclass
@@ -14,6 +15,10 @@ class Cart:
     id: str
     customer_id: str
     lines: list[CartLine] = field(default_factory=list)
+
+    @classmethod
+    def create(cls, customer_id: str) -> "Cart":
+        return cls(str(uuid4()), customer_id)
 
 
 class CartRepository(Protocol):

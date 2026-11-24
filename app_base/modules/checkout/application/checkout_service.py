@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from uuid import uuid4
 
 from app_base.core.errors import ConflictError
-from app_base.core.outbox import OutboxMessage, new_outbox_message
+from app_base.core.outbox import OutboxMessage, append_outbox, new_outbox_message
 from app_base.modules.cart.domain import CartRepository
 from app_base.modules.catalog.domain import ProductRepository
 from app_base.modules.checkout.domain import Checkout, CheckoutRepository
@@ -97,7 +97,7 @@ class CheckoutApplicationService:
         checkout = Checkout(checkout_id, customer_id, total, "XAF", [o.id for o in created_orders], payment.get("payment_intent_id"))
         await self.checkouts.save(checkout)
         for order in created_orders:
-            self.outbox.append(new_outbox_message(
+            await append_outbox(self.outbox, new_outbox_message(
                 "order.created", "order", order.id,
                 {"order_id": order.id, "checkout_id": checkout.id, "shop_id": order.shop_id, "total_minor": order.total_minor, "currency": order.currency},
             ))

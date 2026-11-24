@@ -14,3 +14,15 @@ async def publish_pending(messages: list[OutboxMessage], publisher) -> int:
             message.attempts += 1
             message.last_error = str(exc)
     return published
+
+
+async def publish_durable_pending(store, publisher, limit: int = 100) -> int:
+    published = 0
+    for message in await store.pending(limit):
+        try:
+            await publisher.publish(message)
+            await store.mark_published(message.event_id)
+            published += 1
+        except Exception as exc:
+            await store.mark_failed(message.event_id, str(exc), message.attempts + 1)
+    return published

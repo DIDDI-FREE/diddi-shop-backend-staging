@@ -1,5 +1,5 @@
 from app_base.core.errors import DiddiShopError
-from app_base.core.outbox import OutboxMessage, new_outbox_message
+from app_base.core.outbox import OutboxMessage, append_outbox, new_outbox_message
 from app_base.modules.orders.domain.entities import FulfillmentStatus, Order, PaymentStatus
 from app_base.modules.orders.domain.interfaces import OrderRepository
 
@@ -19,7 +19,7 @@ class OrderService:
         order = await self.get(order_id)
         history = order.transition(target, reason=reason, actor=actor)
         await self.repository.save(order)
-        self.outbox.append(new_outbox_message(
+        await append_outbox(self.outbox, new_outbox_message(
             event_type=f"order.{target.value.lower()}",
             aggregate_type="order",
             aggregate_id=order.id,
