@@ -42,11 +42,11 @@ uvicorn app_base.main:app --reload
 Le Compose local démarre PostgreSQL, Redis et l’API en mode développement :
 
 ```powershell
-docker compose up -d --build
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
 docker compose ps
-Invoke-WebRequest http://localhost:8000/health
-Invoke-WebRequest http://localhost:8000/ready
-docker compose down
+Invoke-WebRequest http://localhost:18080/health
+Invoke-WebRequest http://localhost:18080/ready
+docker compose -f docker-compose.yml -f docker-compose.local.yml down
 ```
 
 Le portail documentaire public est une stack séparée :
@@ -59,6 +59,17 @@ Invoke-WebRequest http://localhost:18082/
 En staging, le Proxy Host doit publier le conteneur docs sur
 `https://docs-diddishop-staging.diddifree.com/`. Le frontend ne doit pas lire
 les fichiers depuis Git ou le poste de développement.
+
+En staging, utiliser l’overlay réseau sans aucun `ports:` hôte :
+
+```powershell
+$env:NPM_NETWORK = "<nom-exact-du-reseau-partage-avec-NPM>"
+docker compose -f docker-compose.yml -f docker-compose.docs.yml -f docker-compose.proxy.yml up -d --build
+```
+
+Nginx Proxy Manager doit cibler `api:8000` pour l’API et `docs:80` pour la
+documentation. Le nom réel du réseau doit être fourni par l’hôte NPM ; il ne
+peut pas être déduit depuis ce poste si NPM tourne sur une autre machine.
 
 Il ne contient aucun credential métier et n’exécute aucun paiement ou envoi
 réel. Les contrats externes sont vérifiés par les tests avec faux services HTTP

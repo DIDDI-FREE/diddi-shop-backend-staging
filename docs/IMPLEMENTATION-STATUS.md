@@ -95,6 +95,10 @@ leurs ports.
 - Le portail documentaire MkDocs est construit dans `Dockerfile.docs` puis
   servi par Nginx dans un conteneur séparé. La vérification locale sur le port
   `18082` répond 200 pour `/` et `/api/API_CONTRACT/`.
+- Le Compose de staging n’expose plus de port hôte pour l’API ou la
+  documentation. L’overlay `docker-compose.proxy.yml` utilise un réseau
+  externe configurable `NPM_NETWORK` ; Nginx Proxy Manager cible `api:8000` et
+  `docs:80`.
 
 ## Réponses intégrées
 
@@ -123,3 +127,5 @@ leurs ports.
   réelle.
 - publication du conteneur docs sur `docs-diddishop-staging.diddifree.com`,
   Proxy Host Nginx, certificat TLS et vérification externe des pages.
+- fourniture par l’infrastructure du nom exact du réseau Docker partagé avec
+  Nginx Proxy Manager (`NPM_NETWORK`).

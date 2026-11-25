@@ -1,0 +1,4 @@
+services:
+  api:
+    ports:
+      - "${DIDDI_SHOP_API_PORT:-18080}:8000"

@@ -5,6 +5,8 @@
 - `Dockerfile.docs` : build MkDocs strict puis image Nginx statique ;
 - `docker-compose.docs.yml` et `docker-compose.docs.local.yml` ;
 - configuration Nginx activée/masquée par `DOCS_PUBLIC_ENABLED` ;
+- absence de binding hôte dans le Compose de staging et overlay réseau
+  `NPM_NETWORK` pour Nginx Proxy Manager ;
 - guide de publication avec Proxy Host attendu pour
   `docs-diddishop-staging.diddifree.com` ;
 - exclusion des artefacts MkDocs du suivi Git.
@@ -30,3 +32,6 @@ Le domaine staging actuel n’est pas encore raccordé au portail :
 Le raccordement DNS/Proxy Host/certificat doit être réalisé côté
 infrastructure. Il ne faut pas déclarer l’URL frontend prête avant une réponse
 HTTPS 200 sur la racine et sur une page documentaire.
+
+Le réseau NPM n’existe pas sur le poste local inspecté ; son nom doit être
+fourni par l’hôte où Nginx Proxy Manager est déployé.

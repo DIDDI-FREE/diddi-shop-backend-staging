@@ -1,0 +1,14 @@
+services:
+  api:
+    networks:
+      - default
+      - npm_proxy
+  docs:
+    networks:
+      - default
+      - npm_proxy
+
+networks:
+  npm_proxy:
+    external: true
+    name: ${NPM_NETWORK:?Set NPM_NETWORK to the Docker network shared with Nginx Proxy Manager}
