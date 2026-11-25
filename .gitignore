@@ -8,6 +8,9 @@ venv/
 .env
 .env.*
 !.env.example
+portainer.env
+portainer.env.*
+!portainer.env.example
 *.db
 *.sqlite
 dist/

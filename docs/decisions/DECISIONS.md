@@ -224,3 +224,12 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Alternatives écartées : déployer MkDocs dans une stack indépendante non synchronisée ; servir les Markdown depuis Git ou le poste du développeur ; imposer un réseau Docker NPM indisponible.
 - Source : DiddiGo `docker-compose.portainer.yml` et `docs/configuration/DOCUMENTATION_PORTAL.md` ; Agent, à valider
 - Impact : Portainer, Docker Compose, MkDocs, Nginx Proxy Manager, DNS/TLS staging.
+
+### D-025 — Environnement Portainer séparé des secrets versionnés
+- Date : 2026-11-25
+- Phase / sous-lot : S15-D — variables de déploiement Portainer
+- Décision : fournir `portainer.env.example` versionné avec les URLs staging et la forme des variables, tandis que `portainer.env` opérationnel reste ignoré par Git et chargé dans Portainer après remplacement des secrets provisionnés.
+- Pourquoi : donner un fichier directement exploitable sans publier les mots de passe PostgreSQL, secrets clients DiddiFreeID, signatures webhook ou credential OTEL.
+- Alternatives écartées : committer des secrets réels ; inventer des credentials ; laisser Portainer déduire des variables non déclarées par Compose.
+- Source : Agent, à valider
+- Impact : Portainer, Docker Compose, DiddiFreeID, DiddiPay, DiddiSend, DiddiObserve.

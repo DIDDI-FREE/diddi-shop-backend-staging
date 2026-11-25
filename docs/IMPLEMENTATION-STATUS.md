@@ -99,6 +99,8 @@ leurs ports.
   MkDocs sont construits dans la même stack et depuis la même révision Git.
   `DOCS_PUBLIC_ENABLED` reste désactivé par défaut et doit être activé
   explicitement en staging.
+- `portainer.env.example` contient les valeurs staging non sensibles et la
+  forme exacte des secrets à injecter ; `portainer.env` est local et ignoré.
 - Le Compose publie par défaut des ports hôte élevés et configurables
   (`48180` pour l’API et `48182` pour la documentation), afin de fonctionner
   même sans accès au réseau Docker de Nginx Proxy Manager. L’overlay

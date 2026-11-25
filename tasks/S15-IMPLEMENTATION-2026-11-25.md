@@ -10,6 +10,9 @@
 - Les ports hôte API/docs restent configurables pour le raccordement NPM sans
   réseau Docker partagé.
 - Documentation ajoutée pour les variables Portainer et les Proxy Hosts NPM.
+- Ajout de `portainer.env` local, prêt à charger après remplacement des
+  secrets, et de `portainer.env.example` versionné avec les valeurs staging
+  non sensibles.
 
 ## S15-C — Vérifications
 

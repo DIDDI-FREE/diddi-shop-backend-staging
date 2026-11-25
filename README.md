@@ -63,6 +63,10 @@ la même révision Git, puis expose les ports hôte configurables `48180` et
 [`docs/operations/documentation-portal.md`](docs/operations/documentation-portal.md)
 pour les variables Portainer et le Proxy Host HTTPS.
 
+Le modèle des variables à charger dans Portainer est
+`portainer.env.example`. Le fichier opérationnel `portainer.env` reste local,
+ignoré par Git, et doit recevoir les secrets provisionnés avant déploiement.
+
 En staging, le Proxy Host doit publier le conteneur docs sur
 `https://docs-diddishop-staging.diddifree.com/`. Le frontend ne doit pas lire
 les fichiers depuis Git ou le poste de développement.

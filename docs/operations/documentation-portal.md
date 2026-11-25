@@ -42,6 +42,13 @@ Les URLs d’intégration, secrets S2S, credentials DiddiObserve et variables
 OTEL sont également injectés dans l’environnement/secrets Portainer, jamais
 dans le dépôt.
 
+Le fichier prêt à charger dans Portainer est `portainer.env` (local, ignoré
+par Git). Le modèle versionné est `portainer.env.example`. Remplacer toutes
+les valeurs `REPLACE_WITH_*`, notamment le mot de passe PostgreSQL, les six
+secrets clients DiddiFreeID, les secrets webhook et le Basic credential
+DiddiObserve. Le mot de passe utilisé dans `DIDDI_SHOP_DATABASE_URL` doit être
+URL-encodé s’il contient des caractères réservés.
+
 La stack publie par défaut le port hôte `48182`, ce qui permet à Nginx Proxy
 Manager de proxyfier sans réseau Docker partagé. Le port peut être remplacé
 dans Portainer :
