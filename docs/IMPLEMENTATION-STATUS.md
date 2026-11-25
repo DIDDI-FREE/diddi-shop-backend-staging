@@ -92,6 +92,9 @@ leurs ports.
 - Alembic utilise désormais le moteur asynchrone PostgreSQL avec
   `run_sync`, ce qui permet l’exécution réelle des migrations avec le même
   `postgresql+asyncpg` que l’application.
+- Le portail documentaire MkDocs est construit dans `Dockerfile.docs` puis
+  servi par Nginx dans un conteneur séparé. La vérification locale sur le port
+  `18082` répond 200 pour `/` et `/api/API_CONTRACT/`.
 
 ## Réponses intégrées
 
@@ -118,3 +121,5 @@ leurs ports.
 - vérification de la corrélation traceparent/trace_id/span_id, de l’absence de
   données sensibles et du comportement collecteur indisponible sans transaction
   réelle.
+- publication du conteneur docs sur `docs-diddishop-staging.diddifree.com`,
+  Proxy Host Nginx, certificat TLS et vérification externe des pages.

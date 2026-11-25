@@ -206,3 +206,12 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Alternatives écartées : exposer un scrape sans token ; réutiliser l’authentification OTLP ; déclarer la conformité à partir des seuls signaux synthétiques centraux.
 - Source : Utilisateur / remise DiddiShop du 2026-11-24
 - Impact : observabilité, déploiement, plateforme, recette staging.
+
+### D-023 — Portail documentaire statique séparé
+- Date : 2026-11-25
+- Phase / sous-lot : S14 — publication documentaire
+- Décision : publier la documentation MkDocs dans un conteneur Nginx statique séparé de l’API, activé explicitement en staging par `DOCS_PUBLIC_ENABLED=true` et exposé derrière un Proxy Host HTTPS.
+- Pourquoi : le frontend doit accéder à une URL publique stable sans dépendre du dépôt Git ou du poste de développement ; la documentation ne doit exposer ni secrets ni données métier.
+- Alternatives écartées : servir les fichiers depuis GitHub ; monter le dossier local dans l’API ; rendre le portail public par défaut en production.
+- Source : Agent, à valider
+- Impact : Dockerfile.docs, Compose docs, Nginx Proxy Manager, MkDocs, DNS/TLS staging.

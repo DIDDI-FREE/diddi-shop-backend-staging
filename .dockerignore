@@ -9,6 +9,4 @@ __pycache__
 secrets
 tests
 tasks
-docs
-*.md
 *.log

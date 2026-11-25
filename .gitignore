@@ -13,4 +13,5 @@ venv/
 dist/
 build/
 .mkdocs-build/
+.mkdocs-build-*/
 *.egg-info/

@@ -20,6 +20,7 @@ configuration.
 - Configuration : [`reference/configuration.md`](reference/configuration.md)
 - Journal des changements : [`changelog/2026-11-25.md`](changelog/2026-11-25.md)
 - Runbook opérationnel : [`operations/runbook.md`](operations/runbook.md)
+- Publication web : [`operations/documentation-portal.md`](operations/documentation-portal.md)
 
 ## Source du contrat
 

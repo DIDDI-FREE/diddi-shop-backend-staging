@@ -49,6 +49,17 @@ Invoke-WebRequest http://localhost:8000/ready
 docker compose down
 ```
 
+Le portail documentaire public est une stack séparée :
+
+```powershell
+docker compose -f docker-compose.docs.yml -f docker-compose.docs.local.yml up -d --build
+Invoke-WebRequest http://localhost:18082/
+```
+
+En staging, le Proxy Host doit publier le conteneur docs sur
+`https://docs-diddishop-staging.diddifree.com/`. Le frontend ne doit pas lire
+les fichiers depuis Git ou le poste de développement.
+
 Il ne contient aucun credential métier et n’exécute aucun paiement ou envoi
 réel. Les contrats externes sont vérifiés par les tests avec faux services HTTP
 et doivent être rejoués en staging avec les secrets provisionnés.

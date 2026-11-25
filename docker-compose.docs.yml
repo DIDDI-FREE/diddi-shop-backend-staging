@@ -1,0 +1,10 @@
+services:
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile.docs
+    environment:
+      DOCS_PUBLIC_ENABLED: ${DOCS_PUBLIC_ENABLED:-true}
+    expose:
+      - "80"
+    restart: unless-stopped
