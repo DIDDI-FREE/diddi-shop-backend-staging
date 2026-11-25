@@ -1,4 +1,0 @@
-services:
-  docs:
-    ports:
-      - "${DOCS_PORT:-18082}:80"
