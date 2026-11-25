@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-24  
-**Phase courante :** S12 terminé localement
+**Phase courante :** S13 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -24,7 +24,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 50 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 55 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | à exécuter avec PostgreSQL staging |
@@ -81,6 +81,13 @@ leurs ports.
   bornées, retry réseau/429/502/503/504, timeout de requête de 5 secondes,
   flush d’arrêt borné et credential Basic dédié hors Git. Aucun client ou scope
   S2S DiddiFreeID n’est utilisé pour la télémétrie.
+- Les OpenAPI staging ont été sondées sans credentials métier. DiddiPay est
+  aligné sur `amount` et la normalisation de ses identifiants de réponse ; les
+  routes DiddiSend, DiddiFiles, DiddiRewards, DiddiComms et DiddiSupport sont
+  couvertes par des tests de câblage avec faux services.
+- Un `Dockerfile` et un `docker-compose.yml` local fournissent PostgreSQL,
+  Redis et l’API en mode développement ; la configuration Compose est valide,
+  mais Docker Desktop ne démarre pas son daemon sur la machine actuelle.
 
 ## Réponses intégrées
 

@@ -11,11 +11,20 @@ _tracer = trace.get_tracer("diddishop.integrations")
 
 
 class ServiceAdapter:
-    def __init__(self, *, base_url: str, audience: str, timeout: float = 10.0, credential: ServiceCredential | None = None):
+    def __init__(
+        self,
+        *,
+        base_url: str,
+        audience: str,
+        timeout: float = 10.0,
+        credential: ServiceCredential | None = None,
+        transport: httpx.AsyncBaseTransport | None = None,
+    ):
         self.base_url = base_url.rstrip("/")
         self.audience = audience
         self.timeout = timeout
         self.credential = credential
+        self.transport = transport
 
     def _url(self, path: str) -> str:
         if not self.base_url:
@@ -31,7 +40,7 @@ class ServiceAdapter:
             span.set_attribute("diddi.target_service", self.audience)
             span.set_attribute("http.request.method", method.upper())
             try:
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                async with httpx.AsyncClient(timeout=self.timeout, transport=self.transport) as client:
                     response = await client.request(method, self._url(path), headers=merged_headers, **kwargs)
             except Exception as exc:
                 span.record_exception(exc)

@@ -18,6 +18,22 @@ python -m pip install -e ".[dev]"
 uvicorn app_base.main:app --reload
 ```
 
+## Vérification locale avec Docker
+
+Le Compose local démarre PostgreSQL, Redis et l’API en mode développement :
+
+```powershell
+docker compose up -d --build
+docker compose ps
+Invoke-WebRequest http://localhost:8000/health
+Invoke-WebRequest http://localhost:8000/ready
+docker compose down
+```
+
+Il ne contient aucun credential métier et n’exécute aucun paiement ou envoi
+réel. Les contrats externes sont vérifiés par les tests avec faux services HTTP
+et doivent être rejoués en staging avec les secrets provisionnés.
+
 Le code livré ici est un squelette de frontières et de contrats. Les repositories
 et adaptateurs externes sont volontairement des points d'extension ; ils ne
 simulent pas encore un paiement, une livraison ou un remboursement réel.

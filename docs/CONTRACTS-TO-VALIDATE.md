@@ -26,6 +26,13 @@ vendeur sont reportées en V2. Elles devront faire l’objet d’un contrat sép
 avant activation ; le payout existant ne doit pas être considéré comme une
 release vendeur.
 
+Vérification OpenAPI staging du 2026-11-25 : `POST /payment-intents` attend
+`business_reference`, `amount` et accepte `currency=XOF`; `POST
+/payment-intents/{intent_id}/refunds` attend `amount` et `reason`. Les réponses
+renvoient l’identifiant sous `id`; l’adaptateur DiddiShop le normalise en
+`payment_intent_id`/`refund_id` pour le domaine local. Aucun corps de carte n’est
+envoyé.
+
 ## DiddiFiles
 
 Routes observées : upload-session, confirmation, métadonnées, download-url et
@@ -111,3 +118,11 @@ sont filtrés par défaut.
 synthétiques API/worker, URLs/ports/chemins Prometheus, token de scrape dédié,
 refus/succès du scrape et panne collecteur sans transaction réelle. Le scrape
 DiddiShop reste désactivé jusqu’à ces vérifications.
+
+## Vérification staging du 2026-11-25
+
+Les sondes publiques sans credential ont retourné 200 pour DiddiPay, DiddiSend,
+DiddiFiles, DiddiRewards et DiddiComms. DiddiSupport expose bien son OpenAPI et
+ses routes internal, mais son `/health` public retourne 404. DiddiObserve ne
+publie pas de `/health` HTML ; sa chaîne OTLP doit être vérifiée avec le
+credential dédié et les marqueurs synthétiques prévus par la remise.

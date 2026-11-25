@@ -7,23 +7,35 @@ class DiddiPayAdapter(ServiceAdapter):
         response = await self.request(
             "POST", "/payment-intents",
             headers={"Idempotency-Key": command.idempotency_key},
-            json=command.model_dump(),
+            json={
+                "business_reference": command.business_reference,
+                "amount": command.amount_minor,
+                "currency": command.currency,
+                "metadata": {"checkout_id": command.checkout_id, "origin_service": "diddishop"},
+            },
         )
         response.raise_for_status()
-        return response.json()
+        payload = response.json()
+        if "payment_intent_id" not in payload and payload.get("id"):
+            payload["payment_intent_id"] = payload["id"]
+        if "amount_minor" not in payload and payload.get("amount") is not None:
+            payload["amount_minor"] = payload["amount"]
+        return payload
 
     async def refund(self, order_id: str, amount_minor: int, idempotency_key: str) -> dict:
         response = await self.request(
             "POST", f"/payment-intents/{order_id}/refunds",
             headers={"Idempotency-Key": idempotency_key},
             json={
-                "amount_minor": amount_minor,
+                "amount": amount_minor,
                 "reason": "diddishop_order",
-                "business_reference": f"diddishop:order:{order_id}",
             },
         )
         response.raise_for_status()
-        return response.json()
+        payload = response.json()
+        if "refund_id" not in payload and payload.get("id"):
+            payload["refund_id"] = payload["id"]
+        return payload
 
     async def cancel_payment_intent(self, payment_intent_id: str, idempotency_key: str) -> dict:
         response = await self.request(

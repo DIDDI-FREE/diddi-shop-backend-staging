@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: diddishop
+      POSTGRES_USER: diddishop
+      POSTGRES_PASSWORD: diddishop-local-only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U diddishop -d diddishop"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - diddishop-postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DIDDI_SHOP_ENVIRONMENT: development
+      DIDDI_SHOP_DATABASE_URL: postgresql+asyncpg://diddishop:diddishop-local-only@postgres:5432/diddishop
+      DIDDI_SHOP_REDIS_URL: redis://redis:6379/0
+      DIDDI_SHOP_INTERNAL_REQUEST_TIMEOUT_SECONDS: "5"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  diddishop-postgres:

@@ -104,3 +104,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S10 — corriger DiddiComms : conversation métier sans notification événementielle
 - [x] S11 — aligner DiddiRewards et imposer XOF exclusivement
 - [x] S12 — intégrer DiddiObserve OTLP HTTP/protobuf, corrélation et filtrage de confidentialité
+- [x] S13 — vérifier les contrats staging, aligner DiddiPay et ajouter le Compose local

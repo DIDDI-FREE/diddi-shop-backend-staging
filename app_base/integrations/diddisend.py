@@ -51,6 +51,8 @@ class DiddiSendAdapter(ServiceAdapter):
             dropoff_address=payload["dropoff_address"],
             package=payload["package"],
             ready_at=payload.get("ready_at"),
+            # DiddiSend's Food-style contract serializes the quoted amount as
+            # a string, while the Shop domain keeps minor units as integers.
             quoted_price=str(payload["quoted_price"]),
             financial_breakdown=financial_breakdown,
         )
