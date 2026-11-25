@@ -2,6 +2,25 @@
 
 Squelette backend du marketplace physique DiddiShop.
 
+## Documentation active
+
+La documentation suit la convention de DiddiGo :
+
+- [Portail documentaire](docs/README.md)
+- [Contrat HTTP et webhooks](docs/api/API_CONTRACT.md)
+- [Architecture d’exécution](docs/architecture/RUNTIME_ARCHITECTURE.md)
+- [MVP V1 figé](docs/product/DIDDISHOP-MVP-FIGE.md)
+- [Parcours checkout/commande](docs/guides/checkout-order-flow.md)
+- [Intégrations externes](docs/integrations/)
+- [Questions ouvertes](docs/api/open-questions.md)
+
+Pour prévisualiser le portail comme DiddiGo :
+
+```powershell
+python -m pip install -r docs/requirements.txt
+mkdocs serve
+```
+
 Le découpage reprend une composition Clean Architecture :
 
 - `domain` contient les règles métier et les ports (`Protocol`) ;

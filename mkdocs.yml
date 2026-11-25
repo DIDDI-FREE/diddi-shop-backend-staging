@@ -1,0 +1,95 @@
+site_name: DiddiShop Documentation
+site_description: Contrats API, parcours métier et intégrations du marketplace DiddiShop
+site_author: DiddiFree
+site_url: https://docs-diddishop-staging.diddifree.com/
+
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+strict: true
+
+theme:
+  name: material
+  language: fr
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Passer au thème sombre
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Passer au thème clair
+  features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - toc.follow
+
+nav:
+  - Accueil: README.md
+  - Produit:
+      - MVP figé: product/DIDDISHOP-MVP-FIGE.md
+  - API:
+      - Contrat HTTP et webhooks: api/API_CONTRACT.md
+      - Questions ouvertes: api/open-questions.md
+  - Architecture:
+      - Exécution: architecture/RUNTIME_ARCHITECTURE.md
+  - Parcours métier:
+      - Checkout et commande: guides/checkout-order-flow.md
+      - Annulations et réclamations: guides/claims-refunds-flow.md
+  - Intégrations:
+      - DiddiFreeID: integrations/diddifreeid.md
+      - DiddiPay: integrations/diddipay.md
+      - DiddiSend: integrations/diddisend.md
+      - DiddiFiles: integrations/diddifiles.md
+      - DiddiRewards: integrations/diddirewards.md
+      - DiddiComms: integrations/diddicomms.md
+      - DiddiSupport: integrations/diddisupport.md
+      - DiddiObserve: integrations/diddiobserve.md
+  - Références:
+      - États: reference/statuses.md
+      - Configuration: reference/configuration.md
+      - Carte des intégrations: reference/integration-map.md
+      - Capacités: reference/capability-map.md
+  - Opérations:
+      - Runbook: operations/runbook.md
+      - État d’implémentation: IMPLEMENTATION-STATUS.md
+  - Changelog:
+      - 25 novembre 2026: changelog/2026-11-25.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+plugins:
+  - search:
+      lang: fr
+
+exclude_docs: |
+  CONTRACTS-TO-VALIDATE.md
+  RUNBOOK.md
+  decisions/DECISIONS.md
+
+extra:
+  generator: false
+
+copyright: Documentation interne DiddiFree - DiddiShop

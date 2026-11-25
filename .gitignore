@@ -12,4 +12,5 @@ venv/
 *.sqlite
 dist/
 build/
+.mkdocs-build/
 *.egg-info/
