@@ -7,4 +7,6 @@ services:
       DOCS_PUBLIC_ENABLED: ${DOCS_PUBLIC_ENABLED:-true}
     expose:
       - "80"
+    ports:
+      - "${DIDDI_SHOP_DOCS_PORT:-48182}:80"
     restart: unless-stopped

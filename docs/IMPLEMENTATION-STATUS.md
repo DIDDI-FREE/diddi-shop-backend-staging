@@ -94,11 +94,11 @@ leurs ports.
   `postgresql+asyncpg` que l’application.
 - Le portail documentaire MkDocs est construit dans `Dockerfile.docs` puis
   servi par Nginx dans un conteneur séparé. La vérification locale sur le port
-  `18082` répond 200 pour `/` et `/api/API_CONTRACT/`.
-- Le Compose de staging n’expose plus de port hôte pour l’API ou la
-  documentation. L’overlay `docker-compose.proxy.yml` utilise un réseau
-  externe configurable `NPM_NETWORK` ; Nginx Proxy Manager cible `api:8000` et
-  `docs:80`.
+  `48182` répond 200 pour `/` et `/api/API_CONTRACT/`.
+- Le Compose publie par défaut des ports hôte élevés et configurables
+  (`48180` pour l’API et `48182` pour la documentation), afin de fonctionner
+  même sans accès au réseau Docker de Nginx Proxy Manager. L’overlay
+  `docker-compose.proxy.yml` reste disponible lorsque ce réseau est fourni.
 
 ## Réponses intégrées
 
@@ -127,5 +127,7 @@ leurs ports.
   réelle.
 - publication du conteneur docs sur `docs-diddishop-staging.diddifree.com`,
   Proxy Host Nginx, certificat TLS et vérification externe des pages.
-- fourniture par l’infrastructure du nom exact du réseau Docker partagé avec
-  Nginx Proxy Manager (`NPM_NETWORK`).
+- choix des ports hôte disponibles si les valeurs par défaut `48180`/`48182`
+  sont déjà utilisées ;
+- ou fourniture du nom exact du réseau Docker partagé avec Nginx Proxy Manager
+  (`NPM_NETWORK`) pour utiliser l’overlay réseau.

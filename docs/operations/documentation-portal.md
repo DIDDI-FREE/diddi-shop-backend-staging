@@ -7,25 +7,32 @@ une fois publié.
 ## Construction locale
 
 ```powershell
-docker compose -f docker-compose.docs.yml -f docker-compose.docs.local.yml up -d --build
-Invoke-WebRequest http://localhost:18082/healthz
-Invoke-WebRequest http://localhost:18082/
+docker compose -f docker-compose.docs.yml up -d --build
+Invoke-WebRequest http://localhost:48182/healthz
+Invoke-WebRequest http://localhost:48182/
 ```
 
-Le port local par défaut est `18082` et peut être changé avec `DOCS_PORT`.
+Le port hôte par défaut est `48182` et peut être changé avec
+`DIDDI_SHOP_DOCS_PORT`.
 
 Pour arrêter le portail local :
 
 ```powershell
-docker compose -f docker-compose.docs.yml -f docker-compose.docs.local.yml down
+docker compose -f docker-compose.docs.yml down
 ```
 
 ## Publication staging
 
 La stack staging doit construire `Dockerfile.docs` avec
-`DOCS_PUBLIC_ENABLED=true`. Elle ne doit publier aucun port hôte ; le
-conteneur doit rejoindre le réseau Docker partagé avec Nginx Proxy Manager.
-Le réseau est injecté sans être inventé :
+`DOCS_PUBLIC_ENABLED=true`. Par défaut, elle publie le port hôte `48182`, ce
+qui permet à Nginx Proxy Manager de proxyfier sans réseau Docker partagé.
+Le port peut être remplacé dans Portainer :
+
+```ini
+DIDDI_SHOP_DOCS_PORT=48282
+```
+
+Si le réseau Docker NPM est accessible, l’overlay réseau reste disponible :
 
 ```powershell
 $env:NPM_NETWORK = "<nom-exact-du-reseau-partage-avec-NPM>"
@@ -38,14 +45,14 @@ Dans Nginx Proxy Manager, créer un Proxy Host :
 Domain: docs-diddishop-staging.diddifree.com
 Forward scheme: http
 Forward host: même hôte Docker que la stack DiddiShop
-Forward port: 80
+Forward port: 48182
 Websockets: non requis
 SSL: certificat staging pour docs-diddishop-staging.diddifree.com
 ```
 
-Le Proxy Host API utilise la même configuration réseau avec `Forward host:
-api` et `Forward port: 8000`. Le Proxy Host documentation utilise `Forward
-host: docs` et `Forward port: 80`.
+Le Proxy Host API utilise le host Docker et le port `48180`. Le Proxy Host
+documentation utilise le host Docker et le port `48182`. Avec l’overlay réseau,
+les cibles deviennent `api:8000` et `docs:80`.
 
 Le frontend consommera alors uniquement :
 

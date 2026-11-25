@@ -5,8 +5,8 @@
 - `Dockerfile.docs` : build MkDocs strict puis image Nginx statique ;
 - `docker-compose.docs.yml` et `docker-compose.docs.local.yml` ;
 - configuration Nginx activée/masquée par `DOCS_PUBLIC_ENABLED` ;
-- absence de binding hôte dans le Compose de staging et overlay réseau
-  `NPM_NETWORK` pour Nginx Proxy Manager ;
+- ports hôte élevés et configurables (`48180` API, `48182` docs) pour le
+  fallback sans réseau NPM, plus overlay réseau `NPM_NETWORK` optionnel ;
 - guide de publication avec Proxy Host attendu pour
   `docs-diddishop-staging.diddifree.com` ;
 - exclusion des artefacts MkDocs du suivi Git.
@@ -16,9 +16,9 @@
 - `mkdocs build --strict` : OK ;
 - `docker compose ... config --quiet` : OK ;
 - build Docker du portail : OK ;
-- `http://localhost:18082/healthz` : 200 ;
-- `http://localhost:18082/` : 200, titre DiddiShop Documentation ;
-- `http://localhost:18082/api/API_CONTRACT/` : 200 ;
+- `http://localhost:48182/healthz` : 200 ;
+- `http://localhost:48182/` : 200, titre DiddiShop Documentation ;
+- `http://localhost:48182/api/API_CONTRACT/` : 200 ;
 - conteneur docs : `healthy`.
 
 ## Vérification externe

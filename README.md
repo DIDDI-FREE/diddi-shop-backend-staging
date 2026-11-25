@@ -42,33 +42,36 @@ uvicorn app_base.main:app --reload
 Le Compose local démarre PostgreSQL, Redis et l’API en mode développement :
 
 ```powershell
-docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+docker compose up -d --build
 docker compose ps
-Invoke-WebRequest http://localhost:18080/health
-Invoke-WebRequest http://localhost:18080/ready
-docker compose -f docker-compose.yml -f docker-compose.local.yml down
+Invoke-WebRequest http://localhost:48180/health
+Invoke-WebRequest http://localhost:48180/ready
+docker compose down
 ```
 
 Le portail documentaire public est une stack séparée :
 
 ```powershell
-docker compose -f docker-compose.docs.yml -f docker-compose.docs.local.yml up -d --build
-Invoke-WebRequest http://localhost:18082/
+docker compose -f docker-compose.docs.yml up -d --build
+Invoke-WebRequest http://localhost:48182/
 ```
 
 En staging, le Proxy Host doit publier le conteneur docs sur
 `https://docs-diddishop-staging.diddifree.com/`. Le frontend ne doit pas lire
 les fichiers depuis Git ou le poste de développement.
 
-En staging, utiliser l’overlay réseau sans aucun `ports:` hôte :
+En staging, la configuration par défaut publie des ports hôte élevés et
+configurables : `48180` pour l’API et `48182` pour la documentation. Si le
+réseau NPM est finalement accessible, l’overlay réseau reste disponible :
 
 ```powershell
 $env:NPM_NETWORK = "<nom-exact-du-reseau-partage-avec-NPM>"
 docker compose -f docker-compose.yml -f docker-compose.docs.yml -f docker-compose.proxy.yml up -d --build
 ```
 
-Nginx Proxy Manager doit cibler `api:8000` pour l’API et `docs:80` pour la
-documentation. Le nom réel du réseau doit être fourni par l’hôte NPM ; il ne
+Sans réseau Docker partagé, Nginx Proxy Manager doit cibler le host Docker et
+les ports `48180` et `48182`. Avec le réseau partagé, il peut cibler `api:8000`
+et `docs:80`. Le nom réel du réseau doit être fourni par l’hôte NPM ; il ne
 peut pas être déduit depuis ce poste si NPM tourne sur une autre machine.
 
 Il ne contient aucun credential métier et n’exécute aucun paiement ou envoi
