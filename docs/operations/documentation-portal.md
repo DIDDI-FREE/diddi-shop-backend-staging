@@ -23,14 +23,37 @@ docker compose -f docker-compose.docs.yml down
 
 ## Publication staging
 
-La stack staging doit construire `Dockerfile.docs` avec
-`DOCS_PUBLIC_ENABLED=true`. Par défaut, elle publie le port hôte `48182`, ce
-qui permet à Nginx Proxy Manager de proxyfier sans réseau Docker partagé.
-Le port peut être remplacé dans Portainer :
+Comme dans DiddiGo, la stack Portainer dédiée
+`docker-compose.portainer.yml` construit l’API et `Dockerfile.docs` depuis le
+même checkout Git. Le conteneur `docs` fait donc partie de la même livraison
+que l’API et sert le contrat correspondant à cette révision. Dans Portainer,
+déployer ce fichier depuis le dépôt, puis définir au minimum :
+
+```ini
+DOCS_PUBLIC_ENABLED=true
+DIDDI_SHOP_ENVIRONMENT=staging
+DIDDI_SHOP_API_PORT=48180
+DIDDI_SHOP_DOCS_PORT=48182
+POSTGRES_PASSWORD=<secret hors Git>
+DIDDI_SHOP_DATABASE_URL=postgresql+asyncpg://<user>:<password>@postgres:5432/<database>
+```
+
+Les URLs d’intégration, secrets S2S, credentials DiddiObserve et variables
+OTEL sont également injectés dans l’environnement/secrets Portainer, jamais
+dans le dépôt.
+
+La stack publie par défaut le port hôte `48182`, ce qui permet à Nginx Proxy
+Manager de proxyfier sans réseau Docker partagé. Le port peut être remplacé
+dans Portainer :
 
 ```ini
 DIDDI_SHOP_DOCS_PORT=48282
 ```
+
+Le Proxy Host API cible le même hôte Docker sur `DIDDI_SHOP_API_PORT` ; le
+Proxy Host documentation cible `DIDDI_SHOP_DOCS_PORT`. Cette voie est le
+fallback supporté quand le réseau Docker de Nginx Proxy Manager n’est pas
+accessible depuis Portainer.
 
 Si le réseau Docker NPM est accessible, l’overlay réseau reste disponible :
 
@@ -53,6 +76,17 @@ SSL: certificat staging pour docs-diddishop-staging.diddifree.com
 Le Proxy Host API utilise le host Docker et le port `48180`. Le Proxy Host
 documentation utilise le host Docker et le port `48182`. Avec l’overlay réseau,
 les cibles deviennent `api:8000` et `docs:80`.
+
+Avant le déploiement Portainer, valider le fichier comme Compose :
+
+```powershell
+docker compose -f docker-compose.portainer.yml config --quiet
+```
+
+Après le déploiement, vérifier dans Portainer que `diddishop-api-1` et
+`diddishop-docs-1` sont `healthy`/`running`, puis configurer le Proxy Host NPM
+vers le port docs choisi. Le domaine ne sera réellement prêt qu’après un
+`200` HTTPS sur la racine et sur une page MkDocs.
 
 Le frontend consommera alors uniquement :
 

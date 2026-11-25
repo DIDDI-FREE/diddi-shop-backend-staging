@@ -215,3 +215,12 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Alternatives écartées : servir les fichiers depuis GitHub ; monter le dossier local dans l’API ; rendre le portail public par défaut en production.
 - Source : Agent, à valider
 - Impact : Dockerfile.docs, Compose docs, Nginx Proxy Manager, MkDocs, DNS/TLS staging.
+
+### D-024 — Stack Portainer unifiée pour l’API et MkDocs
+- Date : 2026-11-25
+- Phase / sous-lot : S15-A — alignement de l’infrastructure documentaire DiddiGo
+- Décision : fournir `docker-compose.portainer.yml` avec les services API et docs dans la même stack, construits depuis le même checkout Git. Le portail MkDocs est activé explicitement en staging par `DOCS_PUBLIC_ENABLED=true` et reste accessible à Nginx Proxy Manager par un port hôte configurable lorsque le réseau Docker partagé n’est pas disponible.
+- Pourquoi : reproduire le modèle DiddiGo observé et garantir que l’URL publique documente la même révision que l’API déployée.
+- Alternatives écartées : déployer MkDocs dans une stack indépendante non synchronisée ; servir les Markdown depuis Git ou le poste du développeur ; imposer un réseau Docker NPM indisponible.
+- Source : DiddiGo `docker-compose.portainer.yml` et `docs/configuration/DOCUMENTATION_PORTAL.md` ; Agent, à valider
+- Impact : Portainer, Docker Compose, MkDocs, Nginx Proxy Manager, DNS/TLS staging.

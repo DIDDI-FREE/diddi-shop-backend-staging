@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-25
-**Phase courante :** S13 terminé localement
+**Phase courante :** S15 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -95,6 +95,10 @@ leurs ports.
 - Le portail documentaire MkDocs est construit dans `Dockerfile.docs` puis
   servi par Nginx dans un conteneur séparé. La vérification locale sur le port
   `48182` répond 200 pour `/` et `/api/API_CONTRACT/`.
+- La stack `docker-compose.portainer.yml` reprend le modèle DiddiGo : API et
+  MkDocs sont construits dans la même stack et depuis la même révision Git.
+  `DOCS_PUBLIC_ENABLED` reste désactivé par défaut et doit être activé
+  explicitement en staging.
 - Le Compose publie par défaut des ports hôte élevés et configurables
   (`48180` pour l’API et `48182` pour la documentation), afin de fonctionner
   même sans accès au réseau Docker de Nginx Proxy Manager. L’overlay

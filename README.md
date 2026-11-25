@@ -56,6 +56,13 @@ docker compose -f docker-compose.docs.yml up -d --build
 Invoke-WebRequest http://localhost:48182/
 ```
 
+Pour reproduire le déploiement Portainer de DiddiGo, utiliser
+`docker-compose.portainer.yml`. Cette stack construit l’API et MkDocs depuis
+la même révision Git, puis expose les ports hôte configurables `48180` et
+`48182` pour Nginx Proxy Manager. Voir
+[`docs/operations/documentation-portal.md`](docs/operations/documentation-portal.md)
+pour les variables Portainer et le Proxy Host HTTPS.
+
 En staging, le Proxy Host doit publier le conteneur docs sur
 `https://docs-diddishop-staging.diddifree.com/`. Le frontend ne doit pas lire
 les fichiers depuis Git ou le poste de développement.
