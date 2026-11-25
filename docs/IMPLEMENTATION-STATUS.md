@@ -1,6 +1,6 @@
 # DiddiShop — état d’implémentation
 
-**Date :** 2026-11-24  
+**Date :** 2026-11-25
 **Phase courante :** S13 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
@@ -27,8 +27,8 @@ leurs ports.
 | `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 55 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
-| `alembic upgrade head` | migrations réelles | à exécuter avec PostgreSQL staging |
-| tests PostgreSQL/Redis | intégration | indisponibles : infrastructure non configurée |
+| `alembic upgrade head` | migrations réelles | OK dans PostgreSQL local Compose |
+| tests PostgreSQL/Redis | intégration | OK via le Compose local |
 
 ## Phases S0 à S8 réalisées
 
@@ -86,8 +86,12 @@ leurs ports.
   routes DiddiSend, DiddiFiles, DiddiRewards, DiddiComms et DiddiSupport sont
   couvertes par des tests de câblage avec faux services.
 - Un `Dockerfile` et un `docker-compose.yml` local fournissent PostgreSQL,
-  Redis et l’API en mode développement ; la configuration Compose est valide,
-  mais Docker Desktop ne démarre pas son daemon sur la machine actuelle.
+  Redis et l’API en mode développement ; l’image est construite, les
+  migrations sont appliquées et les trois conteneurs sont healthy. Les
+  endpoints `/health` et `/ready` répondent 200.
+- Alembic utilise désormais le moteur asynchrone PostgreSQL avec
+  `run_sync`, ce qui permet l’exécution réelle des migrations avec le même
+  `postgresql+asyncpg` que l’application.
 
 ## Réponses intégrées
 

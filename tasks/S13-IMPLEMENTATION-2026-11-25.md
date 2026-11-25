@@ -22,12 +22,14 @@
 - `pytest -q` : OK, 55 tests
 - `python -m compileall -q app_base tests alembic` : OK
 - `docker compose config --quiet` : OK
-- `docker compose up -d --build` : impossible, Docker Desktop ne démarre pas
-  son daemon.
+- `docker compose up -d --build` : OK ; image API construite et conteneurs
+  PostgreSQL, Redis et API démarrés.
+- `docker compose exec -T api alembic upgrade head` : OK ; migrations
+  `0001_platform_foundation` et `0002_business_aggregates` appliquées.
+- `pg_isready`, `redis-cli ping`, `GET /health` et `GET /ready` : OK.
 
 ## Déploiement en attente
 
-Relancer le Compose lorsque Docker Desktop est opérationnel, puis vérifier
-`/health`, `/ready`, PostgreSQL, Redis et les migrations. Les appels staging
-authentifiés restent à exécuter avec les secrets provisionnés, sans utiliser
-de transaction financière réelle pour la recette initiale.
+Le Compose local est vérifié et laissé actif. Les appels staging authentifiés
+restent à exécuter avec les secrets provisionnés, sans utiliser de transaction
+financière réelle pour la recette initiale.
