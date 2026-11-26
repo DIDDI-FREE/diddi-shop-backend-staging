@@ -25,6 +25,17 @@ class PaymentIntentPort:
     async def create(self, checkout_id: str, amount_minor: int, idempotency_key: str) -> dict:
         raise NotImplementedError
 
+    async def create_with_options(
+        self,
+        checkout_id: str,
+        amount_minor: int,
+        idempotency_key: str,
+        *,
+        payment_method: str = "wave",
+        return_url: str | None = None,
+    ) -> dict:
+        return await self.create(checkout_id, amount_minor, idempotency_key)
+
 
 @dataclass
 class CheckoutApplicationService:
@@ -185,6 +196,7 @@ class CheckoutApplicationService:
                                 "declared_value": items_total,
                             },
                             "quoted_price": delivery_fee,
+                            "payment_method": quote_context.get("payment_method", "wave"),
                         },
                     },
                     created_at=created_at.isoformat(),
@@ -193,7 +205,14 @@ class CheckoutApplicationService:
                 await self.orders.create(order)
                 created_orders.append(order)
                 total += order.total_minor
-            payment = await self.payments.create(checkout_id, total, idempotency_key)
+            payment = await self.payments.create_with_options(
+                checkout_id,
+                total,
+                idempotency_key,
+                payment_method=delivery_context.get("payment_method", "wave"),
+                return_url=delivery_context.get("return_url"),
+            )
+            payment.setdefault("payment_method", delivery_context.get("payment_method", "wave"))
         except Exception:
             if self.rewards is not None:
                 for reservation in reward_reservations:
@@ -263,7 +282,14 @@ class CheckoutApplicationService:
         if checkout.payment_idempotency_key == idempotency_key:
             raise ConflictError("payment retry requires a new Idempotency-Key")
         checkout.payment_attempt += 1
-        payment = await self.payments.create(checkout.id, checkout.total_minor, idempotency_key)
+        payment = await self.payments.create_with_options(
+            checkout.id,
+            checkout.total_minor,
+            idempotency_key,
+            payment_method=(checkout.payment or {}).get("payment_method", "wave"),
+            return_url=(checkout.payment or {}).get("return_url"),
+        )
+        payment.setdefault("payment_method", (checkout.payment or {}).get("payment_method", "wave"))
         checkout.status = CheckoutStatus.PAYMENT_PENDING
         checkout.payment_idempotency_key = idempotency_key
         checkout.payment_intent_id = payment.get("payment_intent_id", checkout.payment_intent_id)

@@ -238,6 +238,14 @@ class SqlClaimRepository:
             row = result.scalar_one_or_none()
             return Claim(**_load(row.payload)) if row else None
 
+    async def get_for_order(self, order_id: str) -> Claim | None:
+        async with self.factory() as session:
+            result = await session.execute(
+                select(ClaimRecord).where(ClaimRecord.order_id == order_id).order_by(ClaimRecord.opened_at.desc())
+            )
+            row = result.scalars().first()
+            return Claim(**_load(row.payload)) if row else None
+
 
 class SqlDeliveryRepository:
     def __init__(self, factory: async_sessionmaker[AsyncSession]):

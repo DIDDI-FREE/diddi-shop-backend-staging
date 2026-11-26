@@ -34,3 +34,11 @@ class OrderNotCancellableError(DiddiShopError):
 
 class DeliveryAlreadyPickedUpError(OrderNotCancellableError):
     code = "DELIVERY_ALREADY_PICKED_UP"
+
+
+class ClaimWindowExpiredError(DiddiShopError):
+    code = "CLAIM_WINDOW_EXPIRED"
+
+
+class ClaimAlreadyOpenError(DiddiShopError):
+    code = "CLAIM_ALREADY_OPEN"

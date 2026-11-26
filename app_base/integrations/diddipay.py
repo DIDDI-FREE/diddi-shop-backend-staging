@@ -4,15 +4,19 @@ from app_base.shared_kernel.contracts.payments import PaymentIntentCommand
 
 class DiddiPayAdapter(ServiceAdapter):
     async def create_payment_intent(self, command: PaymentIntentCommand) -> dict:
+        request_payload = {
+            "business_reference": command.business_reference,
+            "amount": command.amount_minor,
+            "currency": command.currency,
+            "payment_method": command.payment_method,
+            "metadata": {"checkout_id": command.checkout_id, "origin_service": "diddishop"},
+        }
+        if command.return_url:
+            request_payload["return_url"] = command.return_url
         response = await self.request(
             "POST", "/payment-intents",
             headers={"Idempotency-Key": command.idempotency_key},
-            json={
-                "business_reference": command.business_reference,
-                "amount": command.amount_minor,
-                "currency": command.currency,
-                "metadata": {"checkout_id": command.checkout_id, "origin_service": "diddishop"},
-            },
+            json=request_payload,
         )
         response.raise_for_status()
         payload = response.json()

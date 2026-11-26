@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-26
-**Phase courante :** S22 terminé localement
+**Phase courante :** S23-D terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -24,7 +24,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 69 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 71 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | OK dans PostgreSQL local Compose |
@@ -223,3 +223,29 @@ leurs ports.
 - Ajout de `PATCH /v1/cart/lines/{product_id}` avec remplacement exact de la
   quantité, contrôle du stock et réponse `CartResponse` enrichie.
 - `DELETE` reste l’opération dédiée à la suppression ; `quantity=0` est refusé.
+
+## S23-B — paiement et commandes
+
+- Le checkout accepte `wave`, `mtn_momo` et `orange_money`, avec `wave` par
+  défaut, et contrôle les `return_url` vers DiddiFree ou localhost.
+- Les champs DiddiPay optionnels utiles (`payment_url`, `checkout_url`,
+  `client_secret`, `payment_method`, `expires_at`) sont relayés sans exposer
+  la réponse brute du prestataire.
+- `GET /v1/orders` utilise une pagination par curseur opaque et les commandes
+  exposent `created_at`, `delivered_at` et `status_history`.
+
+## S23-C — réclamations, preuves et remboursements
+
+- Ajout de la lecture d’une réclamation par commande, du calcul de l’échéance
+  à 72 heures, des motifs contrôlés et des codes d’erreur stables.
+- Les preuves sont préparées via DiddiFiles, limitées à trois images JPEG/PNG/
+  WebP de 10 MiB maximum, et les remboursements exposent un moyen et une
+  référence masquée.
+
+## S23-D — suivi DiddiSend
+
+- La projection de livraison normalise le coursier et la position avec un
+  schéma stable (`id`, `name`, `phone_masked`, `avatar_url`, `vehicle_type`,
+  puis `latitude`, `longitude`, `updated_at`).
+- DiddiSend reste la source de vérité du suivi opérationnel ; DiddiShop ne
+  conserve qu’une projection nécessaire à l’API frontend.

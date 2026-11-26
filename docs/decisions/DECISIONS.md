@@ -367,3 +367,57 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   clé de création pour une reprise ; ignorer le corps original.
 - Source : Agent, à valider
 - Impact : checkout, idempotence SQL/Redis, DiddiPay, OpenAPI et frontend.
+
+### D-036 — Contrat paiement frontend V1
+- Date : 2026-11-26
+- Phase / sous-lot : S23-B
+- Décision : le frontend choisit `wave`, `mtn_momo` ou `orange_money`, avec
+  `wave` par défaut. Une `return_url` facultative est acceptée uniquement vers
+  `diddifree.com` ou `localhost`. La réponse expose seulement les champs
+  DiddiPay nécessaires : identifiant, montant XOF, statut, moyen et expiration.
+- Pourquoi : rendre le parcours mobile money déterministe sans exposer de
+  token, secret ou URL de redirection arbitraire.
+- Alternatives écartées : accepter une URL quelconque ; exposer la réponse
+  DiddiPay brute ; inventer un champ obligatoire non publié par staging.
+- Source : Agent, à valider
+- Impact : checkout, DiddiPay, sécurité, frontend et OpenAPI.
+
+### D-037 — Pagination et historique des commandes
+- Date : 2026-11-26
+- Phase / sous-lot : S23-B
+- Décision : `GET /v1/orders` utilise `limit` (1–100, défaut 20) et un curseur
+  opaque ; chaque commande expose `created_at`, `delivered_at` et un
+  `status_history` horodaté.
+- Pourquoi : éviter un contrat qui ne passe pas à l’échelle et permettre au
+  frontend d’afficher l’heure de chaque étape sans reconstruire l’historique.
+- Alternatives écartées : pagination par numéro de page ; timestamps calculés
+  côté client ; exposer les événements internes complets.
+- Source : Agent, à valider
+- Impact : commandes, persistance payload, OpenAPI et frontend.
+
+### D-038 — Réclamations et preuves V1
+- Date : 2026-11-26
+- Phase / sous-lot : S23-C
+- Décision : ajouter la lecture par commande, calculer `claim_deadline` à
+  `delivered_at + 72h`, utiliser des motifs contrôlés, accepter au maximum
+  trois photos DiddiFiles et retourner un remboursement avec moyen et
+  référence masquée, sans numéro de téléphone complet.
+- Pourquoi : permettre le suivi du dossier dans l’application tout en
+  limitant les données sensibles et les variations de motifs.
+- Alternatives écartées : laisser le motif entièrement libre ; exposer le
+  numéro de paiement complet ; stocker les preuves dans DiddiShop.
+- Source : Agent, à valider
+- Impact : claims, DiddiFiles, DiddiPay, support, OpenAPI et frontend.
+
+### D-039 — Projection de suivi DiddiSend
+- Date : 2026-11-26
+- Phase / sous-lot : S23-D
+- Décision : normaliser `courier` en `id/name/phone_masked/avatar_url/vehicle_type`
+  et `position` en `latitude/longitude/updated_at`, tout en gardant DiddiSend
+  comme source de vérité.
+- Pourquoi : fournir un contrat stable pour la fiche coursier et la carte sans
+  coupler le frontend aux variantes de payload du transporteur.
+- Alternatives écartées : renvoyer le payload DiddiSend brut ; laisser le
+  frontend gérer `lat/lng` et tous les alias ; dupliquer la vérité logistique.
+- Source : Agent, à valider
+- Impact : delivery, DiddiSend, commandes, OpenAPI et frontend.

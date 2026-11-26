@@ -77,9 +77,20 @@ async def test_diddisend_event_updates_only_local_projection_and_order():
     service = DeliveryService(deliveries, Sender(), orders)
     await service.apply_event("o1", "delivery.picked_up", {"delivery_id": "del-1"})
     await service.apply_event("o1", "delivery.in_transit", {"delivery_id": "del-1"})
-    delivery = await service.apply_event("o1", "delivery.delivered", {"delivery_id": "del-1", "proof_ref": "proof-1"})
+    delivery = await service.apply_event(
+        "o1",
+        "delivery.delivered",
+        {
+            "delivery_id": "del-1",
+            "proof_ref": "proof-1",
+            "courier": {"courier_id": "courier-1", "display_name": "Courier"},
+            "position": {"lat": 3.8, "lng": 11.5, "recorded_at": "2026-11-26T10:00:00Z"},
+        },
+    )
     assert delivery.id == "del-1"
     assert delivery.proof_ref == "proof-1"
+    assert delivery.courier["id"] == "courier-1"
+    assert delivery.position["latitude"] == 3.8
     assert (await orders.get("o1")).fulfillment_status == FulfillmentStatus.DELIVERED
 
 

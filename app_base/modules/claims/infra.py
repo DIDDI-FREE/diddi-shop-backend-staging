@@ -13,3 +13,6 @@ class InMemoryClaimRepository:
 
     async def get_open_for_order(self, order_id: str) -> Claim | None:
         return next((c for c in self.items.values() if c.order_id == order_id and c.status.value == "open"), None)
+
+    async def get_for_order(self, order_id: str) -> Claim | None:
+        return next((c for c in self.items.values() if c.order_id == order_id), None)

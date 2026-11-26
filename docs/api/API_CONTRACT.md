@@ -97,6 +97,8 @@ Les routes suivantes sont la surface métier actuellement montée par
 | GET | `/v1/deliveries/orders/{order_id}` | Lire la projection livraison |
 | POST | `/v1/claims/orders/{order_id}/cancel` | Demander l’annulation |
 | POST | `/v1/claims/orders/{order_id}` | Ouvrir une réclamation |
+| GET | `/v1/claims/orders/{order_id}` | Relire la réclamation d’une commande |
+| POST | `/v1/claims/orders/{order_id}/evidence/upload-session` | Préparer une preuve photo |
 | POST | `/v1/claims/{claim_id}/decision` | Décider une réclamation |
 | GET | `/v1/campaigns/active` | Lire la projection des campagnes |
 | GET | `/v1/admin/shop/capabilities` | Capacités backoffice exposées |
@@ -212,8 +214,11 @@ Une commande contient `id`, `shop_id`, `checkout_id`, `total_minor`, `currency`,
 `fulfillment_status`, `payment_status`, `delivery_id`, `version`,
 `payment_intent_id`, `items`, `subtotal_minor`, `delivery_fee_minor`,
 `discount_minor`, `created_at`, `seller_confirmation_deadline`,
-`recipient_name` et `dropoff_address`. Chaque ligne de `items` expose
+`delivered_at`, `status_history`, `recipient_name` et `dropoff_address`. Chaque ligne de `items` expose
 `product_id`, `title`, `unit_price_minor`, `quantity` et `line_total_minor`.
+
+`GET /v1/orders` accepte `limit` (1–100, défaut 20) et un `cursor` opaque. La
+réponse contient `items` et `next_cursor`.
 
 ### Photos produit et DiddiFiles
 
@@ -292,7 +297,9 @@ Avant le paiement, `POST /v1/checkouts/quote` renvoie `subtotal_minor`,
 statut `payment_pending`, `payment_succeeded` ou `payment_failed`. Une reprise
 se fait avec `POST /v1/checkouts/{id}/retry`, uniquement après
 `payment_failed`, avec une nouvelle clé d’idempotence. `payment_attempt` expose
-le numéro de tentative sans exposer de secret DiddiPay.
+le numéro de tentative sans exposer de secret DiddiPay. Le moyen de paiement
+V1 est `wave`, `mtn_momo` ou `orange_money` ; `return_url` est facultative et
+transmise à DiddiPay uniquement pour le parcours de retour.
 
 ### Erreurs
 
@@ -397,6 +404,18 @@ Les noms d’événements attendus sont décrits dans les pages
 [`diddipay.md`](../integrations/diddipay.md) et
 [`diddisend.md`](../integrations/diddisend.md). Les catalogues fournisseurs
 restent à confirmer lorsque le staging ne les publie pas.
+
+### Réclamations
+
+Une réclamation utilise un `reason_code` contrôlé : `not_as_described`,
+`damaged`, `incomplete`, `missing_item` ou `other`, avec un commentaire texte
+facultatif. Jusqu’à trois preuves photo peuvent être uploadées avec le purpose
+DiddiFiles `diddishop_claim_evidence`. `claim_deadline` est calculée à
+`delivered_at + 72 heures`.
+
+Les codes d’erreur sont `CLAIM_WINDOW_EXPIRED` et `CLAIM_ALREADY_OPEN`. Le
+remboursement est affiché par un statut, un moyen et une référence masquée ;
+aucun numéro de téléphone complet n’est envoyé au frontend.
 
 ## Limites explicites
 

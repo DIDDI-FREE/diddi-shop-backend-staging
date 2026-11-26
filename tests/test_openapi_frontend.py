@@ -17,6 +17,8 @@ def test_openapi_declares_frontend_response_schemas():
         ("GET", "/v1/orders"): "OrderListResponse",
         ("GET", "/v1/orders/{order_id}"): "OrderResponse",
         ("POST", "/v1/checkouts"): "CheckoutResponse",
+        ("GET", "/v1/claims/orders/{order_id}"): "ClaimResponse",
+        ("POST", "/v1/claims/orders/{order_id}/evidence/upload-session"): "UploadSessionResponse",
     }
 
     for (method, path), schema in expected.items():

@@ -118,6 +118,8 @@ class OrderResponse(BaseModel):
     seller_confirmation_deadline: str | None
     recipient_name: str | None
     dropoff_address: str | None
+    delivered_at: str | None
+    status_history: list[dict[str, Any]]
 
 
 class OrderLineResponse(BaseModel):
@@ -130,6 +132,7 @@ class OrderLineResponse(BaseModel):
 
 class OrderListResponse(BaseModel):
     items: list[OrderResponse]
+    next_cursor: str | None = None
 
 
 class CheckoutPaymentResponse(BaseModel):
@@ -137,6 +140,8 @@ class CheckoutPaymentResponse(BaseModel):
     amount_minor: int
     currency: Literal["XOF"]
     status: str
+    payment_method: str | None = None
+    expires_at: str | None = None
     payment_url: str | None = None
     checkout_url: str | None = None
     client_secret: str | None = None
@@ -197,15 +202,29 @@ class UploadSessionResponse(BaseModel):
     upload: UploadUrlResponse
 
 
+class CourierResponse(BaseModel):
+    id: str | None = None
+    name: str | None = None
+    phone_masked: str | None = None
+    avatar_url: str | None = None
+    vehicle_type: str | None = None
+
+
+class DeliveryPositionResponse(BaseModel):
+    latitude: float
+    longitude: float
+    updated_at: str | None = None
+
+
 class DeliveryResponse(BaseModel):
     id: str | None
     order_id: str
     status: Literal["not_requested", "requested", "assigned", "picked_up", "in_transit", "delivered", "failed", "returned"]
     proof_ref: str | None = None
     tracking: dict[str, Any] | None = None
-    courier: dict[str, Any] | None = None
+    courier: CourierResponse | None = None
     dropoff_code: str | None = None
-    position: dict[str, Any] | None = None
+    position: DeliveryPositionResponse | None = None
 
 
 class HealthResponse(BaseModel):
@@ -280,6 +299,14 @@ class ClaimResponse(BaseModel):
     decision: Literal["buyer", "seller", "partial", "rejected"] | None = None
     amount_to_refund: int = Field(ge=0)
     decided_at: datetime | None = None
+    reason_code: str
+    evidence_file_ids: list[str]
+    delivered_at: datetime | None = None
+    claim_deadline: datetime | None = None
+    refund_status: str
+    refund_method: str | None = None
+    refund_reference_masked: str | None = None
+    refunded_at: datetime | None = None
 
 
 def claim_response(claim: Any) -> dict[str, Any]:
@@ -293,21 +320,45 @@ def claim_response(claim: Any) -> dict[str, Any]:
         "decision": claim.decision.value if claim.decision else None,
         "amount_to_refund": claim.amount_to_refund,
         "decided_at": claim.decided_at,
+        "reason_code": claim.reason_code,
+        "evidence_file_ids": list(claim.evidence_file_ids),
+        "delivered_at": claim.delivered_at,
+        "claim_deadline": claim.claim_deadline,
+        "refund_status": claim.refund_status,
+        "refund_method": claim.refund_method,
+        "refund_reference_masked": claim.refund_reference_masked,
+        "refunded_at": claim.refunded_at,
     }
 
 
 def delivery_response(delivery: Any | None, order_id: str) -> dict[str, Any]:
     if delivery is None:
         return {"id": None, "order_id": order_id, "status": "not_requested"}
+    courier = delivery.courier
+    if courier:
+        courier = {
+            "id": courier.get("id") or courier.get("courier_id"),
+            "name": courier.get("name") or courier.get("display_name"),
+            "phone_masked": courier.get("phone_masked") or courier.get("masked_phone"),
+            "avatar_url": courier.get("avatar_url"),
+            "vehicle_type": courier.get("vehicle_type") or courier.get("vehicle"),
+        }
+    position = delivery.position
+    if position and ("latitude" not in position or "longitude" not in position):
+        position = {
+            "latitude": position.get("lat"),
+            "longitude": position.get("lng"),
+            "updated_at": position.get("updated_at") or position.get("recorded_at"),
+        }
     return {
         "id": delivery.id,
         "order_id": delivery.order_id,
         "status": delivery.status.value,
         "proof_ref": delivery.proof_ref,
         "tracking": delivery.tracking,
-        "courier": delivery.courier,
+        "courier": courier,
         "dropoff_code": delivery.dropoff_code,
-        "position": delivery.position,
+        "position": position,
     }
 
 
@@ -390,6 +441,9 @@ def order_response(order: Order) -> dict[str, Any]:
         for line in raw_lines
     ]
     delivery_request = order.metadata.get("delivery_request", {})
+    delivered_at = order.metadata.get("delivered_at")
+    if hasattr(delivered_at, "isoformat"):
+        delivered_at = delivered_at.isoformat()
     return {
         "id": order.id,
         "shop_id": order.shop_id,
@@ -409,6 +463,8 @@ def order_response(order: Order) -> dict[str, Any]:
         "seller_confirmation_deadline": order.seller_confirmation_deadline,
         "recipient_name": delivery_request.get("recipient_name"),
         "dropoff_address": delivery_request.get("dropoff_address"),
+        "delivered_at": delivered_at,
+        "status_history": list(order.status_history),
     }
 
 
@@ -420,7 +476,7 @@ def checkout_response(checkout: Checkout, payment: dict[str, Any] | None = None)
         "currency": source.get("currency", checkout.currency),
         "status": source.get("status", "pending"),
     }
-    for key in ("payment_url", "checkout_url", "client_secret"):
+    for key in ("payment_method", "expires_at", "payment_url", "checkout_url", "client_secret"):
         if source.get(key) is not None:
             payment_response[key] = source[key]
     return {

@@ -63,6 +63,7 @@ class Order:
     metadata: dict[str, Any] = field(default_factory=dict)
     created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     seller_confirmation_deadline: str | None = None
+    status_history: list[dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         require_xof(self.currency)
@@ -79,4 +80,13 @@ class Order:
         previous = self.fulfillment_status
         self.fulfillment_status = target
         self.version += 1
-        return {"from": previous, "to": target, "reason": reason, "actor": actor, "version": self.version}
+        history = {
+            "from": previous,
+            "to": target,
+            "reason": reason,
+            "actor": actor,
+            "version": self.version,
+            "occurred_at": datetime.now(UTC).isoformat(),
+        }
+        self.status_history.append(history)
+        return history

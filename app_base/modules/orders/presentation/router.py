@@ -1,4 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+import base64
+import binascii
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app_base.core.api_contracts import OrderListResponse, OrderResponse, order_response
 from app_base.core.auth_deps import Actor, current_actor
@@ -7,6 +10,20 @@ from app_base.modules.orders.application.services import OrderService
 from app_base.modules.orders.domain.entities import FulfillmentStatus
 
 router = APIRouter(prefix="/v1/orders", tags=["orders"])
+
+
+def _cursor_for(order: dict) -> str:
+    raw = f"{order['created_at']}|{order['id']}".encode()
+    return base64.urlsafe_b64encode(raw).decode().rstrip("=")
+
+
+def _decode_cursor(cursor: str) -> tuple[str, str]:
+    try:
+        padded = cursor + "=" * (-len(cursor) % 4)
+        created_at, order_id = base64.urlsafe_b64decode(padded).decode().split("|", 1)
+        return created_at, order_id
+    except (ValueError, UnicodeDecodeError, binascii.Error) as exc:
+        raise HTTPException(status_code=422, detail="invalid orders cursor") from exc
 
 
 async def _authorize_order(request: Request, order_id: str, actor: Actor, *, seller_only: bool = False) -> None:
@@ -26,6 +43,8 @@ async def _authorize_order(request: Request, order_id: str, actor: Actor, *, sel
 @router.get("", response_model=OrderListResponse)
 async def list_my_orders(
     request: Request,
+    limit: int = Query(default=20, ge=1, le=100),
+    cursor: str | None = Query(default=None),
     actor: Actor = Depends(current_actor),
     service: OrderService = Depends(get_order_service),
 ):
@@ -38,7 +57,16 @@ async def list_my_orders(
                 continue
             seen.add(order_id)
             orders.append(order_response(await service.get(order_id)))
-    return {"items": orders}
+    orders.sort(key=lambda item: (item["created_at"], item["id"]), reverse=True)
+    if cursor is not None:
+        cursor_created_at, cursor_id = _decode_cursor(cursor)
+        orders = [
+            item for item in orders
+            if (item["created_at"], item["id"]) < (cursor_created_at, cursor_id)
+        ]
+    page = orders[:limit]
+    next_cursor = _cursor_for(page[-1]) if len(orders) > limit else None
+    return {"items": page, "next_cursor": next_cursor}
 
 
 @router.get("/seller/to-confirm", response_model=OrderListResponse)

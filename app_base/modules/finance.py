@@ -2,6 +2,8 @@ from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from app_base.core.errors import (
+    ClaimAlreadyOpenError,
+    ClaimWindowExpiredError,
     ConflictError,
     DeliveryAlreadyPickedUpError,
     OrderNotCancellableError,
@@ -12,7 +14,7 @@ from app_base.modules.rewards.application import RewardsService
 
 
 class FinancialPort:
-    async def refund(self, payment_intent_id: str, amount_minor: int, idempotency_key: str) -> None:
+    async def refund(self, payment_intent_id: str, amount_minor: int, idempotency_key: str) -> dict | None:
         raise NotImplementedError
 
     async def release(self, order_id: str, amount_minor: int, idempotency_key: str) -> None:
@@ -29,6 +31,7 @@ class FinanceService:
         delivery=None,
         seller_release_enabled: bool = False,
         rewards: RewardsService | None = None,
+        claim_window_hours: int = 72,
     ):
         self.orders = orders
         self.claims = claims
@@ -37,6 +40,7 @@ class FinanceService:
         self.delivery = delivery
         self.seller_release_enabled = seller_release_enabled
         self.rewards = rewards
+        self.claim_window_hours = claim_window_hours
 
     async def cancel(self, order_id: str, reason: str) -> Order:
         order = await self.orders.get(order_id)
@@ -69,7 +73,16 @@ class FinanceService:
     async def expire_seller_confirmation(self, order_id: str) -> Order:
         return await self.cancel(order_id, "seller_unresponsive")
 
-    async def open_claim(self, order_id: str, customer_id: str, reason: str, now: datetime | None = None) -> Claim:
+    async def open_claim(
+        self,
+        order_id: str,
+        customer_id: str,
+        reason: str,
+        now: datetime | None = None,
+        *,
+        reason_code: str = "other",
+        evidence_file_ids: list[str] | None = None,
+    ) -> Claim:
         order = await self.orders.get(order_id)
         now = now or datetime.now(UTC)
         if order.fulfillment_status != FulfillmentStatus.DELIVERED:
@@ -77,11 +90,18 @@ class FinanceService:
         delivered_at = order.metadata.get("delivered_at")
         if isinstance(delivered_at, str):
             delivered_at = datetime.fromisoformat(delivered_at)
-        if delivered_at and now - delivered_at > timedelta(hours=72):
-            raise ConflictError("claim window expired")
+        claim_deadline = delivered_at + timedelta(hours=self.claim_window_hours) if delivered_at else None
+        if claim_deadline and now > claim_deadline:
+            raise ClaimWindowExpiredError("claim window expired")
         if await self.claims.get_open_for_order(order_id):
-            raise ConflictError("claim already open")
-        claim = Claim(str(uuid4()), order_id, customer_id, reason, now)
+            raise ClaimAlreadyOpenError("claim already open")
+        claim = Claim(
+            str(uuid4()), order_id, customer_id, reason, now,
+            reason_code=reason_code,
+            evidence_file_ids=list(evidence_file_ids or []),
+            delivered_at=delivered_at,
+            claim_deadline=claim_deadline,
+        )
         order.transition(FulfillmentStatus.DISPUTED, reason="claim.opened", actor=customer_id)
         if self.seller_release_enabled:
             order.payment_status = PaymentStatus.RELEASE_BLOCKED
@@ -106,8 +126,17 @@ class FinanceService:
             payment_id = order.metadata.get("payment_intent_id", order.checkout_id)
             operation = f"shop:refund:{order.id}:claim:{claim.id}"
             if order.metadata.get("refund_operation") != operation:
-                await self.financial.refund(payment_id, amount, operation)
+                refund = await self.financial.refund(payment_id, amount, operation)
                 order.metadata["refund_operation"] = operation
+                claim.refund_status = (refund or {}).get("status", "pending")
+                claim.refund_method = (
+                    (refund or {}).get("payment_method")
+                    or order.metadata.get("payment_method")
+                    or order.metadata.get("delivery_request", {}).get("payment_method")
+                )
+                refund_reference = (refund or {}).get("refund_id")
+                claim.refund_reference_masked = f"****{str(refund_reference)[-4:]}" if refund_reference else None
+                claim.refunded_at = datetime.now(UTC) if claim.refund_status == "succeeded" else None
         else:
             if self.seller_release_enabled:
                 order.payment_status = PaymentStatus.RELEASE_PENDING

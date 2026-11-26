@@ -115,3 +115,6 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S21 — documenter chaque route, payload, contrainte, réponse et limite
 - [x] S22 — implémenter les contrats frontend incomplets et leur idempotence
 - [x] S23-A — fixer exactement la quantité d’une ligne panier
+- [x] S23-B — fermer le contrat DiddiPay et l’historique/pagination commandes
+- [x] S23-C — fermer le contrat réclamations, preuves et remboursements
+- [x] S23-D — normaliser le contrat de suivi DiddiSend

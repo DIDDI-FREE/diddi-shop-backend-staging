@@ -120,6 +120,7 @@ async def lifespan(app: FastAPI):
         delivery=app.state.integrations.diddisend,
         seller_release_enabled=app.state.settings.seller_release_enabled,
         rewards=app.state.rewards_service,
+        claim_window_hours=app.state.settings.claim_window_hours,
     )
     app.state.communication_service = CommunicationService(app.state.integrations.diddicomms)
     app.state.audit_service = AuditService(

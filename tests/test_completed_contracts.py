@@ -1,7 +1,13 @@
+from datetime import UTC, datetime, timedelta
+
 import pytest
 
 from app_base.core.api_contracts import cart_response, delivery_response, order_response
-from app_base.core.errors import ConflictError, DeliveryAlreadyPickedUpError
+from app_base.core.errors import (
+    ClaimWindowExpiredError,
+    ConflictError,
+    DeliveryAlreadyPickedUpError,
+)
 from app_base.modules.cart.application import CartService
 from app_base.modules.cart.domain import CartLine
 from app_base.modules.cart.infra import InMemoryCartRepository
@@ -15,6 +21,7 @@ from app_base.modules.checkout.application.checkout_service import (
 )
 from app_base.modules.checkout.domain import CheckoutStatus
 from app_base.modules.checkout.infra import InMemoryCheckoutRepository
+from app_base.modules.claims.infra import InMemoryClaimRepository
 from app_base.modules.delivery.domain import DeliveryProjection, DeliveryStatus
 from app_base.modules.finance import FinanceService
 from app_base.modules.orders.application.services import OrderService
@@ -135,7 +142,7 @@ async def test_order_and_delivery_responses_expose_operational_fields():
         position={"lat": 3.8, "lng": 11.5},
     )
     assert delivery_response(delivery, "o1")["dropoff_code"] == "1234"
-    assert delivery_response(delivery, "o1")["position"]["lat"] == 3.8
+    assert delivery_response(delivery, "o1")["position"]["latitude"] == 3.8
 
 
 @pytest.mark.asyncio
@@ -170,3 +177,32 @@ async def test_cancel_after_pickup_returns_stable_error_code():
     with pytest.raises(DeliveryAlreadyPickedUpError) as exc_info:
         await service.cancel("o1", "buyer_requested")
     assert exc_info.value.code == "DELIVERY_ALREADY_PICKED_UP"
+
+
+@pytest.mark.asyncio
+async def test_claim_exposes_deadline_reason_code_and_evidence():
+    repo = InMemoryOrderRepository()
+    delivered_at = datetime.now(UTC) - timedelta(hours=1)
+    order = Order("o-claim", "shop-1", "checkout-1", 1000, fulfillment_status=FulfillmentStatus.DELIVERED)
+    order.metadata["delivered_at"] = delivered_at
+    await repo.create(order)
+    claims = InMemoryClaimRepository()
+    service = FinanceService(OrderService(repo, []), claims, object(), claim_window_hours=72)
+
+    claim = await service.open_claim(
+        "o-claim",
+        "buyer-1",
+        "article endommage",
+        reason_code="damaged",
+        evidence_file_ids=["file-1"],
+    )
+    assert claim.reason_code == "damaged"
+    assert claim.evidence_file_ids == ["file-1"]
+    assert claim.claim_deadline == delivered_at + timedelta(hours=72)
+
+    expired = Order("o-expired", "shop-1", "checkout-2", 1000, fulfillment_status=FulfillmentStatus.DELIVERED)
+    expired.metadata["delivered_at"] = datetime.now(UTC) - timedelta(hours=73)
+    await repo.create(expired)
+    with pytest.raises(ClaimWindowExpiredError) as exc_info:
+        await service.open_claim("o-expired", "buyer-1", "too late")
+    assert exc_info.value.code == "CLAIM_WINDOW_EXPIRED"

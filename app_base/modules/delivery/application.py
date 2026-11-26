@@ -70,9 +70,25 @@ class DeliveryService:
         delivery.status = target
         delivery.proof_ref = payload.get("proof_ref") or payload.get("proof_id")
         delivery.tracking = payload.get("tracking")
-        delivery.courier = payload.get("courier") or payload.get("courier_info")
+        courier = payload.get("courier") or payload.get("courier_info")
+        if courier:
+            delivery.courier = {
+                "id": courier.get("id") or courier.get("courier_id"),
+                "name": courier.get("name") or courier.get("display_name"),
+                "phone_masked": courier.get("phone_masked") or courier.get("masked_phone"),
+                "avatar_url": courier.get("avatar_url"),
+                "vehicle_type": courier.get("vehicle_type") or courier.get("vehicle"),
+            }
         delivery.dropoff_code = payload.get("dropoff_code") or payload.get("delivery_code")
-        delivery.position = payload.get("position") or payload.get("courier_position")
+        position = payload.get("position") or payload.get("courier_position")
+        latitude = position.get("latitude", position.get("lat")) if position else None
+        longitude = position.get("longitude", position.get("lng")) if position else None
+        if latitude is not None and longitude is not None:
+            delivery.position = {
+                "latitude": latitude,
+                "longitude": longitude,
+                "updated_at": position.get("updated_at") or position.get("recorded_at"),
+            }
         await self.repository.save(delivery)
         order = await self.orders.get(order_id)
         transition = {

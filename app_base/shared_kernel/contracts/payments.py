@@ -9,6 +9,8 @@ class PaymentIntentCommand(BaseModel):
     amount_minor: int
     currency: Literal["XOF"] = "XOF"
     idempotency_key: str
+    payment_method: Literal["wave", "mtn_momo", "orange_money"] = "wave"
+    return_url: str | None = None
 
 
 class PaymentStatus(BaseModel):

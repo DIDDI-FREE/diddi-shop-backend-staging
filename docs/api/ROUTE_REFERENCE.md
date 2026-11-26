@@ -288,7 +288,11 @@ valeurs existantes.
   `shop_breakdowns`, `payment_attempt`, `currency`, `status`, `order_ids`,
   `created_at` et `payment`.
 - `payment` contient `payment_intent_id`, `amount_minor`, `currency`, `status`
-  et relaie éventuellement `payment_url`, `checkout_url` ou `client_secret`.
+  et relaie éventuellement `payment_url`, `checkout_url`, `client_secret`,
+  `payment_method` et `expires_at`. Le V1 accepte `wave`, `mtn_momo` et
+  `orange_money`, avec `wave` par défaut. `return_url` est facultative et doit
+  cibler `*.diddifree.com` ou `localhost` en HTTP(S) ; elle est transmise à
+  DiddiPay mais n’est jamais renvoyée au frontend comme un secret.
 - `POST /v1/checkouts/quote` calcule le sous-total, les frais DiddiSend par
   boutique et le total sans créer de paiement.
 - `GET /v1/checkouts/{checkout_id}` lit l’état du checkout et de son paiement.
@@ -325,7 +329,12 @@ valeurs existantes.
 ### `GET /v1/orders`
 
 - Auth : `JWT`.
-- Réponse : `{ "items": [OrderResponse] }` pour l’acheteur.
+- Query : `limit` de 1 à 100 (défaut 20) et `cursor` opaque facultatif.
+- Réponse : `{ "items": [OrderResponse], "next_cursor": string|null }` pour
+  l’acheteur. Les éléments sont triés du plus récent au plus ancien.
+- `OrderResponse` expose `created_at`, `delivered_at` et `status_history` ;
+  chaque entrée d’historique contient `from`, `to`, `reason`, `actor`,
+  `version` et `occurred_at`.
 
 ### `GET /v1/orders/{order_id}`
 
@@ -417,11 +426,28 @@ valeurs existantes.
 ### `POST /v1/claims/orders/{order_id}`
 
 - Auth : `JWT`.
-- Corps : `{ "reason": string }`, 1 à 2000 caractères.
+- Corps : `reason_code` dans `not_as_described|damaged|incomplete|missing_item|other`,
+  `reason` texte facultatif et au maximum trois `evidence_file_ids`.
 - Précondition : commande `DELIVERED`, fenêtre de réclamation de 72 h,
   aucune réclamation ouverte.
-- Réponse actuelle : `Claim` avec `id`, `order_id`, `customer_id`, `reason`,
-  `opened_at`, `status`, `decision`, `amount_to_refund`, `decided_at`.
+- Réponse : `ClaimResponse` avec le motif, les preuves, `delivered_at`,
+  `claim_deadline`, la décision, le montant et l’état du remboursement.
+
+### `GET /v1/claims/orders/{order_id}`
+
+- Auth : acheteur, vendeur de la boutique ou opérateur.
+- Réponse : `ClaimResponse` pour la réclamation la plus récente de la commande.
+- Erreur : `NOT_FOUND` si aucune réclamation n’existe.
+
+### `POST /v1/claims/orders/{order_id}/evidence/upload-session`
+
+- Auth : acheteur autorisé sur la commande.
+- Corps : `filename`, `content_type` (`image/jpeg`, `image/png` ou
+  `image/webp`) et `size_bytes` jusqu’à 10 MiB.
+- Réponse : `UploadSessionResponse`. Le frontend upload vers l’URL signée,
+  puis envoie le `file_id` dans `evidence_file_ids` lors de l’ouverture.
+- Maximum : trois photos par réclamation. Le purpose DiddiFiles est
+  `diddishop_claim_evidence`.
 
 ### `POST /v1/claims/{claim_id}/decision`
 
@@ -431,6 +457,9 @@ valeurs existantes.
 - Réponse actuelle : `Claim`.
 - Pour `buyer`/`partial`, le remboursement ne peut pas dépasser le total de la
   commande.
+- Le frontend reçoit `refund_status`, `refund_method`, `refund_reference_masked`
+  et `refunded_at` lorsqu’ils sont disponibles. Le numéro de téléphone complet
+  n’est jamais exposé.
 
 ## Campagnes, backoffice et support
 

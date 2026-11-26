@@ -35,6 +35,8 @@ async def test_diddipay_adapter_maps_shop_minor_units_to_staging_contract():
             business_reference="diddishop:checkout:checkout-1",
             amount_minor=1500,
             idempotency_key="payment-1",
+            payment_method="wave",
+            return_url="https://app.diddifree.com/payment/complete",
         )
     )
 
@@ -42,6 +44,8 @@ async def test_diddipay_adapter_maps_shop_minor_units_to_staging_contract():
     assert requests[0].url.path == "/payfund/v1/payment-intents"
     assert body["amount"] == 1500
     assert body["currency"] == "XOF"
+    assert body["payment_method"] == "wave"
+    assert body["return_url"] == "https://app.diddifree.com/payment/complete"
     assert "amount_minor" not in body
     assert result["payment_intent_id"] == "00000000-0000-0000-0000-000000000001"
 

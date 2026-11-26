@@ -120,6 +120,8 @@ route de création livraison.
 | --- | --- | --- |
 | POST | `/v1/claims/orders/{order_id}/cancel` | `OrderResponse` |
 | POST | `/v1/claims/orders/{order_id}` | `ClaimResponse` |
+| GET | `/v1/claims/orders/{order_id}` | `ClaimResponse` |
+| POST | `/v1/claims/orders/{order_id}/evidence/upload-session` | `UploadSessionResponse` |
 | POST | `/v1/claims/{claim_id}/decision` | `ClaimResponse` |
 | GET | `/v1/campaigns/active` | `CampaignListResponse` |
 
@@ -167,6 +169,8 @@ route de création livraison.
 La projection locale utilise : `requested`, `assigned`, `picked_up`,
 `in_transit`, `delivered`, `failed`, `returned`. DiddiSend reste propriétaire
 du coursier, du code de remise, de la position et du suivi opérationnel.
+`courier` est normalisé avec `id`, `name`, `phone_masked`, `avatar_url` et
+`vehicle_type`. `position` utilise `latitude`, `longitude` et `updated_at`.
 
 ## Contrats encore dépendants d’un service externe
 

@@ -15,6 +15,24 @@ class DiddiPayPaymentIntentPort:
             idempotency_key=idempotency_key,
         ))
 
+    async def create_with_options(
+        self,
+        checkout_id: str,
+        amount_minor: int,
+        idempotency_key: str,
+        *,
+        payment_method: str = "wave",
+        return_url: str | None = None,
+    ) -> dict:
+        return await self.adapter.create_payment_intent(PaymentIntentCommand(
+            checkout_id=checkout_id,
+            business_reference=f"diddishop:checkout:{checkout_id}",
+            amount_minor=amount_minor,
+            idempotency_key=idempotency_key,
+            payment_method=payment_method,
+            return_url=return_url,
+        ))
+
 
 class DiddiSendDeliveryQuotePort:
     def __init__(self, adapter: DiddiSendAdapter):
