@@ -405,6 +405,9 @@ dans `X-DiddiPay-Signature`. Son enveloppe est `{id, type, occurred_at, data}` ;
 le secret entrant `DIDDI_SHOP_DIDDIPAY_WEBHOOK_SECRET` est distinct du
 credential S2S utilisé par DiddiShop pour appeler DiddiPay. La référence métier
 `diddishop:checkout:{checkout_id}` permet de rattacher le callback au checkout.
+DiddiSend utilise le même principe HMAC sur son corps exact, mais avec
+`X-DiddiSend-Signature` et le préfixe `sha256=` ; son enveloppe porte
+`event_id`, `event_type`, `delivery_id` et `order_reference`.
 
 Les noms d’événements attendus sont décrits dans les pages
 [`diddipay.md`](../integrations/diddipay.md) et

@@ -2,13 +2,16 @@
 
 ## DiddiSend
 
-Le contrat d’authentification est bloquant pour la recette : DiddiShop utilise
-un client `client_credentials` dédié et envoie un Bearer avec audience
-`diddisend`, tandis que le code staging DiddiSend audité protège encore les
-routes de livraison par `X-Service-Key`/legacy. DiddiSend doit soit accepter
-les tokens S2S avec les quatre scopes `diddisend:deliveries:quote/create/read/cancel`,
-soit enregistrer un credential service-key dédié à DiddiShop avec un
-`X-User-ID` technique UUID. Ne pas réutiliser le credential DiddiFood.
+Le contrat d’authentification utilise le client `client_credentials`
+`diddishop-staging-diddisend`, l’audience `diddisend`, l’origine `diddishop`
+et un `X-User-ID` technique UUID. DiddiShop demande les quatre scopes
+`diddisend:deliveries:quote/create/read/cancel`. Ne pas réutiliser le
+credential DiddiFood.
+
+La recette doit confirmer le JWT, les quatre opérations et le callback signé
+sur `POST /internal/v1/webhooks/diddisend` avec
+`X-DiddiSend-Signature: sha256=<digest>`. Le secret HMAC entrant est distinct
+du secret client S2S sortant.
 
 Base staging observée : `https://diddisend-api-staging.diddifree.com`.
 Routes observées : `/health`, `/openapi.json`, `/v1/deliveries/quote`,

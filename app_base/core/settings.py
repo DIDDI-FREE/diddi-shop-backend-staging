@@ -1,4 +1,5 @@
 from functools import lru_cache
+from uuid import UUID
 
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -102,6 +103,36 @@ class Settings(BaseSettings):
     diddifreeid_service_token_url: str = ""
     service_client_ids: dict[str, str] = Field(default_factory=dict)
     service_client_secrets: dict[str, str] = Field(default_factory=dict)
+    diddisend_client_id: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "DIDDISEND_CLIENT_ID", "DIDDI_SHOP_DIDDISEND_CLIENT_ID", "diddisend_client_id"
+        ),
+    )
+    diddisend_client_secret: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "DIDDISEND_CLIENT_SECRET", "DIDDI_SHOP_DIDDISEND_CLIENT_SECRET", "diddisend_client_secret"
+        ),
+    )
+    diddisend_audience: str = Field(
+        default="diddisend",
+        validation_alias=AliasChoices(
+            "DIDDISEND_AUDIENCE", "DIDDI_SHOP_DIDDISEND_AUDIENCE", "diddisend_audience"
+        ),
+    )
+    diddisend_origin_service: str = Field(
+        default="diddishop",
+        validation_alias=AliasChoices(
+            "DIDDISEND_ORIGIN_SERVICE", "DIDDI_SHOP_DIDDISEND_ORIGIN_SERVICE", "diddisend_origin_service"
+        ),
+    )
+    diddisend_service_user_id: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "DIDDISEND_SERVICE_USER_ID", "DIDDI_SHOP_DIDDISEND_SERVICE_USER_ID", "diddisend_service_user_id"
+        ),
+    )
     jwt_audience: str = "diddishop"
     diddifreeid_issuer: str = ""
     diddifreeid_jwks_url: str = ""
@@ -143,12 +174,24 @@ class Settings(BaseSettings):
             "diddicomms",
             "diddisupport",
         )
-        missing_client_ids = sorted(name for name in token_targets if not self.service_client_ids.get(name, "").strip())
+        client_ids = dict(self.service_client_ids)
+        client_secrets = dict(self.service_client_secrets)
+        if self.diddisend_client_id.strip():
+            client_ids["diddisend"] = self.diddisend_client_id
+        if self.diddisend_client_secret.strip():
+            client_secrets["diddisend"] = self.diddisend_client_secret
+        missing_client_ids = sorted(name for name in token_targets if not client_ids.get(name, "").strip())
         if missing_client_ids:
             raise ValueError(f"Missing S2S client IDs: {', '.join(missing_client_ids)}")
-        missing_client_secrets = sorted(name for name in token_targets if not self.service_client_secrets.get(name, "").strip())
+        missing_client_secrets = sorted(name for name in token_targets if not client_secrets.get(name, "").strip())
         if missing_client_secrets:
             raise ValueError(f"Missing S2S client secrets: {', '.join(missing_client_secrets)}")
+        if not self.diddisend_service_user_id.strip():
+            raise ValueError("Missing DiddiSend technical sender UUID: DIDDISEND_SERVICE_USER_ID")
+        try:
+            UUID(self.diddisend_service_user_id)
+        except ValueError as exc:
+            raise ValueError("DIDDISEND_SERVICE_USER_ID must be a valid UUID") from exc
         if self.otel_logs_enabled:
             if self.otel_exporter_otlp_protocol != "http/protobuf":
                 raise ValueError("DiddiObserve requires OTLP HTTP/protobuf")

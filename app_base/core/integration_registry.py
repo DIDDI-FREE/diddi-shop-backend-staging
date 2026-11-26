@@ -38,13 +38,22 @@ def build_integrations(settings: Settings) -> IntegrationRegistry:
         # shared service_client_id: that would silently widen S2S authority.
         client_id = settings.service_client_ids.get(service, "").strip()
         client_secret = settings.service_client_secrets.get(service, "").strip()
+        audience = service
+        origin_service = "diddishop"
+        user_id = "diddishop-system"
+        if service == "diddisend":
+            client_id = settings.diddisend_client_id.strip() or client_id
+            client_secret = settings.diddisend_client_secret.strip() or client_secret
+            audience = settings.diddisend_audience.strip() or service
+            origin_service = settings.diddisend_origin_service.strip() or origin_service
+            user_id = settings.diddisend_service_user_id.strip() or user_id
         provider = None
         if client_secret:
             provider = ServiceTokenProvider(
                 token_url=token_url,
                 client_id=client_id,
                 client_secret=client_secret,
-                audience=service,
+                audience=audience,
                 scopes=required_scopes(service),
                 timeout_seconds=timeout,
             )
@@ -55,6 +64,8 @@ def build_integrations(settings: Settings) -> IntegrationRegistry:
             service_key=settings.service_keys.get(service),
             scopes=required_scopes(service),
             token_provider=provider,
+            origin_service=origin_service,
+            user_id=user_id,
         )
     return IntegrationRegistry(
         diddifreeid=DiddiFreeIDAdapter(base_url=settings.diddifreeid_base_url, audience="diddifreeid", timeout=timeout, credential=credential("diddifreeid")),

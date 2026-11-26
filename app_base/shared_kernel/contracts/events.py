@@ -36,3 +36,20 @@ class DiddiPayCallbackEnvelope(BaseModel):
     type: str
     occurred_at: datetime
     data: dict[str, Any]
+
+
+class DiddiSendCallbackEnvelope(BaseModel):
+    """Callback envelope emitted by DiddiSend's delivery outbox."""
+
+    event_id: str
+    event_version: str | int = 1
+    event_type: str
+    source_service: str
+    delivery_id: str
+    order_reference: str | None = None
+    status: str | None = None
+    origin_module: str | None = None
+    currency: str = "XOF"
+    financial_breakdown: dict[str, Any] | None = None
+    occurred_at: datetime
+    data: dict[str, Any]

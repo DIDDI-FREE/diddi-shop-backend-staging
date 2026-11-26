@@ -483,3 +483,21 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : code DiddiSend staging audité | Agent, à valider
 - Impact : DiddiFreeID, DiddiShop, DiddiSend, configuration Portainer et
   recette E2E.
+
+### D-044 — Identité S2S et callback DiddiSend
+- Date : 2026-11-26
+- Phase / sous-lot : S24-D
+- Décision : utiliser le client explicite `diddishop-staging-diddisend` avec
+  audience `diddisend`, origine `diddishop` et UUID technique dédié pour
+  `X-User-ID` et `sender_user_id`. DiddiShop accepte les callbacks DiddiSend
+  signés par `X-DiddiSend-Signature` au format `sha256=<digest>` et utilise un
+  secret HMAC entrant distinct du secret client S2S.
+- Pourquoi : le contrat DiddiSend transmis par l’équipe impose une identité
+  par cible et sépare l’authentification sortante de la signature des
+  événements entrants.
+- Alternatives écartées : réutiliser `service_client_id` global ; envoyer
+  l’UUID du vendeur comme sender technique ; réutiliser le secret DiddiPay ou
+  le secret client pour les callbacks.
+- Source : Utilisateur | Agent, à valider
+- Impact : configuration, Compose, DiddiFreeID, DiddiSend, checkout,
+  webhooks, tests et documentation.

@@ -13,6 +13,7 @@ Git. Les exemples ci-dessous décrivent des noms de variables, pas des secrets.
 | Données | `DIDDI_SHOP_DATABASE_URL`, `DIDDI_SHOP_REDIS_URL` | PostgreSQL et Redis |
 | DiddiFreeID | `DIDDI_SHOP_DIDDIFREEID_*` | JWKS et token service |
 | Cibles S2S | `DIDDI_SHOP_SERVICE_CLIENT_IDS`, `DIDDI_SHOP_SERVICE_CLIENT_SECRETS` | un client par service |
+| DiddiSend S2S explicite | `DIDDISEND_CLIENT_ID`, `DIDDISEND_CLIENT_SECRET`, `DIDDISEND_AUDIENCE`, `DIDDISEND_ORIGIN_SERVICE`, `DIDDISEND_SERVICE_USER_ID` | client, audience, origine et sender technique |
 | Intégrations | `DIDDI_SHOP_DIDDIPAY_BASE_URL`, `DIDDI_SHOP_DIDDISEND_BASE_URL`, etc. | bases HTTPS |
 | Webhooks | `DIDDI_SHOP_DIDDIPAY_WEBHOOK_SECRET`, `DIDDI_SHOP_DIDDISEND_WEBHOOK_SECRET` | signatures entrantes |
 | V1 finance | `DIDDI_SHOP_SELLER_RELEASE_ENABLED=false` | interdit la release V1 |
@@ -24,6 +25,11 @@ Git. Les exemples ci-dessous décrivent des noms de variables, pas des secrets.
 cible possède son propre client : `diddipay`, `diddisend`, `diddifiles`,
 `diddirewards`, `diddicomms` et `diddisupport`. Il n’existe pas de fallback
 staging vers `service_client_id` unique.
+
+Les variables `DIDDISEND_*` explicites sont des alias staging pour le client
+`diddishop-staging-diddisend`. Elles peuvent remplacer l’entrée `diddisend`
+de la map, mais ne doivent pas être utilisées pour les autres cibles. Le
+`DIDDISEND_SERVICE_USER_ID` doit être un UUID technique autorisé par DiddiSend.
 
 Les tokens sont demandés avec `client_credentials`, audience de la cible et
 scopes dédiés. Le token court est mis en cache jusqu’à expiration ; les

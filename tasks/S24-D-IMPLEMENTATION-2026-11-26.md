@@ -14,20 +14,27 @@
 - DiddiShop demande maintenant `diddisend:deliveries:create` au lieu de
   `diddisend:deliveries:write`.
 - Les tests et la documentation reflètent les quatre scopes attendus.
+- Les variables explicites `DIDDISEND_CLIENT_ID`, `DIDDISEND_CLIENT_SECRET`,
+  `DIDDISEND_AUDIENCE`, `DIDDISEND_ORIGIN_SERVICE` et
+  `DIDDISEND_SERVICE_USER_ID` sont transmises par le Compose et prioritaires
+  sur la map générique.
+- Les appels sortants portent l’identité complète : Bearer, client, origine et
+  UUID du sender technique.
+- Le callback DiddiSend réel est normalisé depuis son enveloppe signée et
+  dédupliqué par `event_id`.
 
-## C — Blocage externe restant
+## C — Configuration externe à appliquer
 
-- DiddiSend doit accepter les tokens JWT S2S DiddiFreeID avec audience
-  `diddisend`, ou fournir à DiddiShop un service-key dédié et un identifiant
-  technique UUID.
+- Injecter dans DiddiShop le secret existant du client
+  `diddishop-staging-diddisend` et l’UUID technique autorisé.
+- Injecter dans DiddiSend l’URL callback
+  `https://diddishop-backend.diddifree.com/internal/v1/webhooks/diddisend` et
+  le même secret HMAC que `DIDDI_SHOP_DIDDISEND_WEBHOOK_SECRET`.
 - Le credential DiddiFood ne doit pas être réutilisé.
+- Une nouvelle recette E2E reste nécessaire après redéploiement ; aucun secret
+  n’est écrit dans Git.
 
 ## D — Vérifications
 
-- Tests ciblés : 7 passés ;
-- Suite complète : 74 tests passés, 1 avertissement de dépréciation
-  Starlette/httpx existant dans l’environnement ;
-- Ruff : OK ;
-- MkDocs strict : OK ;
-- Compose staging et local : OK ;
-- `git diff --check` : OK.
+- Vérifications à rejouer après la correction : tests ciblés, suite complète,
+  Ruff, MkDocs strict, Compose staging/local et `git diff --check`.

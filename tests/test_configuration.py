@@ -1,5 +1,6 @@
 import pytest
 
+from app_base.core.integration_registry import build_integrations
 from app_base.core.settings import Settings
 
 
@@ -30,6 +31,7 @@ def _staging_settings(**overrides: str) -> Settings:
             "diddicomms": "comms-secret",
             "diddisupport": "support-secret",
         },
+        "diddisend_service_user_id": "5cf96b1d-005a-49b8-b6b9-1a6c3c42fd7c",
     }
     values.update(overrides)
     return Settings(**values)
@@ -49,3 +51,22 @@ def test_staging_configuration_rejects_http_service_url():
     settings = _staging_settings(diddipay_base_url="http://pay-api-staging.diddifree.com/payfund/v1")
     with pytest.raises(ValueError, match="diddipay"):
         settings.validate_external_configuration()
+
+
+def test_explicit_diddisend_credentials_override_generic_target_map():
+    settings = _staging_settings(
+        diddisend_client_id="diddishop-staging-diddisend",
+        diddisend_client_secret="explicit-send-secret",
+        diddisend_audience="diddisend",
+        diddisend_origin_service="diddishop",
+    )
+
+    integration = build_integrations(settings).diddisend
+
+    assert integration.credential is not None
+    assert integration.credential.client_id == "diddishop-staging-diddisend"
+    assert integration.credential.token_provider is not None
+    assert integration.credential.token_provider.client_secret == "explicit-send-secret"
+    assert integration.credential.token_provider.audience == "diddisend"
+    assert integration.credential.origin_service == "diddishop"
+    assert integration.credential.user_id == "5cf96b1d-005a-49b8-b6b9-1a6c3c42fd7c"

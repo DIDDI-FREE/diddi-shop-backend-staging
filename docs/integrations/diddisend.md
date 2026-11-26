@@ -21,11 +21,23 @@ DiddiShop demande à DiddiFreeID un token `client_credentials` dédié à
 `write` : il doit être déclaré exactement ainsi par DiddiFreeID et accepté par
 la version DiddiSend déployée.
 
-La version staging de DiddiSend auditée utilise encore le chemin legacy
-`X-Service-Key`/`DIDDISEND_SERVICE_KEYS` pour les appels de livraison. Tant que
-la validation JWT S2S par cible n’est pas activée dans DiddiSend, le client
-DiddiShop ne peut pas être validé par le seul ajout de
-`DIDDI_SHOP_SERVICE_CLIENT_SECRETS`.
+Le client staging à utiliser est `diddishop-staging-diddisend`, avec l’audience
+`diddisend` et l’origine `diddishop`. DiddiShop transmet sur chaque appel :
+
+```http
+Authorization: Bearer <JWT client_credentials>
+X-Client-ID: diddishop-staging-diddisend
+X-Origin-Service: diddishop
+X-User-ID: <UUID du sender technique>
+```
+
+Les variables explicites `DIDDISEND_CLIENT_ID`, `DIDDISEND_CLIENT_SECRET`,
+`DIDDISEND_AUDIENCE`, `DIDDISEND_ORIGIN_SERVICE` et
+`DIDDISEND_SERVICE_USER_ID` sont prioritaires sur l’entrée `diddisend` de la
+map générique. Le secret client reste injecté par Portainer et n’est jamais
+commité. `DIDDISEND_SERVICE_USER_ID` doit être un UUID technique autorisé par
+DiddiSend ; il est aussi utilisé comme `sender_user_id` dans la création de
+livraison.
 
 ## Déclenchement depuis l’application vendeur
 
@@ -49,7 +61,8 @@ reprise contrôlée par l’exploitation.
 
 Le payload porte `origin_module=diddishop`, `order_reference`, pickup/dropoff,
 colis, `payment_method=diddipay`, `quoted_price`,
-`prepaid_by_origin=true` et éventuellement `financial_breakdown`.
+`prepaid_by_origin=true` et éventuellement `financial_breakdown`. Aucun
+paiement n’est recréé dans DiddiSend.
 
 ## Événements
 
@@ -58,8 +71,27 @@ Les événements utiles sont `delivery.created`, `delivery.picked_up`,
 `delivery.returned`. Ils entrent par le webhook signé, passent par l’inbox et
 mettent à jour la projection locale.
 
+DiddiSend signe ses callbacks avec HMAC-SHA256 dans
+`X-DiddiSend-Signature` sous la forme `sha256=<digest>`. DiddiShop vérifie la
+signature avec `DIDDI_SHOP_DIDDISEND_WEBHOOK_SECRET`. L’enveloppe contient
+`delivery_id` et `order_reference=shop-order:{order_id}` ; elle est adaptée
+vers l’événement interne avant projection. Le secret DiddiSend entrant est
+distinct des credentials S2S sortants.
+
+DiddiSend doit être configuré avec l’URL suivante et le même secret HMAC que
+celui injecté dans DiddiShop :
+
+```ini
+DIDDISEND_DIDDISHOP_WEBHOOK_URL=https://diddishop-backend.diddifree.com/internal/v1/webhooks/diddisend
+DIDDISEND_DIDDISHOP_WEBHOOK_SECRET=<secret-partage-diddisend-shop>
+```
+
+Ce secret est différent du secret de callback DiddiPay et du secret client
+`DIDDISEND_CLIENT_SECRET`.
+
 ## Point à valider
 
-Le staging expose encore un schéma de ventilation financière de type Food.
-Confirmer la ventilation marketplace XOF et le mode prépayé avant recette
-authentifiée. DiddiSend ne doit pas créer un second paiement.
+La recette staging doit confirmer que le client reçoit bien les quatre scopes,
+que le sender technique est autorisé et que les appels quote/create/read/cancel
+retournent les résultats attendus. Le mode prépayé est fixé à
+`prepaid_by_origin=true` et la devise métier est exclusivement XOF.

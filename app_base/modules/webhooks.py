@@ -4,7 +4,11 @@ from fastapi import APIRouter, HTTPException, Request
 
 from app_base.core.api_contracts import WebhookResponse
 from app_base.core.webhook_auth import require_webhook_signature
-from app_base.shared_kernel.contracts.events import DiddiPayCallbackEnvelope, ExternalEvent
+from app_base.shared_kernel.contracts.events import (
+    DiddiPayCallbackEnvelope,
+    DiddiSendCallbackEnvelope,
+    ExternalEvent,
+)
 from app_base.workers.in_memory_inbox import InMemoryProcessedEvents
 
 router = APIRouter(prefix="/internal/v1/webhooks", tags=["webhooks"])
@@ -18,6 +22,16 @@ def _checkout_id_from_business_reference(reference: Any) -> str | None:
         return None
     checkout_id = reference.removeprefix(prefix).strip()
     return checkout_id or None
+
+
+def _order_id_from_reference(reference: Any) -> str | None:
+    if not isinstance(reference, str):
+        return None
+    prefix = "shop-order:"
+    if not reference.startswith(prefix):
+        return None
+    order_id = reference.removeprefix(prefix).strip()
+    return order_id or None
 
 
 def _normalize_diddipay_event(raw: object) -> tuple[ExternalEvent, bool]:
@@ -44,6 +58,37 @@ def _normalize_diddipay_event(raw: object) -> tuple[ExternalEvent, bool]:
                 event_id=envelope.id,
                 event_type=envelope.type,
                 aggregate_id=aggregate_id,
+                payload=payload,
+            ),
+            True,
+        )
+
+    return ExternalEvent.model_validate(raw), False
+
+
+def _normalize_diddisend_event(raw: object) -> tuple[ExternalEvent, bool]:
+    """Adapt DiddiSend's signed delivery envelope to the internal shape."""
+    if not isinstance(raw, dict):
+        raise HTTPException(status_code=422, detail="DiddiSend callback must be a JSON object")
+
+    if {"event_id", "event_type", "delivery_id", "occurred_at", "data"}.issubset(raw):
+        envelope = DiddiSendCallbackEnvelope.model_validate(raw)
+        payload = dict(envelope.data)
+        payload.setdefault("delivery_id", envelope.delivery_id)
+        payload.setdefault("order_reference", envelope.order_reference)
+        payload.setdefault("status", envelope.status)
+        payload.setdefault("origin_module", envelope.origin_module)
+        payload.setdefault("currency", envelope.currency)
+        if envelope.financial_breakdown is not None:
+            payload.setdefault("financial_breakdown", envelope.financial_breakdown)
+        order_id = payload.get("order_id") or _order_id_from_reference(envelope.order_reference)
+        if order_id:
+            payload["order_id"] = order_id
+        return (
+            ExternalEvent(
+                event_id=envelope.event_id,
+                event_type=envelope.event_type,
+                aggregate_id=order_id or envelope.delivery_id,
                 payload=payload,
             ),
             True,
@@ -94,8 +139,23 @@ async def diddipay_webhook(request: Request):
 
 
 @router.post("/diddisend", response_model=WebhookResponse)
-async def diddisend_webhook(event: ExternalEvent, request: Request):
-    await require_webhook_signature(request, request.app.state.settings.diddisend_webhook_secret)
+async def diddisend_webhook(request: Request):
+    await require_webhook_signature(
+        request,
+        request.app.state.settings.diddisend_webhook_secret,
+        header_name="X-DiddiSend-Signature",
+        timestamp_header=None,
+    )
+    try:
+        raw = await request.json()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="DiddiSend callback must be valid JSON") from exc
+    event, is_diddisend_envelope = _normalize_diddisend_event(raw)
+    if is_diddisend_envelope and not event.payload.get("order_id"):
+        raise HTTPException(
+            status_code=422,
+            detail="DiddiSend callback is not linked to a DiddiShop order",
+        )
     inbox = request.app.state.processed_events
     if await inbox.seen("diddishop-diddisend", event.event_id):
         return {"status": "duplicate"}

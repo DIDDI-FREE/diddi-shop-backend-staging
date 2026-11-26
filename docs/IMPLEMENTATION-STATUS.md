@@ -132,10 +132,12 @@ distinct des credentials S2S sortants.
 
 Le scope DiddiSend demandé par DiddiShop pour la création est désormais
 `diddisend:deliveries:create`, conformément à la route DiddiSend, et non
-`diddisend:deliveries:write`. La recette reste bloquée côté plateforme tant
-que DiddiSend staging n’accepte pas le Bearer `client_credentials` de
-DiddiShop, ou ne provisionne pas un service-key dédié à DiddiShop avec un
-identifiant technique UUID.
+`diddisend:deliveries:write`. Le client utilise l’identité dédiée
+`diddishop-staging-diddisend`, l’audience `diddisend`, l’origine `diddishop`
+et un UUID technique transmis dans `X-User-ID` et `sender_user_id`. Le
+callback entrant est vérifié avec `X-DiddiSend-Signature` et un secret HMAC
+séparé. Il reste à injecter les valeurs secrètes côté Portainer/DiddiSend et
+à rejouer la recette E2E après redéploiement.
 
 ## Réponses intégrées
 

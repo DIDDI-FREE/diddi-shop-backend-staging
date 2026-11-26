@@ -17,7 +17,7 @@ considère disponibles par erreur.
 | `JWT` | `Authorization: Bearer <DiddiFreeID JWT>` en staging/production ; acteur local en développement |
 | `JWT vendeur` | JWT dont le sujet possède la boutique ou le produit concerné |
 | `S2S/interne` | appel réservé au réseau ou au credential de service prévu pour l’environnement |
-| `Webhook` | DiddiPay : `X-DiddiPay-Signature` sur le corps exact, sans timestamp ; DiddiSend : contrat de signature dédié |
+| `Webhook` | DiddiPay : `X-DiddiPay-Signature` sur le corps exact, sans timestamp ; DiddiSend : `X-DiddiSend-Signature: sha256=<digest>` sur le corps exact, sans timestamp |
 | `Aucun` | aucune dépendance d’acteur dans le code actuel ; à ne pas interpréter comme public sans protection réseau |
 
 En développement, `X-Actor-ID` est accepté et l’acteur par défaut est
@@ -538,8 +538,13 @@ Ces routes sont des sondes internes et ne doivent pas être exposées au fronten
 
 ### `POST /internal/v1/webhooks/diddisend`
 
-- Auth : signature DiddiSend obligatoire.
-- Corps : même `ExternalEvent`.
+- Auth : HMAC-SHA256 dans `X-DiddiSend-Signature`, avec le préfixe
+  `sha256=`, calculé sur les octets exacts du corps avec
+  `DIDDI_SHOP_DIDDISEND_WEBHOOK_SECRET`. Aucun timestamp n'est utilisé.
+- Corps DiddiSend : `{event_id, event_version, event_type, source_service,
+  delivery_id, order_reference, status, origin_module, currency,
+  financial_breakdown, occurred_at, data}`. `order_reference` doit suivre
+  `shop-order:{order_id}` ou `data` doit fournir `order_id`.
 - Réponse : `{ "status": "processed" }` ou `{ "status": "duplicate" }`.
 - Déduplication : inbox `diddishop-diddisend` par `event_id`.
 - Événements : `delivery.created`, `delivery.assigned`,

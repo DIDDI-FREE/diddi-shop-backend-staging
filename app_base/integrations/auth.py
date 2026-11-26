@@ -66,10 +66,22 @@ class ServiceCredential:
     service_key: str | None = None
     scopes: tuple[str, ...] = ()
     token_provider: ServiceTokenProvider | None = None
+    origin_service: str = "diddishop"
+    user_id: str = "diddishop-system"
 
 
-def s2s_headers(credential: ServiceCredential, *, origin_service: str = "diddishop", user_id: str = "diddishop-system", request_id: str | None = None, idempotency_key: str | None = None) -> dict[str, str]:
-    headers = {"X-Origin-Service": origin_service, "X-User-ID": user_id}
+def s2s_headers(
+    credential: ServiceCredential,
+    *,
+    origin_service: str | None = None,
+    user_id: str | None = None,
+    request_id: str | None = None,
+    idempotency_key: str | None = None,
+) -> dict[str, str]:
+    headers = {
+        "X-Origin-Service": origin_service or credential.origin_service,
+        "X-User-ID": user_id or credential.user_id,
+    }
     if credential.access_token:
         headers["Authorization"] = f"Bearer {credential.access_token}"
         headers["X-Client-ID"] = credential.client_id
@@ -90,8 +102,8 @@ def s2s_headers(credential: ServiceCredential, *, origin_service: str = "diddish
 async def s2s_headers_async(
     credential: ServiceCredential,
     *,
-    origin_service: str = "diddishop",
-    user_id: str = "diddishop-system",
+    origin_service: str | None = None,
+    user_id: str | None = None,
     request_id: str | None = None,
     idempotency_key: str | None = None,
 ) -> dict[str, str]:
@@ -105,6 +117,8 @@ async def s2s_headers_async(
                 access_token=token,
                 service_key=credential.service_key,
                 scopes=credential.scopes,
+                origin_service=credential.origin_service,
+                user_id=credential.user_id,
             ),
             origin_service=origin_service,
             user_id=user_id,

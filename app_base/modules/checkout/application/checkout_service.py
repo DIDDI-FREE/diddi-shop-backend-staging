@@ -49,6 +49,7 @@ class CheckoutApplicationService:
     shops: ShopRepository | None = None
     rewards: RewardsService | None = None
     seller_confirmation_hours: int = 24
+    diddisend_service_user_id: str = ""
 
     async def _load_groups(self, customer_id: str) -> dict[str, list[dict]]:
         cart = await self.carts.get_or_create(customer_id)
@@ -184,7 +185,8 @@ class CheckoutApplicationService:
                             **quote_context,
                             "customer_user_id": customer_id,
                             "recipient_user_id": customer_id,
-                            "sender_user_id": shop.owner_id if shop is not None else "diddishop-system",
+                            "sender_user_id": self.diddisend_service_user_id
+                            or (shop.owner_id if shop is not None else "diddishop-system"),
                             "recipient_name": quote_context.get("recipient_name", customer_id),
                             "recipient_phone": quote_context.get("recipient_phone", "unknown"),
                             "pickup_address": quote_context.get("pickup_location", {}).get("address", ""),

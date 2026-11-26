@@ -61,7 +61,9 @@ recalculer une commande existante.
 
 DiddiShop envoie à DiddiSend `origin_module=diddishop`,
 `payment_method=diddipay`, `prepaid_by_origin=true` et une clé stable. Le
-contrat de ventilation financière DiddiSend reste à confirmer en staging.
+contrat de ventilation financière DiddiSend doit être vérifié en recette
+staging ; la devise est XOF et le mode d’expédition est prépayé par DiddiShop
+(`prepaid_by_origin=true`).
 
 ## Événements de suivi
 

@@ -60,4 +60,23 @@ async def test_target_credential_sends_bearer_and_client_id():
 
     assert headers["Authorization"] == "Bearer send-token"
     assert headers["X-Client-ID"] == "diddishop-staging-diddisend"
+    assert headers["X-Origin-Service"] == "diddishop"
+    assert headers["X-User-ID"] == "diddishop-system"
     assert headers["Idempotency-Key"] == "shop:create-delivery:order-1:1"
+
+
+@pytest.mark.asyncio
+async def test_target_credential_uses_technical_sender_identity():
+    headers = await s2s_headers_async(
+        ServiceCredential(
+            service="diddisend",
+            client_id="diddishop-staging-diddisend",
+            access_token="send-token",
+            origin_service="diddishop",
+            user_id="5cf96b1d-005a-49b8-b6b9-1a6c3c42fd7c",
+        )
+    )
+
+    assert headers["Authorization"] == "Bearer send-token"
+    assert headers["X-Origin-Service"] == "diddishop"
+    assert headers["X-User-ID"] == "5cf96b1d-005a-49b8-b6b9-1a6c3c42fd7c"
