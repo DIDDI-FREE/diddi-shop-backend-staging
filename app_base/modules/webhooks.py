@@ -1,25 +1,86 @@
-from fastapi import APIRouter, Request
+from typing import Any
+
+from fastapi import APIRouter, HTTPException, Request
 
 from app_base.core.api_contracts import WebhookResponse
 from app_base.core.webhook_auth import require_webhook_signature
-from app_base.shared_kernel.contracts.events import ExternalEvent
+from app_base.shared_kernel.contracts.events import DiddiPayCallbackEnvelope, ExternalEvent
 from app_base.workers.in_memory_inbox import InMemoryProcessedEvents
 
 router = APIRouter(prefix="/internal/v1/webhooks", tags=["webhooks"])
 
 
+def _checkout_id_from_business_reference(reference: Any) -> str | None:
+    if not isinstance(reference, str):
+        return None
+    prefix = "diddishop:checkout:"
+    if not reference.startswith(prefix):
+        return None
+    checkout_id = reference.removeprefix(prefix).strip()
+    return checkout_id or None
+
+
+def _normalize_diddipay_event(raw: object) -> tuple[ExternalEvent, bool]:
+    """Adapt DiddiPay's signed envelope to the internal event shape.
+
+    The boolean indicates whether the event is the native DiddiPay envelope.
+    Native callbacks must identify a checkout/order explicitly; legacy
+    DiddiShop envelopes may still use ``aggregate_id`` as their fallback.
+    """
+    if not isinstance(raw, dict):
+        raise HTTPException(status_code=422, detail="DiddiPay callback must be a JSON object")
+
+    if {"id", "type", "occurred_at", "data"}.issubset(raw):
+        envelope = DiddiPayCallbackEnvelope.model_validate(raw)
+        payload = dict(envelope.data)
+        checkout_id = payload.get("checkout_id") or _checkout_id_from_business_reference(
+            payload.get("business_reference")
+        )
+        if checkout_id:
+            payload["checkout_id"] = checkout_id
+        aggregate_id = payload.get("order_id") or checkout_id or envelope.id
+        return (
+            ExternalEvent(
+                event_id=envelope.id,
+                event_type=envelope.type,
+                aggregate_id=aggregate_id,
+                payload=payload,
+            ),
+            True,
+        )
+
+    return ExternalEvent.model_validate(raw), False
+
+
 @router.post("/diddipay", response_model=WebhookResponse)
-async def diddipay_webhook(event: ExternalEvent, request: Request):
-    await require_webhook_signature(request, request.app.state.settings.diddipay_webhook_secret)
+async def diddipay_webhook(request: Request):
+    await require_webhook_signature(
+        request,
+        request.app.state.settings.diddipay_webhook_secret,
+        header_name="X-DiddiPay-Signature",
+        timestamp_header=None,
+    )
+    try:
+        raw = await request.json()
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="DiddiPay callback must be valid JSON") from exc
+    event, is_diddipay_envelope = _normalize_diddipay_event(raw)
     inbox = request.app.state.processed_events
     if await inbox.seen("diddishop-diddipay", event.event_id):
         return {"status": "duplicate"}
     order_service = request.app.state.order_service
     checkout_ids = set()
     order_ids = event.payload.get("order_ids")
+    if isinstance(order_ids, str):
+        order_ids = [order_ids]
     if not order_ids and event.payload.get("checkout_id"):
         checkout = await request.app.state.checkout_service.get(event.payload["checkout_id"])
         order_ids = checkout.order_ids
+    if not order_ids and is_diddipay_envelope and not event.payload.get("order_id"):
+        raise HTTPException(
+            status_code=422,
+            detail="DiddiPay callback is not linked to a DiddiShop checkout or order",
+        )
     for order_id in order_ids or [event.aggregate_id]:
         order = await order_service.apply_payment_event(order_id, event.event_type, event.payload)
         checkout_ids.add(order.checkout_id)

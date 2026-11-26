@@ -27,3 +27,12 @@ class ExternalEvent(BaseModel):
     payload: dict[str, Any]
     correlation_id: str | None = None
     causation_id: str | None = None
+
+
+class DiddiPayCallbackEnvelope(BaseModel):
+    """Callback envelope emitted by DiddiPay's payment outbox delivery."""
+
+    id: str
+    type: str
+    occurred_at: datetime
+    data: dict[str, Any]

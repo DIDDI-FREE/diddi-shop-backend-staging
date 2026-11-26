@@ -452,3 +452,20 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : Utilisateur | Agent, à valider
 - Impact : Portainer, Docker Compose, documentation, déploiement staging et
   développement local.
+
+### D-042 — Contrat réel du callback DiddiPay
+- Date : 2026-11-26
+- Phase / sous-lot : S24-C
+- Décision : utiliser `DIDDI_SHOP_DIDDIPAY_WEBHOOK_SECRET` uniquement pour
+  vérifier le HMAC-SHA256 entrant dans `X-DiddiPay-Signature`, sur le corps JSON
+  exact envoyé par DiddiPay et sans timestamp. Adapter l’enveloppe DiddiPay
+  `{id, type, occurred_at, data}` vers `ExternalEvent`, en résolvant le checkout
+  depuis `data.checkout_id` ou `data.business_reference`.
+- Pourquoi : `PAYMENT_CALLBACK_TARGETS` configure le secret côté DiddiPay et
+  DiddiPay ne signe pas avec le credential S2S utilisé par DiddiShop pour ses
+  appels sortants.
+- Alternatives écartées : utiliser `X-Webhook-Signature`, signer un corps
+  re-sérialisé côté Shop, ou réutiliser le secret client S2S.
+- Source : Utilisateur | code DiddiPay cité par l’utilisateur | Agent
+- Impact : webhook DiddiPay, configuration, checkout, commandes, inbox,
+  sécurité, tests et documentation.

@@ -104,6 +104,15 @@ leurs ports.
 - Le Compose Portainer transmet explicitement les paramètres de sécurité,
   délais métier, finance V1 et observabilité ; les secrets DiddiFreeID,
   webhooks et OTLP restent des variables obligatoires à injecter hors Git.
+
+## Dernier lot implémenté — S24-C
+
+Le webhook DiddiPay lit désormais `DIDDI_SHOP_DIDDIPAY_WEBHOOK_SECRET`, vérifie
+`X-DiddiPay-Signature` sur les octets exacts du corps sans timestamp, puis
+adapte l’enveloppe `{id, type, occurred_at, data}` émise par DiddiPay vers le
+contrat interne. La référence `diddishop:checkout:{checkout_id}` est résolue
+pour rattacher l’événement au checkout. Le secret webhook entrant reste
+distinct des credentials S2S sortants.
 - Le Compose local est séparé sous `docker-compose.local.yml` ; le fichier
   `docker-compose.yml` est réservé à Portainer/staging et transmet toutes les
   variables nécessaires à l’API.

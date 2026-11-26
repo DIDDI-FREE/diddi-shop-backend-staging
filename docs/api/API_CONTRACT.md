@@ -400,6 +400,12 @@ une seule fois et renvoient `{"status":"duplicate"}` pour un événement déjà
 traité. Une signature invalide ou un secret absent doit être traité comme un
 échec d’authentification/configuration, jamais comme un événement métier.
 
+DiddiPay signe le corps JSON exact avec HMAC-SHA256 et transmet la signature
+dans `X-DiddiPay-Signature`. Son enveloppe est `{id, type, occurred_at, data}` ;
+le secret entrant `DIDDI_SHOP_DIDDIPAY_WEBHOOK_SECRET` est distinct du
+credential S2S utilisé par DiddiShop pour appeler DiddiPay. La référence métier
+`diddishop:checkout:{checkout_id}` permet de rattacher le callback au checkout.
+
 Les noms d’événements attendus sont décrits dans les pages
 [`diddipay.md`](../integrations/diddipay.md) et
 [`diddisend.md`](../integrations/diddisend.md). Les catalogues fournisseurs

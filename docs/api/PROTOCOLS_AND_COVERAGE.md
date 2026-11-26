@@ -49,6 +49,20 @@ changements de livraison arrivent par webhooks DiddiSend, projetés localement.
 - `Idempotency-Key` pour les commandes rejouables ;
 - aucun secret S2S transmis au frontend.
 
+### Webhooks fournisseurs
+
+- DiddiPay : `X-DiddiPay-Signature` contient un HMAC-SHA256 du corps JSON exact
+  envoyé par DiddiPay ; aucun `X-Webhook-Timestamp` n'entre dans le calcul ;
+- le secret entrant est `DIDDI_SHOP_DIDDIPAY_WEBHOOK_SECRET`, configuré dans
+  `PAYMENT_CALLBACK_TARGETS` côté DiddiPay ; il est différent du secret S2S
+  utilisé par DiddiShop pour obtenir un token et appeler DiddiPay ;
+- enveloppe DiddiPay : `{id, type, occurred_at, data}` ; l'identification du
+  checkout repose sur `data.checkout_id` ou
+  `data.business_reference=diddishop:checkout:{checkout_id}` ;
+- DiddiPay est dédupliqué par `id` dans l'inbox `diddishop-diddipay` ; un
+  callback déjà traité répond `{"status":"duplicate"}` ;
+- aucune donnée de callback n'est acceptée sans signature valide en staging.
+
 ### Observabilité
 
 DiddiObserve utilise OTLP HTTP/protobuf, `Content-Type: application/x-protobuf`

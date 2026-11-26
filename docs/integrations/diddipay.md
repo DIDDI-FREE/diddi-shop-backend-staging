@@ -17,7 +17,12 @@ Un refund attend `amount` et `reason`. La réponse `id` est normalisée en
 
 - PaymentIntent : `shop:create-payment:{checkout_id}:1` ;
 - refund : `shop:refund:{order_id}:{operation}` ;
-- les webhooks sont signés avec le secret DiddiPay ;
+- DiddiPay signe l'enveloppe JSON compacte et triée avec HMAC-SHA256, sur les
+  octets réellement transmis, puis l'envoie dans `X-DiddiPay-Signature` ;
+- DiddiShop vérifie cette signature avec `DIDDI_SHOP_DIDDIPAY_WEBHOOK_SECRET`;
+- ce secret entrant est différent du credential S2S DiddiShop → DiddiPay ;
+- l'enveloppe reçue est `{id, type, occurred_at, data}` et `data.business_reference`
+  est de la forme `diddishop:checkout:{checkout_id}` ;
 - un événement déjà traité retourne un résultat `duplicate` sans nouvelle
   mutation.
 

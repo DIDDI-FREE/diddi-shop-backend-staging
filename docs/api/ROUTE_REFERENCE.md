@@ -17,7 +17,7 @@ considère disponibles par erreur.
 | `JWT` | `Authorization: Bearer <DiddiFreeID JWT>` en staging/production ; acteur local en développement |
 | `JWT vendeur` | JWT dont le sujet possède la boutique ou le produit concerné |
 | `S2S/interne` | appel réservé au réseau ou au credential de service prévu pour l’environnement |
-| `Webhook` | signature `X-Webhook-Signature` et `X-Webhook-Timestamp` obligatoires |
+| `Webhook` | DiddiPay : `X-DiddiPay-Signature` sur le corps exact, sans timestamp ; DiddiSend : contrat de signature dédié |
 | `Aucun` | aucune dépendance d’acteur dans le code actuel ; à ne pas interpréter comme public sans protection réseau |
 
 En développement, `X-Actor-ID` est accepté et l’acteur par défaut est
@@ -524,9 +524,13 @@ Ces routes sont des sondes internes et ne doivent pas être exposées au fronten
 
 ### `POST /internal/v1/webhooks/diddipay`
 
-- Auth : signature `X-Webhook-Signature` calculée avec le secret DiddiPay.
-- Corps : `ExternalEvent` : `event_id`, `event_type`, `event_version`,
-  `aggregate_id`, `payload`, `correlation_id?`, `causation_id?`.
+- Auth : HMAC-SHA256 dans `X-DiddiPay-Signature`, calculé par DiddiPay sur les
+  octets exacts du corps JSON avec le secret partagé configuré dans
+  `DIDDI_SHOP_DIDDIPAY_WEBHOOK_SECRET`. Aucun timestamp n'est utilisé.
+- Corps DiddiPay : `{ "id", "type", "occurred_at", "data" }`. `data.business_reference`
+  doit suivre `diddishop:checkout:{checkout_id}` ou `data` doit fournir
+  `checkout_id`, `order_id` ou `order_ids`. L'ancien `ExternalEvent` reste accepté
+  pour compatibilité interne.
 - Réponse : `{ "status": "processed" }` ou `{ "status": "duplicate" }`.
 - Déduplication : inbox `diddishop-diddipay` par `event_id`.
 - Événements métier consommés : `payment.succeeded`, `payment.failed`,

@@ -120,3 +120,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S23-D — normaliser le contrat de suivi DiddiSend
 - [x] S24-A — transmettre toutes les variables d’exécution au Compose Portainer
 - [x] S24-B — rendre docker-compose.yml canonique pour Portainer et isoler le local
+- [x] S24-C — aligner le webhook DiddiPay sur le contrat PAYMENT_CALLBACK_TARGETS
