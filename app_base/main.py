@@ -3,6 +3,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
 from sqlalchemy import text
+from starlette.middleware.cors import CORSMiddleware
 
 from app_base.core.errors import DiddiShopError
 from app_base.core.lifespan import lifespan
@@ -28,6 +29,17 @@ app.add_middleware(CorrelationMiddleware)
 # middleware and route handlers emit logs. It also propagates traceparent on
 # incoming requests without exposing request bodies or authentication headers.
 app.add_middleware(OpenTelemetryMiddleware)
+# The web frontend is served from a DiddiFree subdomain and local development
+# uses localhost. Keep the allow-list origin-based instead of using '*', so the
+# browser may send Authorization headers without exposing the API to arbitrary
+# origins. Credentials are not enabled because authentication uses Bearer JWTs.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=r"^https?://([a-z0-9-]+\.)+diddifree\.com(?::\d+)?$|^https?://localhost(?::\d+)?$",
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.exception_handler(DiddiShopError)

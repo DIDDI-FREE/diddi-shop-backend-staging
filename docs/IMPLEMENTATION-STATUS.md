@@ -112,6 +112,9 @@ leurs ports.
   (`48180` pour l’API et `48182` pour la documentation), afin de fonctionner
   même sans accès au réseau Docker de Nginx Proxy Manager. L’overlay
   `docker-compose.proxy.yml` reste disponible lorsque ce réseau est fourni.
+- CORS autorise les sous-domaines `*.diddifree.com` et `localhost` avec port
+  optionnel, accepte le préflight et le header `Authorization`, sans activer
+  les credentials navigateur.
 
 ## Réponses intégrées
 
@@ -144,3 +147,5 @@ leurs ports.
   sont déjà utilisées ;
 - ou fourniture du nom exact du réseau Docker partagé avec Nginx Proxy Manager
   (`NPM_NETWORK`) pour utiliser l’overlay réseau.
+- redéploiement de l’image API avec le middleware CORS et vérification du
+  préflight depuis l’URL publique.

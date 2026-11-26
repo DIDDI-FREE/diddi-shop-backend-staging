@@ -108,3 +108,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S14 — construire le portail documentaire MkDocs publiable
 - [x] S15 — reproduire la stack Portainer DiddiGo avec API et MkDocs unifiés
 - [x] S16 — compléter la surface frontend V1 et formaliser les réponses HTTP
+- [x] S17 — intégrer CORS pour les sous-domaines DiddiFree et localhost

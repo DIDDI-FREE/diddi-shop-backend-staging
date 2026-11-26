@@ -38,6 +38,15 @@ Les appels sortants utilisent un client S2S propre à chaque cible :
 Un token DiddiPay ne doit jamais être réutilisé pour DiddiSend. Les secrets ne
 sont jamais transmis aux clients mobiles ou web.
 
+## CORS frontend
+
+L’API autorise les origines HTTP et HTTPS correspondant à un sous-domaine de
+`diddifree.com` (`*.diddifree.com`) ainsi que `localhost` avec un port
+optionnel. Les méthodes et headers nécessaires au frontend, notamment
+`Authorization`, sont acceptés. Les credentials navigateur ne sont pas
+activés : l’authentification frontend utilise un Bearer JWT et non un cookie.
+Les autres origines ne reçoivent aucun header CORS.
+
 ## Inventaire HTTP
 
 Les routes suivantes sont la surface métier actuellement montée par

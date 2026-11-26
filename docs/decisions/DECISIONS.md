@@ -251,3 +251,16 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Alternatives écartées : laisser le frontend composer des lectures unitaires ; renvoyer les dataclasses internes ; transmettre la réponse DiddiPay complète ; piloter les erreurs par le texte.
 - Source : Utilisateur, à valider
 - Impact : catalog, shops, cart, checkout, orders, DiddiFiles, OpenAPI et frontend.
+
+### D-028 — Allow-list CORS frontend
+- Date : 2026-11-26
+- Phase / sous-lot : S17-A
+- Décision : autoriser les origines HTTP/HTTPS des sous-domaines `*.diddifree.com`
+  et `localhost` avec port optionnel ; autoriser méthodes et headers frontend,
+  dont `Authorization`, sans credentials navigateur.
+- Pourquoi : le frontend est servi depuis une origine distincte et doit pouvoir
+  exécuter les appels API navigateur ; une allow-list est préférable à `*`.
+- Alternatives écartées : `allow_origins=["*"]` ; autoriser toutes les origines ;
+  activer les cookies cross-site.
+- Source : Utilisateur | Agent
+- Impact : `app_base/main.py`, tests HTTP, documentation API et déploiement.
