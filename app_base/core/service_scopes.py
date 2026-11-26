@@ -6,7 +6,7 @@ SERVICE_SCOPES: dict[str, tuple[str, ...]] = {
     ),
     "diddisend": (
         "diddisend:deliveries:quote",
-        "diddisend:deliveries:write",
+        "diddisend:deliveries:create",
         "diddisend:deliveries:read",
         "diddisend:deliveries:cancel",
     ),

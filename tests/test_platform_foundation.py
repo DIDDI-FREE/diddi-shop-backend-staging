@@ -29,8 +29,8 @@ async def test_idempotency_replays_same_body_and_rejects_conflict():
 
 def test_service_scopes_are_isolated_and_headers_are_explicit():
     assert "diddipay:payment-intents:write" in required_scopes("diddipay")
-    assert "diddisend:deliveries:write" in required_scopes("diddisend")
-    assert "diddisend:deliveries:write" not in required_scopes("diddipay")
+    assert "diddisend:deliveries:create" in required_scopes("diddisend")
+    assert "diddisend:deliveries:create" not in required_scopes("diddipay")
     headers = s2s_headers(
         ServiceCredential(service="diddisend", client_id="diddishop", access_token="token"),
         origin_service="diddishop",

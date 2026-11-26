@@ -128,6 +128,15 @@ distinct des credentials S2S sortants.
   optionnel, accepte le préflight et le header `Authorization`, sans activer
   les credentials navigateur.
 
+## Dernier lot implémenté — S24-D
+
+Le scope DiddiSend demandé par DiddiShop pour la création est désormais
+`diddisend:deliveries:create`, conformément à la route DiddiSend, et non
+`diddisend:deliveries:write`. La recette reste bloquée côté plateforme tant
+que DiddiSend staging n’accepte pas le Bearer `client_credentials` de
+DiddiShop, ou ne provisionne pas un service-key dédié à DiddiShop avec un
+identifiant technique UUID.
+
 ## Réponses intégrées
 
 - release vendeur : port conservé pour V2, désactivé par défaut en V1 ;

@@ -2,6 +2,14 @@
 
 ## DiddiSend
 
+Le contrat d’authentification est bloquant pour la recette : DiddiShop utilise
+un client `client_credentials` dédié et envoie un Bearer avec audience
+`diddisend`, tandis que le code staging DiddiSend audité protège encore les
+routes de livraison par `X-Service-Key`/legacy. DiddiSend doit soit accepter
+les tokens S2S avec les quatre scopes `diddisend:deliveries:quote/create/read/cancel`,
+soit enregistrer un credential service-key dédié à DiddiShop avec un
+`X-User-ID` technique UUID. Ne pas réutiliser le credential DiddiFood.
+
 Base staging observée : `https://diddisend-api-staging.diddifree.com`.
 Routes observées : `/health`, `/openapi.json`, `/v1/deliveries/quote`,
 `/v1/deliveries`, `/v1/deliveries/{delivery_id}`,

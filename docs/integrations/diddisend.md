@@ -12,6 +12,21 @@ connaît ni les coursiers, ni la flotte, ni le géocodage opérationnel.
 | Lecture | projection par `delivery_id` | — |
 | Annulation | opération autorisée par DiddiSend | `shop:cancel-delivery:{order_id}:{operation}` |
 
+## Authentification S2S
+
+DiddiShop demande à DiddiFreeID un token `client_credentials` dédié à
+`diddisend`, avec les scopes `diddisend:deliveries:quote`,
+`diddisend:deliveries:create`, `diddisend:deliveries:read` et
+`diddisend:deliveries:cancel`. Le scope de création est `create`, pas
+`write` : il doit être déclaré exactement ainsi par DiddiFreeID et accepté par
+la version DiddiSend déployée.
+
+La version staging de DiddiSend auditée utilise encore le chemin legacy
+`X-Service-Key`/`DIDDISEND_SERVICE_KEYS` pour les appels de livraison. Tant que
+la validation JWT S2S par cible n’est pas activée dans DiddiSend, le client
+DiddiShop ne peut pas être validé par le seul ajout de
+`DIDDI_SHOP_SERVICE_CLIENT_SECRETS`.
+
 ## Déclenchement depuis l’application vendeur
 
 Le vendeur ne contacte jamais DiddiSend directement. Lorsque la préparation est

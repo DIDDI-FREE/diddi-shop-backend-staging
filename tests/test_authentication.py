@@ -12,9 +12,9 @@ def test_actor_from_user_claims_extracts_scopes():
 
 
 def test_actor_from_service_claims_detects_service_actor():
-    actor = actor_from_claims({"sub": "service:diddishop", "scp": ["diddisend:deliveries:write"]})
+    actor = actor_from_claims({"sub": "service:diddishop", "scp": ["diddisend:deliveries:create"]})
     assert actor.actor_type == "service"
-    assert "diddisend:deliveries:write" in actor.scopes
+    assert "diddisend:deliveries:create" in actor.scopes
 
 
 def test_actor_claims_require_subject():

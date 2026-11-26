@@ -42,7 +42,7 @@ async def test_target_credential_sends_bearer_and_client_id():
         client_id="diddishop-staging-diddisend",
         client_secret="secret-send",
         audience="diddisend",
-        scopes=("diddisend:deliveries:write",),
+        scopes=("diddisend:deliveries:create",),
         transport=httpx.MockTransport(
             lambda request: httpx.Response(200, json={"access_token": "send-token", "expires_in": 600})
         ),
@@ -52,7 +52,7 @@ async def test_target_credential_sends_bearer_and_client_id():
         ServiceCredential(
             service="diddisend",
             client_id="diddishop-staging-diddisend",
-            scopes=("diddisend:deliveries:write",),
+            scopes=("diddisend:deliveries:create",),
             token_provider=provider,
         ),
         idempotency_key="shop:create-delivery:order-1:1",

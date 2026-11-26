@@ -469,3 +469,17 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : Utilisateur | code DiddiPay cité par l’utilisateur | Agent
 - Impact : webhook DiddiPay, configuration, checkout, commandes, inbox,
   sécurité, tests et documentation.
+
+### D-043 — Scope exact des opérations DiddiSend
+- Date : 2026-11-26
+- Phase / sous-lot : S24-D
+- Décision : demander `diddisend:deliveries:create` pour la création d’une
+  livraison, avec `quote`, `read` et `cancel` pour les opérations associées.
+  Ne plus demander `diddisend:deliveries:write`.
+- Pourquoi : le code DiddiSend staging expose la permission de création sous
+  `create`; `write` n’est pas le scope vérifié par sa politique de livraison.
+- Alternatives écartées : conserver un scope générique `write` ; réutiliser le
+  credential DiddiFood ; désactiver l’authentification staging.
+- Source : code DiddiSend staging audité | Agent, à valider
+- Impact : DiddiFreeID, DiddiShop, DiddiSend, configuration Portainer et
+  recette E2E.
