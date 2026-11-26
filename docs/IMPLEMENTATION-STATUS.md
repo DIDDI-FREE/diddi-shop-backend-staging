@@ -283,3 +283,19 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   puis `latitude`, `longitude`, `updated_at`).
 - DiddiSend reste la source de vérité du suivi opérationnel ; DiddiShop ne
   conserve qu’une projection nécessaire à l’API frontend.
+
+## S24-F — alignement des JWT utilisateurs DiddiFreeID
+
+- Les JWT acheteurs staging sans claim `aud` sont acceptés sur les routes
+  frontend après vérification de signature, `exp`, `sub` et issuer.
+- Les routes internes S2S continuent d’exiger explicitement `aud=diddishop`.
+- `DIDDI_SHOP_DIDDIFREEID_ISSUER` est obligatoire en staging et vaut
+  `diddifree-id` ; une valeur vide provoque désormais un échec de démarrage
+  explicite.
+- Vérifications locales : 81 tests passés et Ruff OK.
+
+### Vérifications de déploiement en attente — S24-F
+
+- Ajouter `DIDDI_SHOP_DIDDIFREEID_ISSUER=diddifree-id` dans Portainer.
+- Reconstruire l’image API depuis ce commit puis rejouer `GET /v1/cart` et
+  `GET /v1/orders` avec le JWT acheteur.

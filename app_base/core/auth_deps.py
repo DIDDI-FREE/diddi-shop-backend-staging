@@ -7,6 +7,8 @@ import jwt
 from fastapi import Header, HTTPException, Request
 from jwt import PyJWK
 
+_VERIFY_DEFAULT = object()
+
 
 @dataclass(frozen=True)
 class Actor:
@@ -29,9 +31,9 @@ def actor_from_claims(claims: dict[str, Any]) -> Actor:
 
 
 class JwtVerifier:
-    def __init__(self, *, jwks_url: str, audience: str, issuer: str = "", ttl_seconds: int = 300):
+    def __init__(self, *, jwks_url: str, audience: str | None, issuer: str = "", ttl_seconds: int = 300):
         self.jwks_url = jwks_url
-        self.audience = audience
+        self.audience = audience or None
         self.issuer = issuer or None
         self.ttl_seconds = ttl_seconds
         self._keys: dict[str, Any] = {}
@@ -53,7 +55,7 @@ class JwtVerifier:
         self._loaded_at = monotonic()
         return keys
 
-    async def verify(self, token: str) -> Actor:
+    async def verify(self, token: str, *, audience: str | None | object = _VERIFY_DEFAULT) -> Actor:
         try:
             header = jwt.get_unverified_header(token)
             keys = await self._load_keys()
@@ -64,11 +66,12 @@ class JwtVerifier:
             if key is None:
                 raise ValueError("unknown JWT key id")
             options = {"require": ["exp", "sub"]}
+            expected_audience = self.audience if audience is _VERIFY_DEFAULT else audience
             claims = jwt.decode(
                 token,
                 key=key,
                 algorithms=["RS256"],
-                audience=self.audience,
+                audience=expected_audience,
                 issuer=self.issuer,
                 options=options,
             )
@@ -88,7 +91,9 @@ async def current_actor(
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Bearer token required")
     verifier: JwtVerifier = request.app.state.jwt_verifier
-    return await verifier.verify(authorization.removeprefix("Bearer ").strip())
+    # DiddiFreeID user access tokens currently carry iss/sub/exp but no aud.
+    # Audience validation remains explicit for service-to-service routes below.
+    return await verifier.verify(authorization.removeprefix("Bearer ").strip(), audience=None)
 
 
 async def current_service_actor(
@@ -102,7 +107,16 @@ async def current_service_actor(
     deployments accept only a DiddiFreeID service principal, never a browser
     user or an operator JWT.
     """
-    actor = await current_actor(request, authorization, x_actor_id)
+    if request.app.state.settings.environment == "development":
+        actor = Actor(subject=x_actor_id or "anonymous", actor_type="user")
+    else:
+        if not authorization or not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Bearer token required")
+        verifier: JwtVerifier = request.app.state.jwt_verifier
+        actor = await verifier.verify(
+            authorization.removeprefix("Bearer ").strip(),
+            audience=request.app.state.settings.jwt_audience or "diddishop",
+        )
     if request.app.state.settings.environment != "development" and actor.actor_type != "service":
         raise HTTPException(status_code=403, detail="service principal required")
     return actor

@@ -123,3 +123,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-C — aligner le webhook DiddiPay sur le contrat PAYMENT_CALLBACK_TARGETS
 - [x] S24-D — aligner les scopes DiddiSend et isoler le blocage d’auth staging
 - [x] S24-E — corriger la validation JWT/JWKS dans l’image API
+- [x] S24-F — aligner les JWT utilisateurs sans audience et rendre l’issuer obligatoire

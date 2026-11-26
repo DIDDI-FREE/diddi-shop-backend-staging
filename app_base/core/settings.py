@@ -134,7 +134,7 @@ class Settings(BaseSettings):
         ),
     )
     jwt_audience: str = "diddishop"
-    diddifreeid_issuer: str = ""
+    diddifreeid_issuer: str = "diddifree-id"
     diddifreeid_jwks_url: str = ""
     diddipay_webhook_secret: str = ""
     diddisend_webhook_secret: str = ""
@@ -161,6 +161,8 @@ class Settings(BaseSettings):
         missing = sorted(name for name, url in required.items() if not url.strip())
         if missing:
             raise ValueError(f"Missing external service URLs: {', '.join(missing)}")
+        if not self.diddifreeid_issuer.strip():
+            raise ValueError("Missing DiddiFreeID issuer: DIDDI_SHOP_DIDDIFREEID_ISSUER")
         insecure = sorted(
             name for name, url in required.items() if not url.lower().startswith("https://")
         )

@@ -513,3 +513,20 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   sans signature ; modifier le contrat frontend ou DiddiSend.
 - Source : incident staging | Agent, à valider
 - Impact : authentification DiddiFreeID, image API, panier, checkout et tests.
+
+### D-046 — Audience distincte pour JWT utilisateur et S2S
+- Date : 2026-11-27
+- Phase / sous-lot : S24-F
+- Décision : ne pas exiger `aud` sur les JWT utilisateurs DiddiFreeID, car le
+  contrat staging actuel fournit `iss=diddifree-id`, `sub` et `exp` sans claim
+  `aud`. Exiger `aud=diddishop` sur les routes internes S2S. Rendre l’issuer
+  `diddifree-id` obligatoire en staging.
+- Pourquoi : la vérification frontend était incompatible avec les tokens
+  réellement émis et le Compose remettait `diddishop` par défaut même quand
+  l’audience était laissée vide.
+- Alternatives écartées : ajouter artificiellement `X-Actor-ID`, désactiver
+  toute validation d’issuer, ou modifier le token utilisateur sans contrat
+  confirmé de DiddiFreeID.
+- Source : incident staging et JWT observé par l’utilisateur | Agent
+- Impact : authentification frontend, routes internes, Compose, configuration
+  Portainer et tests.
