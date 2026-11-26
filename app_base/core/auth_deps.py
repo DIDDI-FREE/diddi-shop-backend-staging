@@ -5,6 +5,7 @@ from typing import Any
 import httpx
 import jwt
 from fastapi import Header, HTTPException, Request
+from jwt import PyJWK
 
 
 @dataclass(frozen=True)
@@ -45,7 +46,7 @@ class JwtVerifier:
         keys = {}
         for item in response.json().get("keys", []):
             if item.get("kid"):
-                keys[item["kid"]] = jwt.algorithms.RSAAlgorithm.from_jwk(item)
+                keys[item["kid"]] = PyJWK.from_dict(item).key
         if not keys:
             raise ValueError("DiddiFreeID JWKS did not contain usable keys")
         self._keys = keys

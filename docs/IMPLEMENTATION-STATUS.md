@@ -139,6 +139,14 @@ callback entrant est vérifié avec `X-DiddiSend-Signature` et un secret HMAC
 séparé. Il reste à injecter les valeurs secrètes côté Portainer/DiddiSend et
 à rejouer la recette E2E après redéploiement.
 
+## S24-E — correction JWT/JWKS runtime
+
+Le `401` observé sur `GET /v1/cart` provenait de DiddiShop pendant la
+validation du JWT acheteur. L’image chargeait un chemin incompatible avec les
+versions récentes de PyJWT (`jwt.algorithms.RSAAlgorithm`). Le validateur
+utilise désormais `PyJWK.from_dict`, et le Dockerfile vérifie la présence de
+PyJWT au build. Aucun changement Portainer n’a été effectué.
+
 ## Réponses intégrées
 
 - release vendeur : port conservé pour V2, désactivé par défaut en V1 ;

@@ -1,7 +1,14 @@
+import jwt
 import pytest
 from fastapi import HTTPException
+from jwt import PyJWK
 
 from app_base.core.auth_deps import actor_from_claims
+
+
+def test_runtime_uses_pyjwt_with_jwk_support():
+    assert jwt.__version__.split(".")[0] == "2"
+    assert PyJWK is not None
 
 
 def test_actor_from_user_claims_extracts_scopes():

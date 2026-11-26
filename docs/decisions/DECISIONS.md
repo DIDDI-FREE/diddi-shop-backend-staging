@@ -501,3 +501,15 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : Utilisateur | Agent, à valider
 - Impact : configuration, Compose, DiddiFreeID, DiddiSend, checkout,
   webhooks, tests et documentation.
+
+### D-045 — Chargement compatible des clés JWT
+- Date : 2026-11-27
+- Phase / sous-lot : S24-E
+- Décision : charger les clés JWKS avec `PyJWK.from_dict` et vérifier cette
+  dépendance pendant la construction Docker.
+- Pourquoi : l’image staging échouait sur `jwt.algorithms.RSAAlgorithm`, alors
+  que PyJWT récent expose le chemin stable `PyJWK`.
+- Alternatives écartées : désactiver la vérification JWT ; accepter un JWT
+  sans signature ; modifier le contrat frontend ou DiddiSend.
+- Source : incident staging | Agent, à valider
+- Impact : authentification DiddiFreeID, image API, panier, checkout et tests.
