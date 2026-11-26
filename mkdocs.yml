@@ -43,6 +43,7 @@ nav:
   - API:
       - Contrat HTTP et webhooks: api/API_CONTRACT.md
       - Protocoles et couverture: api/PROTOCOLS_AND_COVERAGE.md
+      - Référence détaillée des routes: api/ROUTE_REFERENCE.md
       - Questions ouvertes: api/open-questions.md
   - Architecture:
       - Exécution: architecture/RUNTIME_ARCHITECTURE.md

@@ -112,3 +112,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S18 — formaliser les contrats frontend, catégories, médias et schémas OpenAPI
 - [x] S19 — déclencher DiddiSend après le signal vendeur « commande prête »
 - [x] S20 — auditer la couverture MkDocs des routes, protocoles et valeurs
+- [x] S21 — documenter chaque route, payload, contrainte, réponse et limite

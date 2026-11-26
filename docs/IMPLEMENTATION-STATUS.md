@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-26
-**Phase courante :** S20 terminé localement
+**Phase courante :** S21 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -189,3 +189,12 @@ leurs ports.
 - L’absence de WebSocket est explicitement documentée.
 - Les routes dont la réponse OpenAPI reste générique sont signalées comme
   `à typer` au lieu d’être présentées comme complètement contractuelles.
+
+## S21 — référence détaillée de chaque route
+
+- Ajout de `docs/api/ROUTE_REFERENCE.md` avec méthode, auth, paramètres,
+  contraintes, réponses, erreurs et limites pour chaque route métier.
+- Les contrôles d’acteur absents de plusieurs routes sont signalés comme
+  risques à corriger avant staging, sans les masquer dans la documentation.
+- Les contrats génériques (delivery, claims, admin, support, webhooks) sont
+  décrits selon la forme réelle actuelle et marqués à typer dans OpenAPI.

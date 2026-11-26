@@ -9,6 +9,7 @@ configuration.
 ## Navigation
 
 - Contrat HTTP et webhooks : [`api/API_CONTRACT.md`](api/API_CONTRACT.md)
+- Référence détaillée des routes : [`api/ROUTE_REFERENCE.md`](api/ROUTE_REFERENCE.md)
 - Questions et contrats à valider : [`api/open-questions.md`](api/open-questions.md)
 - Architecture d’exécution : [`architecture/RUNTIME_ARCHITECTURE.md`](architecture/RUNTIME_ARCHITECTURE.md)
 - MVP figé : [`product/DIDDISHOP-MVP-FIGE.md`](product/DIDDISHOP-MVP-FIGE.md)

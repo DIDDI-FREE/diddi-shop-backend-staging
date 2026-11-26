@@ -323,3 +323,17 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   WebSocket non implémenté.
 - Source : Utilisateur | Agent, à valider
 - Impact : MkDocs, OpenAPI, frontend, intégrations et backlog de contrats.
+
+### D-033 — Référence route par route
+- Date : 2026-11-26
+- Phase / sous-lot : S21-A/B/C — documentation opérationnelle API
+- Décision : chaque route métier doit avoir dans MkDocs sa méthode, son niveau
+  d’authentification, ses paramètres, contraintes, payload, réponse, erreurs,
+  valeurs et limites. Une garantie absente du code est marquée `à compléter`
+  ou `à corriger`, jamais présentée comme disponible.
+- Pourquoi : l’OpenAPI peut confirmer la présence d’une route sans expliquer
+  suffisamment son comportement à une équipe frontend ou à un intégrateur S2S.
+- Alternatives écartées : renvoyer uniquement vers `openapi.json` ; documenter
+  seulement les happy paths ; masquer les protections d’acteur manquantes.
+- Source : Utilisateur | Agent, à valider
+- Impact : MkDocs, frontend, backend, sécurité, intégrations et recette staging.

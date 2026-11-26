@@ -7,6 +7,10 @@ Cette page complète le contrat HTTP principal. Elle distingue les routes
 réellement montées, les protocoles utilisés et les réponses qui disposent déjà
 d’un schéma OpenAPI explicite.
 
+La description détaillée de chaque route, de ses paramètres, contraintes,
+réponses et limites est dans
+[`ROUTE_REFERENCE.md`](ROUTE_REFERENCE.md).
+
 ## Protocoles utilisés
 
 | Protocole | Usage | Statut |
