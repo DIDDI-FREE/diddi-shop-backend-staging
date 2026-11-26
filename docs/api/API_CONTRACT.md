@@ -81,6 +81,7 @@ Les routes suivantes sont la surface métier actuellement montée par
 | GET | `/v1/catalog/products/{product_id}` | Lire un produit |
 | GET | `/v1/cart` | Lire le panier |
 | POST | `/v1/cart/lines` | Ajouter ou modifier une ligne |
+| PATCH | `/v1/cart/lines/{product_id}` | Fixer la quantité exacte d’une ligne |
 | DELETE | `/v1/cart/lines/{product_id}` | Retirer complètement une ligne |
 | POST | `/v1/checkouts` | Créer un checkout idempotent |
 | POST | `/v1/checkouts/quote` | Calculer le devis avant paiement |

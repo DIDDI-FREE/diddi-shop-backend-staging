@@ -42,6 +42,20 @@ async def test_cart_response_contains_line_prices_and_shop_subtotals():
     assert response["shop_subtotals"] == [{"shop_id": "shop-1", "subtotal_minor": 5000}]
 
 
+@pytest.mark.asyncio
+async def test_cart_set_quantity_replaces_value_and_rejects_missing_line():
+    products = InMemoryProductRepository()
+    await products.save(Product("p1", "shop-1", "Item", "", 1000, "XOF", 5, "books", [], ProductStatus.PUBLISHED))
+    carts = InMemoryCartRepository()
+    cart_service = CartService(carts, products)
+    await cart_service.add("buyer-1", "p1", 1)
+
+    updated = await cart_service.set_quantity("buyer-1", "p1", 4)
+    assert updated.lines[0].quantity == 4
+    with pytest.raises(ConflictError, match="cart line not found"):
+        await cart_service.set_quantity("buyer-1", "missing", 1)
+
+
 class FixedQuote(DeliveryQuotePort):
     async def quote(self, shop_id, cart_lines, delivery_context=None):
         return 700

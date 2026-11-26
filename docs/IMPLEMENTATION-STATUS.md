@@ -217,3 +217,9 @@ leurs ports.
 - Les produits disposent de pause/retrait, de huit photos maximum et des
   formats JPEG/PNG/WebP avec limite de 10 MiB.
 - Les tests unitaires et contractuels passent : 69 tests.
+
+## S23-A — quantité exacte du panier
+
+- Ajout de `PATCH /v1/cart/lines/{product_id}` avec remplacement exact de la
+  quantité, contrôle du stock et réponse `CartResponse` enrichie.
+- `DELETE` reste l’opération dédiée à la suppression ; `quantity=0` est refusé.

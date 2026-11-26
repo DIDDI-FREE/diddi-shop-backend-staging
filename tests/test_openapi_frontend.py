@@ -13,6 +13,7 @@ def test_openapi_declares_frontend_response_schemas():
         ("GET", "/v1/catalog/products/{product_id}/photos"): "ProductPhotoListResponse",
         ("POST", "/v1/catalog/products/{product_id}/photos/upload-session"): "UploadSessionResponse",
         ("GET", "/v1/cart"): "CartResponse",
+        ("PATCH", "/v1/cart/lines/{product_id}"): "CartResponse",
         ("GET", "/v1/orders"): "OrderListResponse",
         ("GET", "/v1/orders/{order_id}"): "OrderResponse",
         ("POST", "/v1/checkouts"): "CheckoutResponse",

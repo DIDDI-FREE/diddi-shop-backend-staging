@@ -52,6 +52,22 @@ class CartService:
         await self.repository.save(cart)
         return cart
 
+    async def set_quantity(self, customer_id: str, product_id: str, quantity: int) -> Cart:
+        if quantity <= 0:
+            raise ValueError("quantity must be positive")
+        cart = await self.get(customer_id)
+        line = next((line for line in cart.lines if line.product_id == product_id), None)
+        if line is None:
+            raise ConflictError("cart line not found")
+        product = await self.products.get(product_id)
+        if product is None or product.status.value != "published":
+            raise ConflictError("product is not purchasable")
+        if product.stock < quantity:
+            raise ConflictError("insufficient stock")
+        line.quantity = quantity
+        await self.repository.save(cart)
+        return cart
+
     async def remove(self, customer_id: str, product_id: str) -> Cart:
         cart = await self.get(customer_id)
         original_size = len(cart.lines)

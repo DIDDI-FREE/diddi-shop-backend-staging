@@ -90,6 +90,7 @@ techniques FastAPI et le portail MkDocs est servi séparément.
 | GET | `/v1/catalog/products/{product_id}/photos` | `ProductPhotoListResponse` |
 | GET | `/v1/cart` | `CartResponse` |
 | POST | `/v1/cart/lines` | `CartResponse` |
+| PATCH | `/v1/cart/lines/{product_id}` | `CartResponse` |
 | DELETE | `/v1/cart/lines/{product_id}` | `CartResponse` |
 
 ### Checkout, commandes et livraison

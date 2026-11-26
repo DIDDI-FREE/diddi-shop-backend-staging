@@ -249,6 +249,18 @@ valeurs existantes.
 - Réponse : `CartResponse`.
 - Erreur : `CONFLICT` si la ligne n’existe pas.
 
+### `PATCH /v1/cart/lines/{product_id}`
+
+- Auth : `JWT` acheteur.
+- Corps : `{ "quantity": integer }` avec `quantity >= 1`.
+- Effet : remplace la quantité de la ligne par la valeur demandée ; ce n’est
+  pas une opération d’incrément.
+- Le produit doit rester publié et la quantité ne peut pas dépasser le stock.
+- `quantity=0` est refusé (`VALIDATION_ERROR`) ; utiliser `DELETE` pour
+  supprimer la ligne.
+- Réponse : `CartResponse` complet.
+- L’opération est rejouable avec la même quantité.
+
 ## Checkout et paiement
 
 ### `POST /v1/checkouts`

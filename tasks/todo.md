@@ -114,3 +114,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S20 — auditer la couverture MkDocs des routes, protocoles et valeurs
 - [x] S21 — documenter chaque route, payload, contrainte, réponse et limite
 - [x] S22 — implémenter les contrats frontend incomplets et leur idempotence
+- [x] S23-A — fixer exactement la quantité d’une ligne panier
