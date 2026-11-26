@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-26
-**Phase courante :** S21 terminé localement
+**Phase courante :** S22 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -24,7 +24,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 63 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 69 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | OK dans PostgreSQL local Compose |
@@ -182,19 +182,38 @@ leurs ports.
 
 ## S20 — audit documentaire des protocoles et routes
 
-- Les 39 chemins métier présents dans l’OpenAPI sont listés dans
+- Les 44 chemins métier présents dans l’OpenAPI sont listés dans
   `docs/api/PROTOCOLS_AND_COVERAGE.md`.
 - REST/JSON, webhooks JSON, S2S Bearer, client credentials et OTLP
   HTTP/protobuf sont décrits avec leurs headers et limites.
 - L’absence de WebSocket est explicitement documentée.
-- Les routes dont la réponse OpenAPI reste générique sont signalées comme
-  `à typer` au lieu d’être présentées comme complètement contractuelles.
+- Les routes qui dépendaient de réponses génériques ont ensuite été typées en
+  S22 ; les dépendances externes restent dans la recette staging.
 
 ## S21 — référence détaillée de chaque route
 
 - Ajout de `docs/api/ROUTE_REFERENCE.md` avec méthode, auth, paramètres,
   contraintes, réponses, erreurs et limites pour chaque route métier.
-- Les contrôles d’acteur absents de plusieurs routes sont signalés comme
-  risques à corriger avant staging, sans les masquer dans la documentation.
-- Les contrats génériques (delivery, claims, admin, support, webhooks) sont
-  décrits selon la forme réelle actuelle et marqués à typer dans OpenAPI.
+- Les contrôles d’acteur des parcours commande, livraison, claims et checkout
+  sont implémentés ; les routes internes utilisent la frontière S2S prévue.
+- Les contrats delivery, claims, admin, support et webhooks disposent de
+  modèles de réponse OpenAPI explicites.
+
+## S22 — implémentation des contrats frontend incomplets
+
+- Le panier renvoie les titres, prix unitaires, totaux de ligne, sous-totaux par
+  boutique et le sous-total global.
+- Le checkout exige désormais l’adresse physique, les coordonnées géographiques
+  et le téléphone E.164 ; `POST /v1/checkouts/quote` calcule le devis sans
+  paiement.
+- `GET /v1/checkouts/{id}` lit le paiement ; `/retry` reprend uniquement un
+  paiement échoué avec une nouvelle clé, et les créations/reprises sont
+  protégées par l’idempotence persistante.
+- Les commandes exposent lignes financières, `created_at`, échéance vendeur et
+  informations de livraison ; les projections DiddiSend exposent coursier,
+  position et code de remise.
+- Les annulations exposent `OrderResponse` et les codes
+  `ORDER_NOT_CANCELLABLE`/`DELIVERY_ALREADY_PICKED_UP`.
+- Les produits disposent de pause/retrait, de huit photos maximum et des
+  formats JPEG/PNG/WebP avec limite de 10 MiB.
+- Les tests unitaires et contractuels passent : 69 tests.

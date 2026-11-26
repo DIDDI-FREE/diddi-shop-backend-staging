@@ -26,3 +26,11 @@ class NotConfiguredError(DiddiShopError):
 
 class InvalidTransitionError(DiddiShopError):
     code = "INVALID_TRANSITION"
+
+
+class OrderNotCancellableError(DiddiShopError):
+    code = "ORDER_NOT_CANCELLABLE"
+
+
+class DeliveryAlreadyPickedUpError(OrderNotCancellableError):
+    code = "DELIVERY_ALREADY_PICKED_UP"

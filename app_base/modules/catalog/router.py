@@ -71,6 +71,16 @@ async def publish_product(product_id: str, actor: Actor = Depends(current_actor)
     return product_response(await service.publish(actor.subject, product_id))
 
 
+@router.post("/products/{product_id}/pause", response_model=ProductResponse)
+async def pause_product(product_id: str, actor: Actor = Depends(current_actor), service: CatalogService = Depends(catalog_service)):
+    return product_response(await service.pause(actor.subject, product_id))
+
+
+@router.post("/products/{product_id}/retire", response_model=ProductResponse)
+async def retire_product(product_id: str, actor: Actor = Depends(current_actor), service: CatalogService = Depends(catalog_service)):
+    return product_response(await service.retire(actor.subject, product_id))
+
+
 @router.patch("/products/{product_id}", response_model=ProductResponse)
 async def update_product(
     product_id: str,

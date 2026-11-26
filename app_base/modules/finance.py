@@ -1,7 +1,11 @@
 from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
-from app_base.core.errors import ConflictError
+from app_base.core.errors import (
+    ConflictError,
+    DeliveryAlreadyPickedUpError,
+    OrderNotCancellableError,
+)
 from app_base.modules.claims.domain import Claim, ClaimDecision, ClaimStatus
 from app_base.modules.orders.domain.entities import FulfillmentStatus, Order, PaymentStatus
 from app_base.modules.rewards.application import RewardsService
@@ -39,7 +43,9 @@ class FinanceService:
         if order.fulfillment_status == FulfillmentStatus.CANCELLED:
             return order
         if order.fulfillment_status in {FulfillmentStatus.PICKED_UP, FulfillmentStatus.IN_TRANSIT, FulfillmentStatus.DELIVERED}:
-            raise ConflictError("order cannot be cancelled after pickup")
+            if order.fulfillment_status == FulfillmentStatus.PICKED_UP:
+                raise DeliveryAlreadyPickedUpError("delivery has already been picked up")
+            raise OrderNotCancellableError("order cannot be cancelled after pickup")
         if order.payment_status == PaymentStatus.PENDING and self.rewards and order.metadata.get("rewards"):
             reward = self.rewards.from_metadata(order.metadata["rewards"])
             if not reward.consumption_id:

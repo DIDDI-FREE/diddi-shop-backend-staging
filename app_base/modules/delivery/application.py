@@ -70,6 +70,9 @@ class DeliveryService:
         delivery.status = target
         delivery.proof_ref = payload.get("proof_ref") or payload.get("proof_id")
         delivery.tracking = payload.get("tracking")
+        delivery.courier = payload.get("courier") or payload.get("courier_info")
+        delivery.dropoff_code = payload.get("dropoff_code") or payload.get("delivery_code")
+        delivery.position = payload.get("position") or payload.get("courier_position")
         await self.repository.save(delivery)
         order = await self.orders.get(order_id)
         transition = {

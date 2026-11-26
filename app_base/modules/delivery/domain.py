@@ -19,3 +19,6 @@ class DeliveryProjection:
     status: DeliveryStatus
     proof_ref: str | None = None
     tracking: dict | None = None
+    courier: dict | None = None
+    dropoff_code: str | None = None
+    position: dict | None = None

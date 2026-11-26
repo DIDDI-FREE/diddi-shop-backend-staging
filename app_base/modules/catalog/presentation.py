@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from app_base.modules.catalog.domain import ALLOWED_PRODUCT_IMAGE_MIME_TYPES, MAX_PRODUCT_PHOTOS
 
 
 class CreateProductRequest(BaseModel):
@@ -7,7 +9,7 @@ class CreateProductRequest(BaseModel):
     price_minor: int = Field(ge=0)
     stock: int = Field(ge=0)
     category: str = Field(min_length=1, max_length=120)
-    photo_file_ids: list[str] = Field(default_factory=list)
+    photo_file_ids: list[str] = Field(default_factory=list, max_length=MAX_PRODUCT_PHOTOS)
 
 
 class UpdateProductRequest(BaseModel):
@@ -25,4 +27,11 @@ class AttachProductPhotoRequest(BaseModel):
 class CreatePhotoUploadSessionRequest(BaseModel):
     filename: str = Field(min_length=1, max_length=255)
     content_type: str = Field(min_length=1, max_length=120)
-    size_bytes: int = Field(gt=0)
+    size_bytes: int = Field(gt=0, le=10 * 1024 * 1024)
+
+    @field_validator("content_type")
+    @classmethod
+    def validate_content_type(cls, value: str) -> str:
+        if value not in ALLOWED_PRODUCT_IMAGE_MIME_TYPES:
+            raise ValueError("content_type must be image/jpeg, image/png or image/webp")
+        return value

@@ -57,7 +57,7 @@ jamais de JSON applicatif brut.
 
 ## Inventaire exhaustif des routes métier
 
-Les routes ci-dessous sont les 39 chemins métier présents dans l’OpenAPI du
+Les routes ci-dessous sont les chemins métier présents dans l’OpenAPI du
 build audité. Les routes `/openapi.json`, `/docs` et `/redoc` sont des routes
 techniques FastAPI et le portail MkDocs est servi séparément.
 
@@ -65,8 +65,8 @@ techniques FastAPI et le portail MkDocs est servi séparément.
 
 | Méthode | Route | Réponse OpenAPI |
 | --- | --- | --- |
-| GET | `/health` | à typer explicitement |
-| GET | `/ready` | à typer explicitement |
+| GET | `/health` | `HealthResponse` |
+| GET | `/ready` | `ReadinessResponse` |
 | POST | `/v1/shops` | `ShopResponse` |
 | GET | `/v1/shops/mine` | `ShopListResponse` |
 | GET | `/v1/shops/{shop_id}` | `ShopResponse` |
@@ -83,6 +83,8 @@ techniques FastAPI et le portail MkDocs est servi séparément.
 | GET | `/v1/catalog/products/{product_id}` | `ProductResponse` |
 | PATCH | `/v1/catalog/products/{product_id}` | `ProductResponse` |
 | POST | `/v1/catalog/products/{product_id}/publish` | `ProductResponse` |
+| POST | `/v1/catalog/products/{product_id}/pause` | `ProductResponse` |
+| POST | `/v1/catalog/products/{product_id}/retire` | `ProductResponse` |
 | POST | `/v1/catalog/products/{product_id}/photos/upload-session` | `UploadSessionResponse` |
 | POST | `/v1/catalog/products/{product_id}/photos` | `ProductResponse` |
 | GET | `/v1/catalog/products/{product_id}/photos` | `ProductPhotoListResponse` |
@@ -95,14 +97,17 @@ techniques FastAPI et le portail MkDocs est servi séparément.
 | Méthode | Route | Réponse OpenAPI |
 | --- | --- | --- |
 | POST | `/v1/checkouts` | `CheckoutResponse` |
+| POST | `/v1/checkouts/quote` | `CheckoutQuoteResponse` |
+| GET | `/v1/checkouts/{checkout_id}` | `CheckoutResponse` |
+| POST | `/v1/checkouts/{checkout_id}/retry` | `CheckoutResponse` |
 | GET | `/v1/orders` | `OrderListResponse` |
 | GET | `/v1/orders/seller/to-confirm` | `OrderListResponse` |
 | GET | `/v1/orders/{order_id}` | `OrderResponse` |
 | POST | `/v1/orders/{order_id}/transitions` | `OrderResponse` |
 | POST | `/v1/orders/{order_id}/confirm` | `OrderResponse` |
 | POST | `/v1/orders/{order_id}/ready` | `OrderResponse` |
-| POST | `/v1/deliveries/orders/{order_id}` | **à typer** |
-| GET | `/v1/deliveries/orders/{order_id}` | **à typer** |
+| POST | `/v1/deliveries/orders/{order_id}` | `DeliveryResponse` |
+| GET | `/v1/deliveries/orders/{order_id}` | `DeliveryResponse` |
 
 Le frontend vendeur appelle `POST /v1/orders/{order_id}/ready`. DiddiShop
 déclenche ensuite DiddiSend. Le frontend ne doit pas appeler directement la
@@ -112,26 +117,26 @@ route de création livraison.
 
 | Méthode | Route | Réponse OpenAPI |
 | --- | --- | --- |
-| POST | `/v1/claims/orders/{order_id}/cancel` | **à typer** |
-| POST | `/v1/claims/orders/{order_id}` | **à typer** |
-| POST | `/v1/claims/{claim_id}/decision` | **à typer** |
-| GET | `/v1/campaigns/active` | **à typer** |
+| POST | `/v1/claims/orders/{order_id}/cancel` | `OrderResponse` |
+| POST | `/v1/claims/orders/{order_id}` | `ClaimResponse` |
+| POST | `/v1/claims/{claim_id}/decision` | `ClaimResponse` |
+| GET | `/v1/campaigns/active` | `CampaignListResponse` |
 
 ### Backoffice et modules internes
 
 | Méthode | Route | Réponse OpenAPI |
 | --- | --- | --- |
-| GET | `/v1/admin/shop/capabilities` | **à typer** |
-| GET | `/v1/admin/shop/orders/{order_id}` | **à typer** |
-| POST | `/v1/admin/shop/claims/{claim_id}/decision` | **à typer** |
-| GET | `/internal/v1/comms/health` | **à typer** |
-| GET | `/internal/v1/observability/health` | **à typer** |
-| GET | `/internal/v1/rewards/health` | **à typer** |
-| GET | `/internal/v1/support/orders/{order_id}/context` | **à typer** |
-| GET | `/internal/v1/support/orders/{order_id}/context/live` | **à typer** |
-| POST | `/internal/v1/support/orders/{order_id}/cases` | **à typer** |
-| POST | `/internal/v1/webhooks/diddipay` | **à typer** |
-| POST | `/internal/v1/webhooks/diddisend` | **à typer** |
+| GET | `/v1/admin/shop/capabilities` | `AdminCapabilitiesResponse` |
+| GET | `/v1/admin/shop/orders/{order_id}` | `AdminOrderResponse` |
+| POST | `/v1/admin/shop/claims/{claim_id}/decision` | `ClaimResponse` |
+| GET | `/internal/v1/comms/health` | `CommsHealthResponse` |
+| GET | `/internal/v1/observability/health` | `ObservabilityHealthResponse` |
+| GET | `/internal/v1/rewards/health` | `RewardsHealthResponse` |
+| GET | `/internal/v1/support/orders/{order_id}/context` | `SupportContextResponse` |
+| GET | `/internal/v1/support/orders/{order_id}/context/live` | `SupportContextResponse` |
+| POST | `/internal/v1/support/orders/{order_id}/cases` | `SupportCaseResponse` |
+| POST | `/internal/v1/webhooks/diddipay` | `WebhookResponse` |
+| POST | `/internal/v1/webhooks/diddisend` | `WebhookResponse` |
 
 ## Valeurs et états
 
@@ -143,7 +148,8 @@ route de création livraison.
 - catégories recommandées : `fashion`, `beauty`, `home`, `electronics`,
   `food`, `books`, `sports`, `services`, `other` ;
 - `stock=0` n’est pas un état supplémentaire ;
-- les formats photo et le nombre maximal de photos restent à formaliser.
+- maximum de photos : `8` ; formats acceptés : `image/jpeg`, `image/png`,
+  `image/webp` ; taille d’upload maximale : `10 MiB` ;
 
 ### Checkout et commande
 
@@ -161,20 +167,17 @@ La projection locale utilise : `requested`, `assigned`, `picked_up`,
 `in_transit`, `delivered`, `failed`, `returned`. DiddiSend reste propriétaire
 du coursier, du code de remise, de la position et du suivi opérationnel.
 
-## Ce qui reste à compléter
+## Contrats encore dépendants d’un service externe
 
-La couverture des chemins ne signifie pas que tous les contrats sont terminés.
-Les éléments suivants doivent encore recevoir des modèles de réponse explicites
-et être ajoutés à l’OpenAPI :
+Les contrats HTTP DiddiShop ci-dessus sont typés et vérifiés localement. Restent
+à valider sur staging, sans les inventer côté frontend :
 
-1. projection livraison et détails de suivi ;
-2. réponse d’annulation et erreurs d’éligibilité ;
-3. lignes de commande, échéance vendeur et `created_at` ;
-4. devis checkout et ventilation des montants ;
-5. statut et relance du paiement ;
-6. réponses admin, support, Rewards, Comms et webhooks ;
-7. règles de validation des adresses, téléphone et photos.
+1. les champs additionnels réellement envoyés par DiddiSend dans `courier`,
+   `position`, `dropoff_code` et `tracking` ;
+2. les URLs et champs optionnels effectivement fournis par DiddiPay pour le
+   parcours mobile money ;
+3. les credentials S2S et les scopes dédiés par cible ;
+4. la disponibilité réelle de PostgreSQL, Redis et des endpoints OTLP.
 
-Cette liste est volontairement visible : MkDocs ne doit pas présenter une route
-comme contractuellement complète tant que son schéma de réponse réel n’est pas
-figé.
+Ces points sont des vérifications d’intégration/environnement, pas des trous de
+schéma dans l’API DiddiShop.

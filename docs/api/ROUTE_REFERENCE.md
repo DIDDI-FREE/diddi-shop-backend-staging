@@ -171,8 +171,25 @@ valeurs existantes.
 - Précondition : produit existant et boutique active.
 - État produit : devient `published`.
 - Réponse : `ProductResponse`.
-- **À compléter :** aucune transition API `published -> paused/retired` n’est
-  actuellement exposée ; aucune photo minimale n’est imposée.
+- Transitions disponibles : `draft -> published`, `paused -> published`,
+  `published -> paused`, et `draft|published|paused -> retired`.
+- Une photo n’est pas obligatoire pour publier en V1.
+
+### `POST /v1/catalog/products/{product_id}/pause`
+
+- Auth : `JWT vendeur` propriétaire.
+- Précondition : produit `published`.
+- Effet : passe le produit à `paused`, donc il disparaît du catalogue public
+  et ne peut plus être ajouté au panier.
+- Réponse : `ProductResponse`.
+
+### `POST /v1/catalog/products/{product_id}/retire`
+
+- Auth : `JWT vendeur` propriétaire.
+- Précondition : produit existant ; le rejeu sur un produit déjà `retired` est
+  idempotent.
+- Effet : passe le produit à `retired`, état terminal côté catalogue.
+- Réponse : `ProductResponse`.
 
 ### `POST /v1/catalog/products/{product_id}/photos/upload-session`
 
@@ -181,9 +198,8 @@ valeurs existantes.
 - Réponse : `UploadSessionResponse` avec `file_id`, `status` et
   `upload.method/url/expires_in_seconds/headers`.
 - Le frontend fait ensuite `PUT upload.url` avec les headers retournés.
-- **À compléter :** taille maximale et formats MIME autorisés ne sont pas
-  bloqués par DiddiShop ; ils dépendent de DiddiFiles jusqu’à validation du
-  contrat.
+- Contraintes DiddiShop : maximum `10 MiB` (`10_485_760` octets) et formats
+  `image/jpeg`, `image/png`, `image/webp`.
 
 ### `POST /v1/catalog/products/{product_id}/photos`
 
@@ -192,7 +208,8 @@ valeurs existantes.
 - DiddiShop confirme le fichier auprès de DiddiFiles, vérifie le `purpose`
   `diddishop_product_image`, puis attache le fichier.
 - Réponse : `ProductResponse`.
-- **À compléter :** nombre maximal de photos non imposé localement.
+- Maximum local : `8` photos par produit. La confirmation DiddiFiles et le
+  `purpose=diddishop_product_image` restent obligatoires.
 
 ### `GET /v1/catalog/products/{product_id}/photos`
 
@@ -212,10 +229,10 @@ valeurs existantes.
 
 - Auth : `JWT` ; `anonymous` en développement uniquement.
 - Réponse : `CartResponse` contenant `id`, `customer_id`, `currency`, `lines`,
-  `line_count`.
-- Une ligne contient actuellement `product_id`, `shop_id`, `quantity`.
-- **À compléter :** titre, prix unitaire, total de ligne, sous-total boutique
-  et total checkout ne sont pas encore dans cette réponse.
+  `line_count`, `subtotal_minor` et `shop_subtotals`.
+- Une ligne contient `product_id`, `shop_id`, `quantity`, `title`,
+  `unit_price_minor` et `line_total_minor`. Le frontend ne recalcule pas les
+  montants : il affiche les valeurs du backend.
 
 ### `POST /v1/cart/lines`
 
@@ -242,12 +259,12 @@ valeurs existantes.
 | Champ | Type | Contraintes actuelles |
 | --- | --- | --- |
 | `idempotency_key` | string | obligatoire ; stabilité requise pour un rejeu |
-| `recipient_name` | string? | facultatif actuellement |
-| `recipient_phone` | string? | facultatif ; format non validé |
-| `recipient_email` | string? | facultatif ; format non validé |
-| `dropoff_address` | string? | facultatif actuellement |
-| `dropoff_latitude` | number? | facultatif actuellement |
-| `dropoff_longitude` | number? | facultatif actuellement |
+| `recipient_name` | string | obligatoire, 1–160 caractères |
+| `recipient_phone` | string | obligatoire, format E.164 `+<pays><numéro>` |
+| `recipient_email` | string? | facultatif |
+| `dropoff_address` | string | obligatoire, 1–500 caractères |
+| `dropoff_latitude` | number | obligatoire, -90 à 90 |
+| `dropoff_longitude` | number | obligatoire, -180 à 180 |
 | `rewards_campaign_id` | UUID? | facultatif |
 
 - Le panier doit être non vide ; les produits doivent être publiés et le stock
@@ -255,13 +272,43 @@ valeurs existantes.
 - Le checkout regroupe les lignes par boutique, calcule le devis DiddiSend,
   réserve éventuellement Rewards, décrémente le stock et crée un PaymentIntent.
 - Réponse : `CheckoutResponse` avec `id`, `customer_id`, `total_minor`,
-  `currency`, `status`, `order_ids`, `payment`.
+  `subtotal_minor`, `delivery_fee_minor`, `discount_minor`,
+  `shop_breakdowns`, `payment_attempt`, `currency`, `status`, `order_ids`,
+  `created_at` et `payment`.
 - `payment` contient `payment_intent_id`, `amount_minor`, `currency`, `status`
   et relaie éventuellement `payment_url`, `checkout_url` ou `client_secret`.
-- **À compléter :** route de devis avant paiement, ventilation par boutique,
-  frais livraison détaillés, route de lecture checkout et route de retry.
-- **À corriger avant staging authentifié :** une commande physique devrait
-  exiger adresse de livraison et téléphone valides ; ce n’est pas encore le cas.
+- `POST /v1/checkouts/quote` calcule le sous-total, les frais DiddiSend par
+  boutique et le total sans créer de paiement.
+- `GET /v1/checkouts/{checkout_id}` lit l’état du checkout et de son paiement.
+- `POST /v1/checkouts/{checkout_id}/retry` relance uniquement un checkout en
+  `payment_failed`, avec une nouvelle `Idempotency-Key`.
+
+### `POST /v1/checkouts/quote`
+
+- Auth : `JWT` acheteur.
+- Corps : adresse, latitude/longitude, nom et téléphone du destinataire ; les
+  mêmes contraintes que la création checkout s’appliquent, sans clé
+  d’idempotence.
+- Effet : lecture du panier et devis DiddiSend par boutique ; aucun stock,
+  ordre ou paiement n’est créé.
+- Réponse : `CheckoutQuoteResponse` avec `currency`, sous-total, frais,
+  remise, total et `shop_breakdowns`.
+
+### `GET /v1/checkouts/{checkout_id}`
+
+- Auth : `JWT` du client propriétaire ou opérateur.
+- Réponse : `CheckoutResponse` avec le statut checkout et le paiement
+  normalisé DiddiPay.
+
+### `POST /v1/checkouts/{checkout_id}/retry`
+
+- Auth : `JWT` du client propriétaire ou opérateur.
+- Header obligatoire : `Idempotency-Key` ; il doit identifier cette tentative
+  de paiement et ne doit pas être la clé de création initiale.
+- Précondition : checkout en `payment_failed`.
+- Effet : crée une nouvelle tentative DiddiPay pour le même montant XOF et
+  passe le checkout à `payment_pending`.
+- Réponse : `CheckoutResponse`.
 
 ### `GET /v1/orders`
 
@@ -270,10 +317,9 @@ valeurs existantes.
 
 ### `GET /v1/orders/{order_id}`
 
-- Auth : lecture non protégée par dépendance d’acteur dans le code actuel.
+- Auth : `JWT` ; accès limité à l’acheteur, au vendeur de la boutique ou à un
+  opérateur `admin/support/service`.
 - Réponse : `OrderResponse`.
-- **À corriger :** vérifier que l’acheteur, le vendeur concerné ou un opérateur
-  autorisé possède la commande avant exposition staging.
 
 ### `GET /v1/orders/seller/to-confirm`
 
@@ -282,14 +328,14 @@ valeurs existantes.
 
 ### `POST /v1/orders/{order_id}/confirm`
 
-- Auth : dépendance vendeur à ajouter avant staging ; non vérifiée actuellement.
+- Auth : `JWT vendeur` propriétaire de la boutique.
 - Précondition métier : commande `TO_CONFIRM`.
 - Transition : `TO_CONFIRM -> TO_PREPARE`.
 - Réponse : `OrderResponse`.
 
 ### `POST /v1/orders/{order_id}/ready`
 
-- Auth : dépendance vendeur à ajouter avant staging ; non vérifiée actuellement.
+- Auth : `JWT vendeur` propriétaire de la boutique.
 - Précondition : commande `TO_PREPARE` ou commande déjà `READY_FOR_PICKUP` pour
   un rejeu.
 - Transition : `TO_PREPARE -> READY_FOR_PICKUP`.
@@ -299,7 +345,7 @@ valeurs existantes.
 
 ### `POST /v1/orders/{order_id}/transitions`
 
-- Auth : dépendance d’acteur à ajouter avant staging ; non vérifiée actuellement.
+- Auth : `JWT` acheteur, vendeur ou opérateur selon la transition.
 - Query obligatoire : `target`, valeur de `FulfillmentStatus`.
 - Valeurs : `PAYMENT_PENDING`, `TO_CONFIRM`, `TO_PREPARE`, `READY_FOR_PICKUP`,
   `PICKED_UP`, `IN_TRANSIT`, `DELIVERED`, `RETURNED`, `CANCELLED`, `FAILED`,
@@ -311,23 +357,25 @@ valeurs existantes.
 
 `id`, `shop_id`, `checkout_id`, `total_minor`, `currency`,
 `fulfillment_status`, `payment_status`, `delivery_id`, `version`,
-`payment_intent_id`, `items`.
+`payment_intent_id`, `items`, `subtotal_minor`, `delivery_fee_minor`,
+`discount_minor`, `created_at`, `seller_confirmation_deadline`,
+`recipient_name` et `dropoff_address`.
 
-- `items` contient actuellement au minimum `product_id`, `title`,
-  `unit_price_minor`, `quantity` dans le snapshot interne.
-- **À compléter :** `line_total`, sous-total, `created_at`, échéance vendeur,
-  adresse/quartier et acheteur sont à formaliser.
+- `items` contient `product_id`, `title`, `unit_price_minor`, `quantity` et
+  `line_total_minor`. Le délai vendeur est fixé à 24 heures par défaut et est
+  exposé dans `seller_confirmation_deadline`.
 
 ## Livraison DiddiSend
 
 ### `POST /v1/deliveries/orders/{order_id}`
 
-- Auth : route de reprise interne à protéger par opérateur/S2S avant staging.
+- Auth : `JWT` opérateur (`admin/support/service`) ; le frontend vendeur ne
+  l’appelle pas.
 - Précondition : commande `READY_FOR_PICKUP`.
 - Idempotence : projection existante renvoyée ; clé externe
   `shop:create-delivery:{order_id}:1`.
-- Réponse actuelle : projection `id`, `order_id`, `status`, `proof_ref`,
-  `tracking`.
+- Réponse : `DeliveryResponse` avec `id`, `order_id`, `status`, `proof_ref`,
+  `tracking`, `courier`, `dropoff_code` et `position`.
 - Le frontend vendeur ne doit pas appeler cette route ; il appelle `/ready`.
 
 ### `GET /v1/deliveries/orders/{order_id}`
@@ -337,22 +385,22 @@ valeurs existantes.
 - Réponse actuelle : projection ou
   `{ "order_id": string, "status": "not_requested" }`.
 - Projection : `id`, `order_id`, `status`, `proof_ref`, `tracking`.
-- **À compléter :** coursier, code de remise, position et contrat détaillé de
-  `tracking` restent la propriété DiddiSend et doivent être projetés si le
-  frontend les nécessite.
+- DiddiSend reste la source de vérité de ces champs ; DiddiShop ne fait que les
+  projeter dans son contrat de lecture.
 
 ## Annulation et réclamations
 
 ### `POST /v1/claims/orders/{order_id}/cancel`
 
-- Auth : dépendance acheteur à ajouter avant staging ; non vérifiée actuellement.
+- Auth : `JWT` acheteur, vendeur ou opérateur autorisé.
 - Corps : `{ "reason": string }`, défaut `buyer_requested`, 1 à 500 caractères.
 - Interdit après `PICKED_UP`, `IN_TRANSIT` ou `DELIVERED`.
 - Effets : annulation, restauration du stock, annulation DiddiSend si possible,
   refund DiddiPay idempotent.
-- Réponse actuelle : objet `Order` interne sérialisé.
-- **À compléter :** `CancelOrderResponse` et codes détaillés
-  `ORDER_NOT_CANCELLABLE`, `DELIVERY_ALREADY_PICKED_UP`, `REFUND_PENDING`.
+- Réponse : `OrderResponse`.
+- Erreurs stables : `DELIVERY_ALREADY_PICKED_UP` après enlèvement, et
+  `ORDER_NOT_CANCELLABLE` après transit/livraison. Une annulation acceptée
+  expose `payment_status=REFUND_PENDING` jusqu’à confirmation DiddiPay.
 
 ### `POST /v1/claims/orders/{order_id}`
 
@@ -413,10 +461,13 @@ valeurs existantes.
 
 ### `POST /internal/v1/support/orders/{order_id}/cases`
 
-- Auth : `JWT` dans le code actuel ; accès réseau/S2S à formaliser.
+- Auth : acteur service S2S en staging/production ; le mode développement
+  accepte l’acteur local de test.
 - Corps : aucun JSON ; le contexte commande fournit la raison.
 - Effet : création d’un cas DiddiSupport avec la clé
   `shop:claim-case:{order_id}:1`.
+- Réponse : `SupportCaseResponse` sous la forme `{ "case": { ... } }` ; le
+  contenu interne du cas reste celui retourné par DiddiSupport.
 
 ### Routes de santé internes
 
@@ -444,7 +495,7 @@ Ces routes sont des sondes internes et ne doivent pas être exposées au fronten
 
 - Auth : signature DiddiSend obligatoire.
 - Corps : même `ExternalEvent`.
-- Réponse : `processed` ou `duplicate`.
+- Réponse : `{ "status": "processed" }` ou `{ "status": "duplicate" }`.
 - Déduplication : inbox `diddishop-diddisend` par `event_id`.
 - Événements : `delivery.created`, `delivery.assigned`,
   `delivery.picked_up`, `delivery.in_transit`, `delivery.delivered`,
@@ -467,11 +518,8 @@ Ces routes sont des sondes internes et ne doivent pas être exposées au fronten
 Les points suivants ne doivent pas être inventés par le frontend :
 
 1. aucun temps réel WebSocket ;
-2. aucun catalogue de formats photo validé côté DiddiShop ;
-3. aucun maximum de photos produit ;
-4. aucune échéance vendeur exposée dans `OrderResponse` ;
-5. aucune route publique de devis ou de reprise paiement ;
-6. aucune garantie que `GET /v1/orders/{order_id}`, `/ready`, `/confirm`,
-   `/transitions` et les routes livraison/annulation soient correctement
-   autorisées en staging tant que leurs dépendances d’acteur ne sont pas
-   ajoutées.
+2. les détails opérationnels de `tracking`, `courier`, `position` et
+   `dropoff_code` restent ceux fournis par DiddiSend ;
+3. les URLs de paiement optionnelles dépendent du résultat DiddiPay ;
+4. les credentials, scopes S2S, PostgreSQL, Redis et OTLP doivent encore être
+   vérifiés sur l’environnement staging.

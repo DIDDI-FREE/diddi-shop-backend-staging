@@ -14,14 +14,19 @@ def cart_service(request: Request) -> CartService:
 
 @router.get("", response_model=CartResponse)
 async def get_cart(actor: Actor = Depends(current_actor), service: CartService = Depends(cart_service)):
-    return cart_response(await service.get(actor.subject))
+    cart, details, shop_subtotals = await service.details(actor.subject)
+    return cart_response(cart, details, shop_subtotals)
 
 
 @router.post("/lines", response_model=CartResponse)
 async def add_line(body: AddCartLineRequest, actor: Actor = Depends(current_actor), service: CartService = Depends(cart_service)):
-    return cart_response(await service.add(actor.subject, body.product_id, body.quantity))
+    await service.add(actor.subject, body.product_id, body.quantity)
+    cart, details, shop_subtotals = await service.details(actor.subject)
+    return cart_response(cart, details, shop_subtotals)
 
 
 @router.delete("/lines/{product_id}", response_model=CartResponse)
 async def remove_line(product_id: str, actor: Actor = Depends(current_actor), service: CartService = Depends(cart_service)):
-    return cart_response(await service.remove(actor.subject, product_id))
+    await service.remove(actor.subject, product_id)
+    cart, details, shop_subtotals = await service.details(actor.subject)
+    return cart_response(cart, details, shop_subtotals)

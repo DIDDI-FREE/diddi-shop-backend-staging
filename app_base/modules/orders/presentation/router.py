@@ -9,6 +9,20 @@ from app_base.modules.orders.domain.entities import FulfillmentStatus
 router = APIRouter(prefix="/v1/orders", tags=["orders"])
 
 
+async def _authorize_order(request: Request, order_id: str, actor: Actor, *, seller_only: bool = False) -> None:
+    if actor.actor_type in {"admin", "support", "service"}:
+        return
+    order = await request.app.state.order_service.get(order_id)
+    shop = await request.app.state.shop_service.get(order.shop_id)
+    buyer_id = order.metadata.get("delivery_request", {}).get("customer_user_id")
+    if seller_only:
+        if actor.subject != shop.owner_id:
+            raise HTTPException(status_code=403, detail="seller access required")
+        return
+    if actor.subject not in {buyer_id, shop.owner_id}:
+        raise HTTPException(status_code=403, detail="order access denied")
+
+
 @router.get("", response_model=OrderListResponse)
 async def list_my_orders(
     request: Request,
@@ -44,23 +58,42 @@ async def list_orders_to_confirm(
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
-async def get_order(order_id: str, service: OrderService = Depends(get_order_service)):
+async def get_order(
+    order_id: str,
+    request: Request,
+    actor: Actor = Depends(current_actor),
+    service: OrderService = Depends(get_order_service),
+):
     try:
+        await _authorize_order(request, order_id, actor)
         return order_response(await service.get(order_id))
     except Exception as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @router.post("/{order_id}/transitions", response_model=OrderResponse)
-async def transition_order(order_id: str, target: FulfillmentStatus, service: OrderService = Depends(get_order_service)):
+async def transition_order(
+    order_id: str,
+    target: FulfillmentStatus,
+    request: Request,
+    actor: Actor = Depends(current_actor),
+    service: OrderService = Depends(get_order_service),
+):
     try:
+        await _authorize_order(request, order_id, actor, seller_only=True)
         return order_response(await service.transition(order_id, target, reason="api_command", actor="api"))
     except Exception as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
 
 
 @router.post("/{order_id}/confirm", response_model=OrderResponse)
-async def confirm_order(order_id: str, service: OrderService = Depends(get_order_service)):
+async def confirm_order(
+    order_id: str,
+    request: Request,
+    actor: Actor = Depends(current_actor),
+    service: OrderService = Depends(get_order_service),
+):
+    await _authorize_order(request, order_id, actor, seller_only=True)
     return order_response(await service.transition(order_id, FulfillmentStatus.TO_PREPARE, reason="seller_confirmed", actor="seller"))
 
 
@@ -68,7 +101,9 @@ async def confirm_order(order_id: str, service: OrderService = Depends(get_order
 async def mark_order_ready(
     order_id: str,
     request: Request,
+    actor: Actor = Depends(current_actor),
     service: OrderService = Depends(get_order_service),
 ):
+    await _authorize_order(request, order_id, actor, seller_only=True)
     await request.app.state.delivery_service.mark_ready_and_request(order_id)
     return order_response(await service.get(order_id))

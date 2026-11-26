@@ -337,3 +337,33 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   seulement les happy paths ; masquer les protections d’acteur manquantes.
 - Source : Utilisateur | Agent, à valider
 - Impact : MkDocs, frontend, backend, sécurité, intégrations et recette staging.
+
+### D-034 — Complétion des contrats transactionnels frontend V1
+- Date : 2026-11-26
+- Phase / sous-lot : S22-A/B/C
+- Décision : implémenter dans l’API les contrats manquants plutôt que les
+  laisser uniquement dans MkDocs : panier enrichi, devis checkout, lecture et
+  reprise de paiement, lignes de commande, projection DiddiSend détaillée,
+  erreurs d’annulation et transitions produit pause/retrait.
+- Pourquoi : le frontend doit pouvoir exécuter le parcours MVP avec des
+  réponses typées et des règles déterministes, sans calculer les montants ni
+  inventer les statuts.
+- Alternatives écartées : documenter les trous sans code ; laisser le
+  frontend calculer les frais ; exposer des réponses internes non typées.
+- Source : Utilisateur | Agent, à valider
+- Impact : panier, checkout, DiddiPay, commandes, DiddiSend, claims, catalogue,
+  OpenAPI, MkDocs et tests.
+
+### D-035 — Idempotence des créations et reprises de paiement
+- Date : 2026-11-26
+- Phase / sous-lot : S22-B
+- Décision : `POST /v1/checkouts` mémorise la réponse par
+  `Idempotency-Key` et empreinte du client + corps ; une clé réutilisée avec un
+  autre corps renvoie un conflit. `/retry` applique la même règle dans un
+  périmètre séparé et n’accepte qu’un checkout `payment_failed`.
+- Pourquoi : empêcher la création de plusieurs commandes ou PaymentIntents
+  lors d’un timeout réseau ou d’un double clic.
+- Alternatives écartées : compter uniquement sur le frontend ; réutiliser une
+  clé de création pour une reprise ; ignorer le corps original.
+- Source : Agent, à valider
+- Impact : checkout, idempotence SQL/Redis, DiddiPay, OpenAPI et frontend.

@@ -1,5 +1,6 @@
 """Stable HTTP representations consumed by the web and mobile clients."""
 
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -56,6 +57,14 @@ class CartLineResponse(BaseModel):
     product_id: str
     shop_id: str
     quantity: int = Field(ge=1)
+    title: str
+    unit_price_minor: int = Field(ge=0)
+    line_total_minor: int = Field(ge=0)
+
+
+class CartShopSubtotalResponse(BaseModel):
+    shop_id: str
+    subtotal_minor: int = Field(ge=0)
 
 
 class CartResponse(BaseModel):
@@ -64,6 +73,8 @@ class CartResponse(BaseModel):
     currency: Literal["XOF"]
     lines: list[CartLineResponse]
     line_count: int = Field(ge=0)
+    subtotal_minor: int = Field(ge=0)
+    shop_subtotals: list[CartShopSubtotalResponse]
 
 
 class OrderResponse(BaseModel):
@@ -99,7 +110,22 @@ class OrderResponse(BaseModel):
     delivery_id: str | None
     version: int = Field(ge=0)
     payment_intent_id: str | None
-    items: list[dict[str, Any]]
+    items: list["OrderLineResponse"]
+    subtotal_minor: int = Field(ge=0)
+    delivery_fee_minor: int = Field(ge=0)
+    discount_minor: int = Field(ge=0)
+    created_at: str
+    seller_confirmation_deadline: str | None
+    recipient_name: str | None
+    dropoff_address: str | None
+
+
+class OrderLineResponse(BaseModel):
+    product_id: str
+    title: str
+    unit_price_minor: int = Field(ge=0)
+    quantity: int = Field(gt=0)
+    line_total_minor: int = Field(ge=0)
 
 
 class OrderListResponse(BaseModel):
@@ -124,6 +150,29 @@ class CheckoutResponse(BaseModel):
     status: Literal["payment_pending", "payment_succeeded", "payment_failed"]
     order_ids: list[str]
     payment: CheckoutPaymentResponse
+    subtotal_minor: int = Field(ge=0)
+    delivery_fee_minor: int = Field(ge=0)
+    discount_minor: int = Field(ge=0)
+    shop_breakdowns: list["CheckoutShopBreakdownResponse"]
+    payment_attempt: int = Field(ge=1)
+    created_at: str
+
+
+class CheckoutShopBreakdownResponse(BaseModel):
+    shop_id: str
+    subtotal_minor: int = Field(ge=0)
+    delivery_fee_minor: int = Field(ge=0)
+    discount_minor: int = Field(ge=0)
+    total_minor: int = Field(ge=0)
+
+
+class CheckoutQuoteResponse(BaseModel):
+    currency: Literal["XOF"]
+    subtotal_minor: int = Field(ge=0)
+    delivery_fee_minor: int = Field(ge=0)
+    discount_minor: int = Field(ge=0)
+    total_minor: int = Field(ge=0)
+    shop_breakdowns: list[CheckoutShopBreakdownResponse]
 
 
 class ProductPhotoResponse(BaseModel):
@@ -146,6 +195,134 @@ class UploadSessionResponse(BaseModel):
     file_id: str
     status: str
     upload: UploadUrlResponse
+
+
+class DeliveryResponse(BaseModel):
+    id: str | None
+    order_id: str
+    status: Literal["not_requested", "requested", "assigned", "picked_up", "in_transit", "delivered", "failed", "returned"]
+    proof_ref: str | None = None
+    tracking: dict[str, Any] | None = None
+    courier: dict[str, Any] | None = None
+    dropoff_code: str | None = None
+    position: dict[str, Any] | None = None
+
+
+class HealthResponse(BaseModel):
+    service: str
+    status: str
+
+
+class ReadinessResponse(BaseModel):
+    service: str
+    status: Literal["ready", "not_ready"]
+    dependencies: dict[str, Literal["ok", "error", "unknown"]]
+
+
+class CampaignListResponse(BaseModel):
+    items: list[dict[str, Any]]
+    source: str
+    mode: str
+
+
+class AdminCapabilitiesResponse(BaseModel):
+    service: str
+    owner: str
+    commands: list[str]
+    note: str
+
+
+class AdminOrderResponse(BaseModel):
+    order: OrderResponse
+    delivery_projection: DeliveryResponse | None
+
+
+class SupportContextResponse(BaseModel):
+    order: dict[str, Any]
+    delivery: DeliveryResponse | None
+    claim: "ClaimResponse | None"
+    owner_service: str
+    source_of_truth: dict[str, str]
+
+
+class SupportCaseResponse(BaseModel):
+    case: dict[str, Any]
+
+
+class WebhookResponse(BaseModel):
+    status: Literal["processed", "duplicate"]
+
+
+class CommsHealthResponse(BaseModel):
+    owner: str
+    consumer: str
+
+
+class RewardsHealthResponse(BaseModel):
+    owner: str
+    consumer: str
+    mode: str
+
+
+class ObservabilityHealthResponse(BaseModel):
+    service: str
+    status: str
+    telemetry: dict[str, Any]
+
+
+class ClaimResponse(BaseModel):
+    id: str
+    order_id: str
+    customer_id: str
+    reason: str
+    opened_at: datetime
+    status: Literal["open", "decided"]
+    decision: Literal["buyer", "seller", "partial", "rejected"] | None = None
+    amount_to_refund: int = Field(ge=0)
+    decided_at: datetime | None = None
+
+
+def claim_response(claim: Any) -> dict[str, Any]:
+    return {
+        "id": claim.id,
+        "order_id": claim.order_id,
+        "customer_id": claim.customer_id,
+        "reason": claim.reason,
+        "opened_at": claim.opened_at,
+        "status": claim.status.value,
+        "decision": claim.decision.value if claim.decision else None,
+        "amount_to_refund": claim.amount_to_refund,
+        "decided_at": claim.decided_at,
+    }
+
+
+def delivery_response(delivery: Any | None, order_id: str) -> dict[str, Any]:
+    if delivery is None:
+        return {"id": None, "order_id": order_id, "status": "not_requested"}
+    return {
+        "id": delivery.id,
+        "order_id": delivery.order_id,
+        "status": delivery.status.value,
+        "proof_ref": delivery.proof_ref,
+        "tracking": delivery.tracking,
+        "courier": delivery.courier,
+        "dropoff_code": delivery.dropoff_code,
+        "position": delivery.position,
+    }
+
+
+def admin_order_response(order: Any, delivery: Any | None) -> dict[str, Any]:
+    return {"order": order_response(order), "delivery_projection": delivery_response(delivery, order.id) if delivery else None}
+
+
+def support_context_response(context: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "order": order_response(context["order"]),
+        "delivery": delivery_response(context["delivery"], context["order"].id) if context.get("delivery") else None,
+        "claim": claim_response(context["claim"]) if context.get("claim") else None,
+        "owner_service": context["owner_service"],
+        "source_of_truth": context["source_of_truth"],
+    }
 
 
 def product_response(product: Product, photo_urls: list[str] | None = None) -> dict[str, Any]:
@@ -176,24 +353,43 @@ def shop_response(shop: Shop) -> dict[str, Any]:
     }
 
 
-def cart_response(cart: Cart) -> dict[str, Any]:
+def cart_response(
+    cart: Cart,
+    line_details: list[dict[str, Any]] | None = None,
+    shop_subtotals: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    lines = line_details or [
+        {
+            "product_id": line.product_id,
+            "shop_id": line.shop_id,
+            "quantity": line.quantity,
+            "title": "",
+            "unit_price_minor": 0,
+            "line_total_minor": 0,
+        }
+        for line in cart.lines
+    ]
     return {
         "id": cart.id,
         "customer_id": cart.customer_id,
         "currency": "XOF",
-        "lines": [
-            {
-                "product_id": line.product_id,
-                "shop_id": line.shop_id,
-                "quantity": line.quantity,
-            }
-            for line in cart.lines
-        ],
+        "lines": lines,
         "line_count": len(cart.lines),
+        "subtotal_minor": sum(line.get("line_total_minor", 0) for line in lines),
+        "shop_subtotals": shop_subtotals or [],
     }
 
 
 def order_response(order: Order) -> dict[str, Any]:
+    raw_lines = order.metadata.get("lines", [])
+    lines = [
+        {
+            **line,
+            "line_total_minor": line.get("line_total_minor", line.get("unit_price_minor", 0) * line.get("quantity", 0)),
+        }
+        for line in raw_lines
+    ]
+    delivery_request = order.metadata.get("delivery_request", {})
     return {
         "id": order.id,
         "shop_id": order.shop_id,
@@ -205,7 +401,14 @@ def order_response(order: Order) -> dict[str, Any]:
         "delivery_id": order.delivery_id,
         "version": order.version,
         "payment_intent_id": order.metadata.get("payment_intent_id"),
-        "items": order.metadata.get("lines", []),
+        "items": lines,
+        "subtotal_minor": order.metadata.get("items_total", sum(line["line_total_minor"] for line in lines)),
+        "delivery_fee_minor": order.metadata.get("delivery_fee", 0),
+        "discount_minor": order.metadata.get("rewards_discount_minor", 0),
+        "created_at": order.created_at,
+        "seller_confirmation_deadline": order.seller_confirmation_deadline,
+        "recipient_name": delivery_request.get("recipient_name"),
+        "dropoff_address": delivery_request.get("dropoff_address"),
     }
 
 
@@ -228,4 +431,10 @@ def checkout_response(checkout: Checkout, payment: dict[str, Any] | None = None)
         "status": checkout.status.value,
         "order_ids": list(checkout.order_ids),
         "payment": payment_response,
+        "subtotal_minor": checkout.subtotal_minor,
+        "delivery_fee_minor": checkout.delivery_fee_minor,
+        "discount_minor": checkout.discount_minor,
+        "shop_breakdowns": checkout.shop_breakdowns,
+        "payment_attempt": checkout.payment_attempt,
+        "created_at": checkout.created_at,
     }

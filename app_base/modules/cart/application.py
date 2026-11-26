@@ -12,6 +12,30 @@ class CartService:
     async def get(self, customer_id: str) -> Cart:
         return await self.repository.get_or_create(customer_id)
 
+    async def details(self, customer_id: str) -> tuple[Cart, list[dict], list[dict]]:
+        cart = await self.get(customer_id)
+        lines: list[dict] = []
+        shop_totals: dict[str, int] = {}
+        for line in cart.lines:
+            product = await self.products.get(line.product_id)
+            if product is None:
+                continue
+            line_total = product.price_minor * line.quantity
+            lines.append({
+                "product_id": line.product_id,
+                "shop_id": line.shop_id,
+                "quantity": line.quantity,
+                "title": product.title,
+                "unit_price_minor": product.price_minor,
+                "line_total_minor": line_total,
+            })
+            shop_totals[line.shop_id] = shop_totals.get(line.shop_id, 0) + line_total
+        shops = [
+            {"shop_id": shop_id, "subtotal_minor": subtotal_minor}
+            for shop_id, subtotal_minor in sorted(shop_totals.items())
+        ]
+        return cart, lines, shops
+
     async def add(self, customer_id: str, product_id: str, quantity: int) -> Cart:
         if quantity <= 0:
             raise ValueError("quantity must be positive")

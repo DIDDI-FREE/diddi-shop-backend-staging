@@ -1,12 +1,13 @@
 import logging
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from app_base.core.errors import ConflictError
 from app_base.core.outbox import OutboxMessage, append_outbox, new_outbox_message
 from app_base.modules.cart.domain import CartRepository
 from app_base.modules.catalog.domain import ProductRepository
-from app_base.modules.checkout.domain import Checkout, CheckoutRepository
+from app_base.modules.checkout.domain import Checkout, CheckoutRepository, CheckoutStatus
 from app_base.modules.orders.domain.entities import Order
 from app_base.modules.orders.domain.interfaces import OrderRepository
 from app_base.modules.rewards.application import RewardsService
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class DeliveryQuotePort:
-    async def quote(self, shop_id: str, cart_lines: list[dict]) -> int:
+    async def quote(self, shop_id: str, cart_lines: list[dict], delivery_context: dict | None = None) -> int:
         raise NotImplementedError
 
 
@@ -36,8 +37,9 @@ class CheckoutApplicationService:
     outbox: list[OutboxMessage]
     shops: ShopRepository | None = None
     rewards: RewardsService | None = None
+    seller_confirmation_hours: int = 24
 
-    async def create(self, customer_id: str, idempotency_key: str, delivery_context: dict | None = None) -> Checkout:
+    async def _load_groups(self, customer_id: str) -> dict[str, list[dict]]:
         cart = await self.carts.get_or_create(customer_id)
         if not cart.lines:
             raise ConflictError("cart is empty")
@@ -50,13 +52,58 @@ class CheckoutApplicationService:
                 raise ConflictError("cart contains insufficient stock")
             grouped.setdefault(product.shop_id, []).append({
                 "product": product,
+                "product_id": product.id,
                 "quantity": line.quantity,
+                "declared_value": product.price_minor * line.quantity,
             })
+        return grouped
+
+    async def _quote_groups(self, grouped: dict[str, list[dict]], delivery_context: dict) -> list[dict]:
+        breakdowns = []
+        for shop_id, lines in grouped.items():
+            items_total = sum(item["product"].price_minor * item["quantity"] for item in lines)
+            shop = await self.shops.get(shop_id) if self.shops is not None else None
+            quote_context = dict(delivery_context)
+            if shop is not None:
+                quote_context.setdefault("pickup_location", {
+                    "lat": shop.pickup_latitude,
+                    "lng": shop.pickup_longitude,
+                    "address": shop.pickup_address,
+                })
+            delivery_fee = await self.delivery_quotes.quote(shop_id, lines, quote_context)
+            breakdowns.append({
+                "shop_id": shop_id,
+                "subtotal_minor": items_total,
+                "delivery_fee_minor": delivery_fee,
+                "discount_minor": 0,
+                "total_minor": items_total + delivery_fee,
+            })
+        return breakdowns
+
+    async def quote(self, customer_id: str, delivery_context: dict) -> dict:
+        grouped = await self._load_groups(customer_id)
+        breakdowns = await self._quote_groups(grouped, delivery_context)
+        return {
+            "currency": "XOF",
+            "subtotal_minor": sum(item["subtotal_minor"] for item in breakdowns),
+            "delivery_fee_minor": sum(item["delivery_fee_minor"] for item in breakdowns),
+            "discount_minor": 0,
+            "total_minor": sum(item["total_minor"] for item in breakdowns),
+            "shop_breakdowns": breakdowns,
+        }
+
+    async def create(self, customer_id: str, idempotency_key: str, delivery_context: dict | None = None) -> Checkout:
+        grouped = await self._load_groups(customer_id)
+        delivery_context = delivery_context or {}
 
         checkout_id = str(uuid4())
         created_orders: list[Order] = []
         reward_reservations = []
         total = 0
+        subtotal = 0
+        delivery_total = 0
+        discount_total = 0
+        breakdowns: list[dict] = []
         try:
             for shop_id, lines in grouped.items():
                 items_total = sum(item["product"].price_minor * item["quantity"] for item in lines)
@@ -84,6 +131,17 @@ class CheckoutApplicationService:
                         reward_reservations.append(reward_reservation)
                 reward_discount = reward_reservation.discount_minor if reward_reservation else 0
                 final_total = initial_total - reward_discount
+                subtotal += items_total
+                delivery_total += delivery_fee
+                discount_total += reward_discount
+                breakdowns.append({
+                    "shop_id": shop_id,
+                    "subtotal_minor": items_total,
+                    "delivery_fee_minor": delivery_fee,
+                    "discount_minor": reward_discount,
+                    "total_minor": final_total,
+                })
+                created_at = datetime.now(UTC)
                 for item in lines:
                     await self.products.apply_stock(
                         item["product"].id,
@@ -107,6 +165,7 @@ class CheckoutApplicationService:
                                 "title": item["product"].title,
                                 "unit_price_minor": item["product"].price_minor,
                                 "quantity": item["quantity"],
+                                "line_total_minor": item["product"].price_minor * item["quantity"],
                             }
                             for item in lines
                         ],
@@ -128,6 +187,8 @@ class CheckoutApplicationService:
                             "quoted_price": delivery_fee,
                         },
                     },
+                    created_at=created_at.isoformat(),
+                    seller_confirmation_deadline=(created_at + timedelta(hours=self.seller_confirmation_hours)).isoformat(),
                 )
                 await self.orders.create(order)
                 created_orders.append(order)
@@ -160,6 +221,11 @@ class CheckoutApplicationService:
             [o.id for o in created_orders],
             payment.get("payment_intent_id"),
             payment=payment,
+            subtotal_minor=subtotal,
+            delivery_fee_minor=delivery_total,
+            discount_minor=discount_total,
+            shop_breakdowns=breakdowns,
+            payment_idempotency_key=idempotency_key,
         )
         await self.checkouts.save(checkout)
         for order in created_orders:
@@ -169,4 +235,38 @@ class CheckoutApplicationService:
                 "order.created", "order", order.id,
                 {"order_id": order.id, "checkout_id": checkout.id, "shop_id": order.shop_id, "total_minor": order.total_minor, "currency": order.currency},
             ))
+        return checkout
+
+    async def get(self, checkout_id: str) -> Checkout:
+        checkout = await self.checkouts.get(checkout_id)
+        if checkout is None:
+            raise ConflictError("checkout not found")
+        return checkout
+
+    async def apply_payment_event(self, checkout_id: str, event_type: str, payload: dict) -> Checkout:
+        checkout = await self.get(checkout_id)
+        if event_type == "payment.succeeded":
+            checkout.status = CheckoutStatus.PAYMENT_SUCCEEDED
+        elif event_type == "payment.failed":
+            checkout.status = CheckoutStatus.PAYMENT_FAILED
+        else:
+            return checkout
+        checkout.payment = {**(checkout.payment or {}), **payload, "status": checkout.status.value}
+        checkout.payment_intent_id = payload.get("payment_intent_id", checkout.payment_intent_id)
+        await self.checkouts.save(checkout)
+        return checkout
+
+    async def retry_payment(self, checkout_id: str, idempotency_key: str) -> Checkout:
+        checkout = await self.get(checkout_id)
+        if checkout.status != CheckoutStatus.PAYMENT_FAILED:
+            raise ConflictError("only a failed checkout can retry payment")
+        if checkout.payment_idempotency_key == idempotency_key:
+            raise ConflictError("payment retry requires a new Idempotency-Key")
+        checkout.payment_attempt += 1
+        payment = await self.payments.create(checkout.id, checkout.total_minor, idempotency_key)
+        checkout.status = CheckoutStatus.PAYMENT_PENDING
+        checkout.payment_idempotency_key = idempotency_key
+        checkout.payment_intent_id = payment.get("payment_intent_id", checkout.payment_intent_id)
+        checkout.payment = payment
+        await self.checkouts.save(checkout)
         return checkout

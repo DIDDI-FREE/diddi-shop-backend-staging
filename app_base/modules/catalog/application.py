@@ -1,7 +1,13 @@
 from uuid import uuid4
 
 from app_base.core.errors import ConflictError, NotFoundError
-from app_base.modules.catalog.domain import Product, ProductRepository, ProductStatus
+from app_base.modules.catalog.domain import (
+    ALLOWED_PRODUCT_IMAGE_MIME_TYPES,
+    MAX_PRODUCT_PHOTOS,
+    Product,
+    ProductRepository,
+    ProductStatus,
+)
 from app_base.modules.shops.domain import ShopRepository, ShopStatus
 
 
@@ -19,11 +25,15 @@ class CatalogService:
             raise ConflictError("suspended shop cannot publish products")
         if price_minor < 0 or stock < 0:
             raise ValueError("price and stock must be non-negative")
+        if len(photo_file_ids) > MAX_PRODUCT_PHOTOS:
+            raise ConflictError(f"a product cannot have more than {MAX_PRODUCT_PHOTOS} photos")
         if self.files is not None:
             for file_id in photo_file_ids:
                 metadata = await self.files.metadata(file_id)
                 if metadata.get("purpose") != "diddishop_product_image":
                     raise ConflictError("file purpose is not a DiddiShop product image")
+                if metadata.get("mime_type") and metadata["mime_type"] not in ALLOWED_PRODUCT_IMAGE_MIME_TYPES:
+                    raise ConflictError("unsupported product image format")
                 if metadata.get("status") not in {None, "confirmed", "ready", "available"}:
                     raise ConflictError("product image is not confirmed")
         product = Product(str(uuid4()), shop_id, title, description, price_minor, "XOF", stock, category, photo_file_ids)
@@ -35,7 +45,31 @@ class CatalogService:
         shop = await self.shops.get(product.shop_id)
         if shop is None or shop.owner_id != owner_id:
             raise ConflictError("product ownership invalid")
+        if product.status not in {ProductStatus.DRAFT, ProductStatus.PAUSED}:
+            raise ConflictError("only draft or paused products can be published")
         product.status = ProductStatus.PUBLISHED
+        await self.repository.save(product)
+        return product
+
+    async def pause(self, owner_id: str, product_id: str) -> Product:
+        product = await self.get(product_id)
+        shop = await self.shops.get(product.shop_id)
+        if shop is None or shop.owner_id != owner_id:
+            raise ConflictError("product ownership invalid")
+        if product.status != ProductStatus.PUBLISHED:
+            raise ConflictError("only published products can be paused")
+        product.status = ProductStatus.PAUSED
+        await self.repository.save(product)
+        return product
+
+    async def retire(self, owner_id: str, product_id: str) -> Product:
+        product = await self.get(product_id)
+        shop = await self.shops.get(product.shop_id)
+        if shop is None or shop.owner_id != owner_id:
+            raise ConflictError("product ownership invalid")
+        if product.status == ProductStatus.RETIRED:
+            return product
+        product.status = ProductStatus.RETIRED
         await self.repository.save(product)
         return product
 
@@ -109,10 +143,14 @@ class CatalogService:
             raise ConflictError("product ownership invalid")
         if self.files is None:
             raise ConflictError("DiddiFiles is not configured")
+        if len(product.photo_file_ids) >= MAX_PRODUCT_PHOTOS and file_id not in product.photo_file_ids:
+            raise ConflictError(f"a product cannot have more than {MAX_PRODUCT_PHOTOS} photos")
         await self.files.confirm_upload(file_id)
         metadata = await self.files.metadata(file_id)
         if metadata.get("purpose") != "diddishop_product_image":
             raise ConflictError("file purpose is not a DiddiShop product image")
+        if metadata.get("mime_type") and metadata["mime_type"] not in ALLOWED_PRODUCT_IMAGE_MIME_TYPES:
+            raise ConflictError("unsupported product image format")
         if metadata.get("status") not in {None, "confirmed", "ready", "available"}:
             raise ConflictError("product image is not confirmed")
         if file_id not in product.photo_file_ids:

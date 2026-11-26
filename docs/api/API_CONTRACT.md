@@ -72,6 +72,8 @@ Les routes suivantes sont la surface métier actuellement montée par
 | GET | `/v1/catalog/shops/{shop_id}/products` | Produits publiés d’une boutique |
 | GET | `/v1/catalog/my-products` | Produits du vendeur connecté |
 | POST | `/v1/catalog/products/{product_id}/publish` | Publier un produit |
+| POST | `/v1/catalog/products/{product_id}/pause` | Mettre en pause un produit |
+| POST | `/v1/catalog/products/{product_id}/retire` | Retirer définitivement un produit |
 | PATCH | `/v1/catalog/products/{product_id}` | Modifier prix, stock ou contenu vendeur |
 | POST | `/v1/catalog/products/{product_id}/photos/upload-session` | Créer une session d’upload DiddiFiles |
 | POST | `/v1/catalog/products/{product_id}/photos` | Attacher une photo DiddiFiles confirmée |
@@ -81,6 +83,9 @@ Les routes suivantes sont la surface métier actuellement montée par
 | POST | `/v1/cart/lines` | Ajouter ou modifier une ligne |
 | DELETE | `/v1/cart/lines/{product_id}` | Retirer complètement une ligne |
 | POST | `/v1/checkouts` | Créer un checkout idempotent |
+| POST | `/v1/checkouts/quote` | Calculer le devis avant paiement |
+| GET | `/v1/checkouts/{checkout_id}` | Lire l’état d’un checkout |
+| POST | `/v1/checkouts/{checkout_id}/retry` | Reprendre un paiement échoué |
 | GET | `/v1/orders` | Lister les commandes de l’acheteur connecté |
 | GET | `/v1/orders/seller/to-confirm` | Lister les commandes vendeur à confirmer |
 | GET | `/v1/orders/{order_id}` | Lire une commande |
@@ -196,14 +201,18 @@ codes pour les nouvelles créations.
 
 ### Panier et commande
 
-Un panier contient `id`, `customer_id`, `currency`, `lines` et `line_count`.
-Chaque ligne contient `product_id`, `shop_id` et `quantity`. Une suppression
-se fait par `DELETE /v1/cart/lines/{product_id}` ; la quantité d’une ligne
-conservée reste toujours supérieure ou égale à 1.
+Un panier contient `id`, `customer_id`, `currency`, `lines`, `line_count`,
+`subtotal_minor` et `shop_subtotals`. Chaque ligne contient `product_id`,
+`shop_id`, `quantity`, `title`, `unit_price_minor` et `line_total_minor`. Une
+suppression se fait par `DELETE /v1/cart/lines/{product_id}` ; la quantité
+d’une ligne conservée reste toujours supérieure ou égale à 1.
 
 Une commande contient `id`, `shop_id`, `checkout_id`, `total_minor`, `currency`,
 `fulfillment_status`, `payment_status`, `delivery_id`, `version`,
-`payment_intent_id` et `items`.
+`payment_intent_id`, `items`, `subtotal_minor`, `delivery_fee_minor`,
+`discount_minor`, `created_at`, `seller_confirmation_deadline`,
+`recipient_name` et `dropoff_address`. Chaque ligne de `items` expose
+`product_id`, `title`, `unit_price_minor`, `quantity` et `line_total_minor`.
 
 ### Photos produit et DiddiFiles
 
@@ -246,9 +255,10 @@ une URL publique ou signée.
 `GET /openapi.json` décrit maintenant les schémas de réponse utilisés par le
 frontend : `ShopResponse`, `ShopListResponse`, `CategoryListResponse`,
 `ProductResponse`, `ProductListResponse`, `ProductPhotoListResponse`,
-`CartResponse`, `OrderResponse`, `OrderListResponse`, `CheckoutResponse` et
-`UploadSessionResponse`. Le frontend peut donc générer ses types à partir de
-l’OpenAPI runtime au lieu de déduire les champs des exemples.
+`CartResponse`, `OrderResponse`, `OrderListResponse`, `CheckoutResponse`,
+`CheckoutQuoteResponse`, `DeliveryResponse`, `ClaimResponse`, les réponses
+admin/support et `UploadSessionResponse`. Le frontend peut donc générer ses
+types à partir de l’OpenAPI runtime au lieu de déduire les champs des exemples.
 
 ### Checkout et paiement
 
@@ -275,10 +285,19 @@ Les champs optionnels fournis par DiddiPay (`payment_url`, `checkout_url` ou
 `client_secret`) sont relayés lorsqu’ils existent. Les données carte, tokens
 et secrets ne sont jamais relayés.
 
+Avant le paiement, `POST /v1/checkouts/quote` renvoie `subtotal_minor`,
+`delivery_fee_minor`, `discount_minor`, `total_minor` et une ventilation
+`shop_breakdowns` par boutique. Après création, `GET /v1/checkouts/{id}` lit le
+statut `payment_pending`, `payment_succeeded` ou `payment_failed`. Une reprise
+se fait avec `POST /v1/checkouts/{id}/retry`, uniquement après
+`payment_failed`, avec une nouvelle clé d’idempotence. `payment_attempt` expose
+le numéro de tentative sans exposer de secret DiddiPay.
+
 ### Erreurs
 
 Les codes V1 sont `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`,
-`INVALID_TRANSITION`, `VALIDATION_ERROR`, `NOT_CONFIGURED` et `HTTP_ERROR`.
+`INVALID_TRANSITION`, `ORDER_NOT_CANCELLABLE`, `DELIVERY_ALREADY_PICKED_UP`,
+`VALIDATION_ERROR`, `NOT_CONFIGURED` et `HTTP_ERROR`.
 Exemple :
 
 ```json

@@ -5,6 +5,7 @@ from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
 from sqlalchemy import text
 from starlette.middleware.cors import CORSMiddleware
 
+from app_base.core.api_contracts import HealthResponse, ReadinessResponse
 from app_base.core.errors import DiddiShopError
 from app_base.core.lifespan import lifespan
 from app_base.core.middleware import CorrelationMiddleware
@@ -92,12 +93,12 @@ app.include_router(support_router)
 app.include_router(webhooks_router)
 
 
-@app.get("/health", tags=["health"])
+@app.get("/health", tags=["health"], response_model=HealthResponse)
 async def health():
     return {"service": "diddishop", "status": "ok"}
 
 
-@app.get("/ready", tags=["health"])
+@app.get("/ready", tags=["health"], response_model=ReadinessResponse)
 async def ready(request: Request):
     dependencies = {"postgres": "unknown", "redis": "unknown"}
     try:

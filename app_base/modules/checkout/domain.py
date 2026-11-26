@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from enum import StrEnum
 
 from app_base.shared_kernel.currency import require_xof
@@ -20,6 +21,13 @@ class Checkout:
     payment_intent_id: str | None = None
     status: CheckoutStatus = CheckoutStatus.PAYMENT_PENDING
     payment: dict | None = None
+    subtotal_minor: int = 0
+    delivery_fee_minor: int = 0
+    discount_minor: int = 0
+    shop_breakdowns: list[dict] = field(default_factory=list)
+    payment_attempt: int = 1
+    payment_idempotency_key: str | None = None
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def __post_init__(self) -> None:
         require_xof(self.currency)

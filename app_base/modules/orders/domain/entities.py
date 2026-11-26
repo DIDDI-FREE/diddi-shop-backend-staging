@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
@@ -60,9 +61,17 @@ class Order:
     delivery_id: str | None = None
     version: int = 0
     metadata: dict[str, Any] = field(default_factory=dict)
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    seller_confirmation_deadline: str | None = None
 
     def __post_init__(self) -> None:
         require_xof(self.currency)
+        if self.seller_confirmation_deadline is None:
+            try:
+                created = datetime.fromisoformat(self.created_at)
+                self.seller_confirmation_deadline = (created + timedelta(hours=24)).isoformat()
+            except ValueError:
+                self.seller_confirmation_deadline = None
 
     def transition(self, target: FulfillmentStatus, *, reason: str, actor: str) -> dict[str, Any]:
         if target not in ALLOWED_TRANSITIONS.get(self.fulfillment_status, set()):

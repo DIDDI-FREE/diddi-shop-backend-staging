@@ -24,6 +24,9 @@ PRODUCT_CATEGORIES: tuple[tuple[str, str], ...] = (
     ("other", "Autre"),
 )
 
+MAX_PRODUCT_PHOTOS = 8
+ALLOWED_PRODUCT_IMAGE_MIME_TYPES = frozenset({"image/jpeg", "image/png", "image/webp"})
+
 
 @dataclass
 class Product:

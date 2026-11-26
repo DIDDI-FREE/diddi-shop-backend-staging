@@ -1,7 +1,13 @@
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
-from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, Field
 
+from app_base.core.api_contracts import (
+    AdminCapabilitiesResponse,
+    AdminOrderResponse,
+    ClaimResponse,
+    admin_order_response,
+    claim_response,
+)
 from app_base.core.auth_deps import Actor, current_actor
 from app_base.core.idempotency import IdempotencyRecord, replay_or_none, request_hash
 from app_base.modules.claims.domain import ClaimDecision
@@ -17,7 +23,7 @@ async def admin_actor(request: Request, actor: Actor = Depends(current_actor)) -
     return actor
 
 
-@router.get("/capabilities")
+@router.get("/capabilities", response_model=AdminCapabilitiesResponse)
 async def capabilities(_actor: Actor = Depends(admin_actor)):
     return {
         "service": "diddishop",
@@ -33,12 +39,13 @@ class AdminDecisionRequest(BaseModel):
     reason: str = Field(min_length=1, max_length=1000)
 
 
-@router.get("/orders/{order_id}")
+@router.get("/orders/{order_id}", response_model=AdminOrderResponse)
 async def read_order(order_id: str, request: Request, actor: Actor = Depends(admin_actor)):
-    return await request.app.state.admin_service.read_order(order_id, actor.subject)
+    result = await request.app.state.admin_service.read_order(order_id, actor.subject)
+    return admin_order_response(result["order"], result["delivery_projection"])
 
 
-@router.post("/claims/{claim_id}/decision")
+@router.post("/claims/{claim_id}/decision", response_model=ClaimResponse)
 async def decide_claim(
     claim_id: str,
     body: AdminDecisionRequest,
@@ -54,6 +61,6 @@ async def decide_claim(
     result = await request.app.state.admin_service.decide_claim(
         claim_id, body.decision, body.amount_to_refund, actor.subject, body.reason
     )
-    response_body = jsonable_encoder(result)
+    response_body = claim_response(result)
     await store.save(IdempotencyRecord(idempotency_key, request_hash(body_data), 200, response_body))
     return response_body

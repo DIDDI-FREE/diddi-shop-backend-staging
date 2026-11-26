@@ -88,3 +88,20 @@ async def current_actor(
         raise HTTPException(status_code=401, detail="Bearer token required")
     verifier: JwtVerifier = request.app.state.jwt_verifier
     return await verifier.verify(authorization.removeprefix("Bearer ").strip())
+
+
+async def current_service_actor(
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_actor_id: str | None = Header(default=None),
+) -> Actor:
+    """Authenticate an internal route as a service-to-service caller.
+
+    Development keeps the local actor shortcut for tests. Non-development
+    deployments accept only a DiddiFreeID service principal, never a browser
+    user or an operator JWT.
+    """
+    actor = await current_actor(request, authorization, x_actor_id)
+    if request.app.state.settings.environment != "development" and actor.actor_type != "service":
+        raise HTTPException(status_code=403, detail="service principal required")
+    return actor
