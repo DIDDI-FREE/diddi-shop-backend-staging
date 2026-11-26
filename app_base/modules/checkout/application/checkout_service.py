@@ -152,7 +152,15 @@ class CheckoutApplicationService:
                     )
             raise
 
-        checkout = Checkout(checkout_id, customer_id, total, "XOF", [o.id for o in created_orders], payment.get("payment_intent_id"))
+        checkout = Checkout(
+            checkout_id,
+            customer_id,
+            total,
+            "XOF",
+            [o.id for o in created_orders],
+            payment.get("payment_intent_id"),
+            payment=payment,
+        )
         await self.checkouts.save(checkout)
         for order in created_orders:
             order.metadata["payment_intent_id"] = checkout.payment_intent_id

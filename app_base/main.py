@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
 from sqlalchemy import text
@@ -31,7 +32,37 @@ app.add_middleware(OpenTelemetryMiddleware)
 
 @app.exception_handler(DiddiShopError)
 async def handle_domain_error(_request: Request, exc: DiddiShopError):
-    return JSONResponse(status_code=409, content={"error": type(exc).__name__, "message": str(exc)})
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": exc.code, "message": str(exc)},
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_validation_error(_request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"error": "VALIDATION_ERROR", "message": "request validation failed", "details": exc.errors()},
+    )
+
+
+@app.exception_handler(HTTPException)
+async def handle_http_error(_request: Request, exc: HTTPException):
+    code_by_status = {
+        401: "UNAUTHENTICATED",
+        403: "FORBIDDEN",
+        404: "NOT_FOUND",
+        409: "CONFLICT",
+        429: "RATE_LIMITED",
+    }
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": code_by_status.get(exc.status_code, "HTTP_ERROR"),
+            "message": str(exc.detail),
+        },
+        headers=exc.headers,
+    )
 
 app.include_router(orders_router)
 app.include_router(shops_router)

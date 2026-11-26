@@ -82,12 +82,28 @@ class SqlProductRepository:
             row = await session.get(ProductRecord, product_id)
             return Product(**_load(row.payload)) if row else None
 
-    async def list_published(self, shop_id: str | None = None) -> list[Product]:
+    async def list_published(
+        self,
+        shop_id: str | None = None,
+        category: str | None = None,
+        search: str | None = None,
+    ) -> list[Product]:
         async with self.factory() as session:
             query = select(ProductRecord).where(ProductRecord.status == "published")
             if shop_id is not None:
                 query = query.where(ProductRecord.shop_id == shop_id)
             result = await session.execute(query)
+            products = [Product(**_load(row.payload)) for row in result.scalars()]
+            needle = search.casefold().strip() if search else None
+            return [
+                product for product in products
+                if (category is None or product.category == category)
+                and (needle is None or needle in f"{product.title} {product.description}".casefold())
+            ]
+
+    async def list_for_shop(self, shop_id: str) -> list[Product]:
+        async with self.factory() as session:
+            result = await session.execute(select(ProductRecord).where(ProductRecord.shop_id == shop_id))
             return [Product(**_load(row.payload)) for row in result.scalars()]
 
     async def apply_stock(self, product_id: str, delta: int, operation_id: str) -> Product:
@@ -150,6 +166,11 @@ class SqlCheckoutRepository:
             row = await session.get(CheckoutRecord, checkout_id)
             return Checkout(**_load(row.payload)) if row else None
 
+    async def list_for_customer(self, customer_id: str) -> list[Checkout]:
+        async with self.factory() as session:
+            result = await session.execute(select(CheckoutRecord).where(CheckoutRecord.customer_id == customer_id))
+            return [Checkout(**_load(row.payload)) for row in result.scalars()]
+
 
 class SqlOrderRepository:
     def __init__(self, factory: async_sessionmaker[AsyncSession]):
@@ -185,6 +206,11 @@ class SqlOrderRepository:
             row.payment_status = order.payment_status.value
             row.version = order.version
             row.payload = _dump(order)
+
+    async def list_for_shop(self, shop_id: str) -> list[Order]:
+        async with self.factory() as session:
+            result = await session.execute(select(OrderRecord).where(OrderRecord.shop_id == shop_id))
+            return [Order(**_load(row.payload)) for row in result.scalars()]
 
 
 class SqlClaimRepository:

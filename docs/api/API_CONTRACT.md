@@ -48,13 +48,24 @@ Les routes suivantes sont la surface métier actuellement montée par
 | GET | `/health` | Santé du processus |
 | GET | `/ready` | Santé PostgreSQL/Redis |
 | POST | `/v1/shops` | Créer une boutique |
-| GET | `/v1/shops/{shop_id}` | Lire une boutique |
+| GET | `/v1/shops/mine` | Lister les boutiques du vendeur connecté |
+| GET | `/v1/shops/{shop_id}` | Lire une boutique publique |
 | POST | `/v1/catalog/shops/{shop_id}/products` | Créer un produit |
+| GET | `/v1/catalog/products` | Catalogue publié, recherche et catégorie |
+| GET | `/v1/catalog/shops/{shop_id}/products` | Produits publiés d’une boutique |
+| GET | `/v1/catalog/my-products` | Produits du vendeur connecté |
 | POST | `/v1/catalog/products/{product_id}/publish` | Publier un produit |
+| PATCH | `/v1/catalog/products/{product_id}` | Modifier prix, stock ou contenu vendeur |
+| POST | `/v1/catalog/products/{product_id}/photos/upload-session` | Créer une session d’upload DiddiFiles |
+| POST | `/v1/catalog/products/{product_id}/photos` | Attacher une photo DiddiFiles confirmée |
+| GET | `/v1/catalog/products/{product_id}/photos` | Obtenir les URLs des photos produit |
 | GET | `/v1/catalog/products/{product_id}` | Lire un produit |
 | GET | `/v1/cart` | Lire le panier |
 | POST | `/v1/cart/lines` | Ajouter ou modifier une ligne |
+| DELETE | `/v1/cart/lines/{product_id}` | Retirer complètement une ligne |
 | POST | `/v1/checkouts` | Créer un checkout idempotent |
+| GET | `/v1/orders` | Lister les commandes de l’acheteur connecté |
+| GET | `/v1/orders/seller/to-confirm` | Lister les commandes vendeur à confirmer |
 | GET | `/v1/orders/{order_id}` | Lire une commande |
 | POST | `/v1/orders/{order_id}/transitions` | Demander une transition contrôlée |
 | POST | `/v1/orders/{order_id}/confirm` | Confirmer la commande côté vendeur |
@@ -92,7 +103,79 @@ prévu par l’environnement cible.
 | Temps | ISO 8601 UTC côté événements et intégrations |
 | Corrélation | `request_id`, `correlation_id`, `traceparent` ; ces valeurs ne remplacent pas `event_id` |
 | Rejeu | Relire l’état connu avant de créer une nouvelle opération après timeout |
-| Erreurs | Piloter les actions par le code/statut, pas par le texte libre |
+| Erreurs | Réponse JSON `{error, message, details?}` ; piloter par `error` et HTTP status |
+
+## Réponses frontend V1
+
+Les listes utilisent toujours une enveloppe `{ "items": [...] }`. Les montants
+sont des entiers XOF et les statuts sont des chaînes stables.
+
+### Produit
+
+```json
+{
+  "id": "product-id",
+  "shop_id": "shop-id",
+  "title": "Article",
+  "description": "Description",
+  "price_minor": 2500,
+  "currency": "XOF",
+  "stock": 4,
+  "category": "books",
+  "status": "published",
+  "photo_file_ids": ["file-id"],
+  "photo_urls": []
+}
+```
+
+### Panier et commande
+
+Un panier contient `id`, `customer_id`, `currency`, `lines` et `line_count`.
+Chaque ligne contient `product_id`, `shop_id` et `quantity`. Une suppression
+se fait par `DELETE /v1/cart/lines/{product_id}` ; la quantité d’une ligne
+conservée reste toujours supérieure ou égale à 1.
+
+Une commande contient `id`, `shop_id`, `checkout_id`, `total_minor`, `currency`,
+`fulfillment_status`, `payment_status`, `delivery_id`, `version`,
+`payment_intent_id` et `items`.
+
+### Checkout et paiement
+
+`POST /v1/checkouts` renvoie le checkout et le résultat normalisé de DiddiPay :
+
+```json
+{
+  "id": "checkout-id",
+  "customer_id": "buyer-id",
+  "total_minor": 3500,
+  "currency": "XOF",
+  "status": "payment_pending",
+  "order_ids": ["order-id"],
+  "payment": {
+    "payment_intent_id": "payment-id",
+    "amount_minor": 3500,
+    "currency": "XOF",
+    "status": "pending"
+  }
+}
+```
+
+Les champs optionnels fournis par DiddiPay (`payment_url`, `checkout_url` ou
+`client_secret`) sont relayés lorsqu’ils existent. Les données carte, tokens
+et secrets ne sont jamais relayés.
+
+### Erreurs
+
+Les codes V1 sont `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`,
+`INVALID_TRANSITION`, `VALIDATION_ERROR`, `NOT_CONFIGURED` et `HTTP_ERROR`.
+Exemple :
+
+```json
+{
+  "error": "NOT_FOUND",
+  "message": "product not found"
+}
+```
 
 ## Machine à états de commande
 

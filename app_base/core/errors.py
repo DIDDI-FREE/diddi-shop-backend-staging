@@ -1,14 +1,28 @@
 class DiddiShopError(Exception):
     """Base error that can be mapped to a stable API error."""
 
+    code = "SHOP_ERROR"
+    status_code = 409
+
 
 class ConflictError(DiddiShopError):
-    pass
+    code = "CONFLICT"
+
+
+class NotFoundError(DiddiShopError):
+    code = "NOT_FOUND"
+    status_code = 404
+
+
+class ValidationError(DiddiShopError):
+    code = "VALIDATION_ERROR"
+    status_code = 422
 
 
 class NotConfiguredError(DiddiShopError):
-    pass
+    code = "NOT_CONFIGURED"
+    status_code = 503
 
 
 class InvalidTransitionError(DiddiShopError):
-    pass
+    code = "INVALID_TRANSITION"

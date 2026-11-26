@@ -14,7 +14,18 @@ vendeur -> create upload session
 client  -> demander URL publique ou signée selon visibilité
 ```
 
-Les routes upload-session, confirmation, metadata, download-url et public-url
-sont couvertes par l’adaptateur et les tests de câblage. La visibilité finale,
-la durée des URLs signées et la lecture du purpose produit restent à confirmer
-avec DiddiFiles en staging.
+Le vendeur utilise les routes DiddiShop suivantes :
+
+1. `POST /v1/catalog/products/{product_id}/photos/upload-session` avec
+   `filename`, `content_type` et `size_bytes` ; DiddiShop appelle DiddiFiles
+   avec `purpose=diddishop_product_image`.
+2. Le client envoie le fichier à l’URL retournée par DiddiFiles.
+3. Après confirmation, `POST /v1/catalog/products/{product_id}/photos` avec
+   `file_id` attache la référence au produit.
+4. Le frontend lit `GET /v1/catalog/products/{product_id}/photos` pour obtenir
+   les URLs publiques ou signées retournées par DiddiFiles.
+
+Les routes DiddiFiles upload-session, confirmation, metadata, download-url et
+public-url restent derrière l’adaptateur S2S. La visibilité finale, la durée
+des URLs signées et la lecture du purpose produit restent à confirmer avec
+DiddiFiles en staging.

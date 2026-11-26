@@ -27,3 +27,12 @@ class CartService:
         cart.lines.append(CartLine(product.id, product.shop_id, quantity))
         await self.repository.save(cart)
         return cart
+
+    async def remove(self, customer_id: str, product_id: str) -> Cart:
+        cart = await self.get(customer_id)
+        original_size = len(cart.lines)
+        cart.lines = [line for line in cart.lines if line.product_id != product_id]
+        if len(cart.lines) == original_size:
+            raise ConflictError("cart line not found")
+        await self.repository.save(cart)
+        return cart

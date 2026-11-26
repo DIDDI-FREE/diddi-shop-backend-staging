@@ -1,4 +1,4 @@
-from app_base.core.errors import DiddiShopError
+from app_base.core.errors import NotFoundError
 from app_base.core.outbox import OutboxMessage, append_outbox, new_outbox_message
 from app_base.modules.orders.domain.entities import FulfillmentStatus, Order, PaymentStatus
 from app_base.modules.orders.domain.interfaces import OrderRepository
@@ -14,8 +14,14 @@ class OrderService:
     async def get(self, order_id: str) -> Order:
         order = await self.repository.get(order_id)
         if order is None:
-            raise DiddiShopError(f"Order {order_id} not found")
+            raise NotFoundError(f"Order {order_id} not found")
         return order
+
+    async def list_for_shop(self, shop_id: str, *, status: FulfillmentStatus | None = None) -> list[Order]:
+        orders = await self.repository.list_for_shop(shop_id)
+        if status is not None:
+            orders = [order for order in orders if order.fulfillment_status == status]
+        return orders
 
     async def transition(self, order_id: str, target: FulfillmentStatus, reason: str, actor: str) -> Order:
         order = await self.get(order_id)

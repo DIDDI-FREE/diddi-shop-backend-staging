@@ -242,3 +242,12 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Alternatives écartées : dépendre uniquement du fichier `docker-compose.portainer.yml` ; laisser Portainer déployer une stack API sans documentation.
 - Source : Utilisateur, à valider
 - Impact : Docker Compose, Portainer, MkDocs, Nginx Proxy Manager, frontend.
+
+### D-027 — Surface frontend V1 et contrats de réponse stables
+- Date : 2026-11-26
+- Phase / sous-lot : S16 — complétion du parcours frontend MVP
+- Décision : exposer les listes catalogue/boutique, les espaces vendeur, la suppression de ligne panier, les listes de commandes, le parcours photo DiddiFiles et un checkout contenant une section `payment` normalisée ; les erreurs exposent un code stable indépendant du texte.
+- Pourquoi : le MVP doit être utilisable par l’application sans connaître des identifiants préalables ni interpréter des messages libres.
+- Alternatives écartées : laisser le frontend composer des lectures unitaires ; renvoyer les dataclasses internes ; transmettre la réponse DiddiPay complète ; piloter les erreurs par le texte.
+- Source : Utilisateur, à valider
+- Impact : catalog, shops, cart, checkout, orders, DiddiFiles, OpenAPI et frontend.

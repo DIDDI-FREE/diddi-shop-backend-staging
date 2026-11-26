@@ -15,3 +15,6 @@ class InMemoryOrderRepository:
 
     async def save(self, order: Order) -> None:
         self._orders[order.id] = order
+
+    async def list_for_shop(self, shop_id: str) -> list[Order]:
+        return [order for order in self._orders.values() if order.shop_id == shop_id]

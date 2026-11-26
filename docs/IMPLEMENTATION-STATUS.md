@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-25
-**Phase courante :** S15 terminé localement
+**Phase courante :** S16 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -104,6 +104,10 @@ leurs ports.
 - Le `docker-compose.yml` principal inclut désormais aussi `docs`, afin qu’un
   déploiement Portainer qui sélectionne le Compose par défaut conserve API et
   documentation dans la même stack.
+- La surface frontend V1 expose maintenant les listes catalogue/boutique,
+  boutiques et produits vendeur, modification prix/stock, suppression de
+  ligne panier, listes de commandes, commandes à confirmer, upload/attachement
+  DiddiFiles, réponse checkout/paiement normalisée et codes d’erreur stables.
 - Le Compose publie par défaut des ports hôte élevés et configurables
   (`48180` pour l’API et `48182` pour la documentation), afin de fonctionner
   même sans accès au réseau Docker de Nginx Proxy Manager. L’overlay

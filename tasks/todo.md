@@ -107,3 +107,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S13 — vérifier les contrats staging, aligner DiddiPay et ajouter le Compose local
 - [x] S14 — construire le portail documentaire MkDocs publiable
 - [x] S15 — reproduire la stack Portainer DiddiGo avec API et MkDocs unifiés
+- [x] S16 — compléter la surface frontend V1 et formaliser les réponses HTTP

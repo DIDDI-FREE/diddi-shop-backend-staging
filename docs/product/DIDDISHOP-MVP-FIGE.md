@@ -22,6 +22,10 @@ boutique et recevoir la livraison opérée par DiddiSend.
 - annulation, retour, réclamation et refund idempotents ;
 - avantages et campagnes DiddiRewards lorsque le checkout reçoit une campagne
   explicite ;
+- surface frontend : listes catalogue/boutique, recherche simple par catégorie
+  ou texte, suppression de ligne panier, liste « mes commandes », espaces
+  vendeur pour boutiques/articles et commandes à confirmer ;
+- parcours upload/attachement des photos DiddiFiles par produit ;
 - contexte support, audit opérateur et observabilité ;
 - routes DiddiBackoffice via l’API DiddiShop, sans accès direct aux tables.
 

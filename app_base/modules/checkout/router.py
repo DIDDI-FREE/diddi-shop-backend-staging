@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 
+from app_base.core.api_contracts import checkout_response
 from app_base.core.auth_deps import Actor, current_actor
 from app_base.modules.checkout.application.checkout_service import CheckoutApplicationService
 from app_base.modules.checkout.presentation import CreateCheckoutRequest
@@ -20,4 +21,5 @@ async def create_checkout(body: CreateCheckoutRequest, actor: Actor = Depends(cu
             "lng": context.pop("dropoff_longitude"),
             "address": context["dropoff_address"],
         }
-    return await service.create(actor.subject, body.idempotency_key, context or None)
+    checkout = await service.create(actor.subject, body.idempotency_key, context or None)
+    return checkout_response(checkout, checkout.payment)

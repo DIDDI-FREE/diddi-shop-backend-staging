@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from app_base.core.errors import ConflictError, DiddiShopError
+from app_base.core.errors import ConflictError, NotFoundError
 from app_base.modules.shops.domain import Shop, ShopRepository, ShopStatus
 
 
@@ -16,10 +16,19 @@ class ShopService:
     async def get_owned(self, shop_id: str, owner_id: str) -> Shop:
         shop = await self.repository.get(shop_id)
         if shop is None:
-            raise DiddiShopError("shop not found")
+            raise NotFoundError("shop not found")
         if shop.owner_id != owner_id:
             raise ConflictError("shop does not belong to actor")
         return shop
+
+    async def get_public(self, shop_id: str) -> Shop:
+        shop = await self.repository.get(shop_id)
+        if shop is None:
+            raise NotFoundError("shop not found")
+        return shop
+
+    async def list_for_owner(self, owner_id: str) -> list[Shop]:
+        return await self.repository.list_for_owner(owner_id)
 
     async def set_status(self, shop_id: str, owner_id: str, status: ShopStatus) -> Shop:
         shop = await self.get_owned(shop_id, owner_id)
