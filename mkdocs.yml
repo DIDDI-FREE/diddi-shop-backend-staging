@@ -68,6 +68,7 @@ nav:
       - État d’implémentation: IMPLEMENTATION-STATUS.md
   - Changelog:
       - 25 novembre 2026: changelog/2026-11-25.md
+      - 26 novembre 2026: changelog/2026-11-26.md
 
 markdown_extensions:
   - admonition

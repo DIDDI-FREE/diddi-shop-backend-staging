@@ -45,6 +45,9 @@ async def test_catalog_rejects_non_product_file_purpose():
     shop = await shop_service.create("owner-1", "Shop", "Address", 3.8, 11.5)
 
     class Files:
+        async def confirm_upload(self, _file_id):
+            return {"status": "confirmed"}
+
         async def metadata(self, _file_id):
             return {"purpose": "generic_private_document", "status": "confirmed"}
 

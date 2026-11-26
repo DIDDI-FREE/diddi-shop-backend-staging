@@ -1,5 +1,16 @@
 # États de référence
 
+## Produit
+
+| État | Signification |
+| --- | --- |
+| `draft` | article créé mais non publié |
+| `published` | article visible dans le catalogue |
+| `paused` | article temporairement masqué |
+| `retired` | article définitivement retiré |
+
+Le stock nul ne constitue pas un état produit distinct.
+
 La commande utilise deux machines séparées. Les valeurs ci-dessous sont les
 valeurs du domaine local et ne doivent pas être remplacées par un statut
 propriétaire DiddiSend ou DiddiPay sans mapping explicite.

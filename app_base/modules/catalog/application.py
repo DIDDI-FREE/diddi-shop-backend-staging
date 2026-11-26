@@ -109,6 +109,7 @@ class CatalogService:
             raise ConflictError("product ownership invalid")
         if self.files is None:
             raise ConflictError("DiddiFiles is not configured")
+        await self.files.confirm_upload(file_id)
         metadata = await self.files.metadata(file_id)
         if metadata.get("purpose") != "diddishop_product_image":
             raise ConflictError("file purpose is not a DiddiShop product image")
@@ -135,11 +136,11 @@ class CatalogService:
             raise ConflictError("DiddiFiles is not configured")
         return await self.files.create_upload_session({
             "filename": filename,
-            "content_type": content_type,
+            "mime_type": content_type,
             "size_bytes": size_bytes,
+            "module_owner": "diddishop",
             "purpose": "diddishop_product_image",
-            "owner_service": "diddishop",
-            "owner_id": product_id,
+            "metadata": {"product_id": product_id},
         })
 
     async def photo_urls(self, product: Product) -> list[str]:

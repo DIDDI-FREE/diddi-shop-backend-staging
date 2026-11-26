@@ -19,6 +19,9 @@ async def test_frontend_catalog_search_update_and_photo_contract():
     shop = await ShopService(shops).create("seller-1", "Shop", "Pickup", 3.8, 11.5)
 
     class Files:
+        async def confirm_upload(self, file_id):
+            return {"file_id": file_id, "status": "confirmed"}
+
         async def metadata(self, file_id):
             return {"id": file_id, "purpose": "diddishop_product_image", "status": "confirmed"}
 

@@ -1,12 +1,151 @@
 """Stable HTTP representations consumed by the web and mobile clients."""
 
-from typing import Any
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field
 
 from app_base.modules.cart.domain import Cart
 from app_base.modules.catalog.domain import Product
 from app_base.modules.checkout.domain import Checkout
 from app_base.modules.orders.domain.entities import Order
 from app_base.modules.shops.domain import Shop
+
+
+class ProductResponse(BaseModel):
+    id: str
+    shop_id: str
+    title: str
+    description: str
+    price_minor: int
+    currency: Literal["XOF"]
+    stock: int
+    category: str
+    status: Literal["draft", "published", "paused", "retired"]
+    photo_file_ids: list[str]
+    photo_urls: list[str]
+
+
+class ProductListResponse(BaseModel):
+    items: list[ProductResponse]
+
+
+class ShopResponse(BaseModel):
+    id: str
+    owner_id: str
+    name: str
+    pickup_address: str
+    pickup_latitude: float
+    pickup_longitude: float
+    status: Literal["active", "suspended"]
+
+
+class ShopListResponse(BaseModel):
+    items: list[ShopResponse]
+
+
+class CategoryResponse(BaseModel):
+    code: str
+    name: str
+
+
+class CategoryListResponse(BaseModel):
+    items: list[CategoryResponse]
+
+
+class CartLineResponse(BaseModel):
+    product_id: str
+    shop_id: str
+    quantity: int = Field(ge=1)
+
+
+class CartResponse(BaseModel):
+    id: str
+    customer_id: str
+    currency: Literal["XOF"]
+    lines: list[CartLineResponse]
+    line_count: int = Field(ge=0)
+
+
+class OrderResponse(BaseModel):
+    id: str
+    shop_id: str
+    checkout_id: str
+    total_minor: int
+    currency: Literal["XOF"]
+    fulfillment_status: Literal[
+        "PAYMENT_PENDING",
+        "TO_CONFIRM",
+        "TO_PREPARE",
+        "READY_FOR_PICKUP",
+        "PICKED_UP",
+        "IN_TRANSIT",
+        "DELIVERED",
+        "RETURNED",
+        "CANCELLED",
+        "FAILED",
+        "DISPUTED",
+        "CLOSED",
+    ]
+    payment_status: Literal[
+        "PENDING",
+        "HELD",
+        "REFUND_PENDING",
+        "REFUNDED",
+        "RELEASE_BLOCKED",
+        "RELEASE_PENDING",
+        "RELEASED",
+        "PARTIALLY_REFUNDED",
+    ]
+    delivery_id: str | None
+    version: int = Field(ge=0)
+    payment_intent_id: str | None
+    items: list[dict[str, Any]]
+
+
+class OrderListResponse(BaseModel):
+    items: list[OrderResponse]
+
+
+class CheckoutPaymentResponse(BaseModel):
+    payment_intent_id: str | None
+    amount_minor: int
+    currency: Literal["XOF"]
+    status: str
+    payment_url: str | None = None
+    checkout_url: str | None = None
+    client_secret: str | None = None
+
+
+class CheckoutResponse(BaseModel):
+    id: str
+    customer_id: str
+    total_minor: int
+    currency: Literal["XOF"]
+    status: Literal["payment_pending", "payment_succeeded", "payment_failed"]
+    order_ids: list[str]
+    payment: CheckoutPaymentResponse
+
+
+class ProductPhotoResponse(BaseModel):
+    file_id: str
+    url: str
+
+
+class ProductPhotoListResponse(BaseModel):
+    items: list[ProductPhotoResponse]
+
+
+class UploadUrlResponse(BaseModel):
+    method: Literal["PUT"] = "PUT"
+    url: str
+    expires_in_seconds: int
+    headers: dict[str, str]
+
+
+class UploadSessionResponse(BaseModel):
+    file_id: str
+    status: str
+    upload: UploadUrlResponse
 
 
 def product_response(product: Product, photo_urls: list[str] | None = None) -> dict[str, Any]:

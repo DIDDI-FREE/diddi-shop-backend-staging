@@ -1,6 +1,6 @@
 # Contrat API DiddiShop — HTTP et webhooks
 
-Version documentaire : `draft.2026-11-25`. Périmètre : implémentation locale
+Version documentaire : `draft.2026-11-26`. Périmètre : implémentation locale
 du backend DiddiShop, routes métier, routes internes et webhooks.
 
 Ce document décrit les garanties de l’implémentation actuelle. Il ne certifie
@@ -25,6 +25,10 @@ En développement, l’acteur est fourni par le contexte local et vaut
 `anonymous` par défaut. En staging et production, les routes qui dépendent d’un
 acteur exigent `Authorization: Bearer <access_token>` ; le JWT est vérifié via
 les clés JWKS de DiddiFreeID.
+
+`X-Actor-ID` n’est pas un mécanisme d’authentification staging : il n’est pris
+en compte qu’en environnement `development` pour les tests locaux. Le frontend
+staging doit donc toujours envoyer le Bearer JWT DiddiFreeID.
 
 Les appels sortants utilisent un client S2S propre à chaque cible :
 
@@ -61,6 +65,7 @@ Les routes suivantes sont la surface métier actuellement montée par
 | GET | `/v1/shops/{shop_id}` | Lire une boutique publique |
 | POST | `/v1/catalog/shops/{shop_id}/products` | Créer un produit |
 | GET | `/v1/catalog/products` | Catalogue publié, recherche et catégorie |
+| GET | `/v1/catalog/categories` | Codes de catégories recommandés pour l’affichage |
 | GET | `/v1/catalog/shops/{shop_id}/products` | Produits publiés d’une boutique |
 | GET | `/v1/catalog/my-products` | Produits du vendeur connecté |
 | POST | `/v1/catalog/products/{product_id}/publish` | Publier un produit |
@@ -137,6 +142,55 @@ sont des entiers XOF et les statuts sont des chaînes stables.
 }
 ```
 
+Les valeurs de `status` sont `draft`, `published`, `paused` et `retired`.
+`stock=0` ne crée pas un statut supplémentaire : l’article reste dans son état
+de publication, mais ne peut pas être ajouté au panier si le stock est
+insuffisant. Les listes publiques ne renvoient que les produits `published`.
+
+### Boutique
+
+`GET /v1/shops/{shop_id}` renvoie une boutique publique sous cette forme :
+
+```json
+{
+  "id": "shop-id",
+  "owner_id": "seller-id",
+  "name": "Ma boutique",
+  "pickup_address": "Adresse de retrait",
+  "pickup_latitude": 3.8480,
+  "pickup_longitude": 11.5021,
+  "status": "active"
+}
+```
+
+`GET /v1/shops/mine` renvoie `{ "items": [<boutique>] }`. Les statuts de
+boutique sont `active` et `suspended`.
+
+### Catégories
+
+`GET /v1/catalog/categories` renvoie les codes recommandés et leurs libellés
+français :
+
+```json
+{
+  "items": [
+    {"code": "fashion", "name": "Mode"},
+    {"code": "beauty", "name": "Beauté"},
+    {"code": "home", "name": "Maison"},
+    {"code": "electronics", "name": "Électronique"},
+    {"code": "food", "name": "Alimentation"},
+    {"code": "books", "name": "Livres"},
+    {"code": "sports", "name": "Sports"},
+    {"code": "services", "name": "Services"},
+    {"code": "other", "name": "Autre"}
+  ]
+}
+```
+
+La valeur envoyée dans `category` reste compatible avec les données existantes
+et n’est pas encore bloquée par cette liste. Le frontend doit utiliser ces
+codes pour les nouvelles créations.
+
 ### Panier et commande
 
 Un panier contient `id`, `customer_id`, `currency`, `lines` et `line_count`.
@@ -147,6 +201,51 @@ conservée reste toujours supérieure ou égale à 1.
 Une commande contient `id`, `shop_id`, `checkout_id`, `total_minor`, `currency`,
 `fulfillment_status`, `payment_status`, `delivery_id`, `version`,
 `payment_intent_id` et `items`.
+
+### Photos produit et DiddiFiles
+
+`POST /v1/catalog/products/{product_id}/photos/upload-session` renvoie le
+contrat DiddiFiles suivant :
+
+```json
+{
+  "file_id": "file-id",
+  "status": "pending",
+  "upload": {
+    "method": "PUT",
+    "url": "https://s3.example/upload",
+    "expires_in_seconds": 900,
+    "headers": {"Content-Type": "image/jpeg"}
+  }
+}
+```
+
+Le frontend envoie le binaire avec `PUT` vers `upload.url` et les headers
+retournés. Il ne possède pas de credential S2S DiddiFiles. Ensuite, il appelle
+`POST /v1/catalog/products/{product_id}/photos` avec `{ "file_id": "..." }`.
+DiddiShop appelle alors `POST /v1/files/{file_id}/confirm` côté DiddiFiles,
+vérifie le purpose `diddishop_product_image`, puis attache le fichier au
+produit. La confirmation n’est donc pas faite directement par l’application
+frontend.
+
+`GET /v1/catalog/products/{product_id}/photos` renvoie :
+
+```json
+{"items": [{"file_id": "file-id", "url": "https://files.example/photo"}]}
+```
+
+Les réponses produit des listes (`/products`, `/shops/{shop_id}/products` et
+`/my-products`) remplissent également `photo_urls` lorsque DiddiFiles fournit
+une URL publique ou signée.
+
+### Schémas OpenAPI
+
+`GET /openapi.json` décrit maintenant les schémas de réponse utilisés par le
+frontend : `ShopResponse`, `ShopListResponse`, `CategoryListResponse`,
+`ProductResponse`, `ProductListResponse`, `ProductPhotoListResponse`,
+`CartResponse`, `OrderResponse`, `OrderListResponse`, `CheckoutResponse` et
+`UploadSessionResponse`. Le frontend peut donc générer ses types à partir de
+l’OpenAPI runtime au lieu de déduire les champs des exemples.
 
 ### Checkout et paiement
 

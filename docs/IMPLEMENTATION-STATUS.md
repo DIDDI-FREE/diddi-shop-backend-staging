@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
-**Date :** 2026-11-25
-**Phase courante :** S16 terminé localement
+**Date :** 2026-11-26
+**Phase courante :** S18 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -24,7 +24,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 55 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 63 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | OK dans PostgreSQL local Compose |
@@ -149,3 +149,24 @@ leurs ports.
   (`NPM_NETWORK`) pour utiliser l’overlay réseau.
 - redéploiement de l’image API avec le middleware CORS et vérification du
   préflight depuis l’URL publique.
+
+## S18 — contrats frontend et documentation
+
+- Ajout de schémas de réponse Pydantic explicites dans OpenAPI pour boutiques,
+  catégories, produits, photos, panier, commandes et checkout.
+- Ajout de `GET /v1/catalog/categories` avec une liste stable de codes et de
+  libellés frontend.
+- Formalisation des états produit : `draft`, `published`, `paused`, `retired`.
+- Alignement du parcours DiddiFiles sur le contrat staging réel : session,
+  PUT vers l’URL signée, confirmation puis rattachement par DiddiShop.
+- Les listes de produits exposent `photo_urls` lorsqu’une URL publique est
+  fournie par DiddiFiles.
+- La documentation MkDocs, le contrat API et le changelog ont été mis à jour.
+
+## Vérifications de déploiement en attente — S18
+
+- Redéployer l’image API et le conteneur MkDocs depuis le nouveau commit.
+- Vérifier l’OpenAPI et les pages publiques sur
+  `https://docs-diddishop-staging.diddifree.com`.
+- Vérifier que le staging exige bien le Bearer DiddiFreeID ; `X-Actor-ID` reste
+  réservé au développement local.

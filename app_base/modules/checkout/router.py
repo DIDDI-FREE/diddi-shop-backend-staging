@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 
-from app_base.core.api_contracts import checkout_response
+from app_base.core.api_contracts import CheckoutResponse, checkout_response
 from app_base.core.auth_deps import Actor, current_actor
 from app_base.modules.checkout.application.checkout_service import CheckoutApplicationService
 from app_base.modules.checkout.presentation import CreateCheckoutRequest
@@ -12,7 +12,7 @@ def checkout_service(request: Request) -> CheckoutApplicationService:
     return request.app.state.checkout_service
 
 
-@router.post("")
+@router.post("", response_model=CheckoutResponse)
 async def create_checkout(body: CreateCheckoutRequest, actor: Actor = Depends(current_actor), service: CheckoutApplicationService = Depends(checkout_service)):
     context = body.model_dump(exclude={"idempotency_key"}, exclude_none=True)
     if {"dropoff_address", "dropoff_latitude", "dropoff_longitude"} <= context.keys():

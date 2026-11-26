@@ -12,6 +12,19 @@ class ProductStatus(StrEnum):
     RETIRED = "retired"
 
 
+PRODUCT_CATEGORIES: tuple[tuple[str, str], ...] = (
+    ("fashion", "Mode"),
+    ("beauty", "Beauté"),
+    ("home", "Maison"),
+    ("electronics", "Électronique"),
+    ("food", "Alimentation"),
+    ("books", "Livres"),
+    ("sports", "Sports"),
+    ("services", "Services"),
+    ("other", "Autre"),
+)
+
+
 @dataclass
 class Product:
     id: str

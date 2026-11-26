@@ -264,3 +264,32 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   activer les cookies cross-site.
 - Source : Utilisateur | Agent
 - Impact : `app_base/main.py`, tests HTTP, documentation API et déploiement.
+
+### D-029 — Contrats frontend et catégories V1
+- Date : 2026-11-26
+- Phase / sous-lot : S18-A/B — contrats de réponse et documentation
+- Décision : publier des schémas OpenAPI explicites pour les ressources frontend
+  et fournir `GET /v1/catalog/categories` avec des codes stables (`fashion`,
+  `beauty`, `home`, `electronics`, `food`, `books`, `sports`, `services`,
+  `other`). Les valeurs restent acceptées comme texte pour compatibilité, mais
+  le frontend utilise les codes de cette liste.
+- Pourquoi : l’application doit pouvoir construire ses écrans sans deviner la
+  forme des réponses ni maintenir une taxonomie divergente.
+- Alternatives écartées : laisser OpenAPI sans schémas ; inventer des catégories
+  côté frontend ; rendre la catégorie obligatoire avant migration des données.
+- Source : Utilisateur | Agent, à valider
+- Impact : catalogue, OpenAPI, MkDocs, frontend, tests de contrat.
+
+### D-030 — Confirmation DiddiFiles médiée par DiddiShop
+- Date : 2026-11-26
+- Phase / sous-lot : S18-C — contrat médias
+- Décision : après l’upload PUT de l’application vers l’URL signée, l’application
+  appelle la route d’attachement DiddiShop ; DiddiShop confirme le fichier auprès
+  de DiddiFiles, valide son usage produit, puis rattache le fichier au produit.
+- Pourquoi : centraliser l’autorisation métier et empêcher un rattachement d’un
+  fichier non confirmé ou destiné à un autre module.
+- Alternatives écartées : laisser l’application confirmer directement puis
+  considérer le fichier comme rattaché ; accepter uniquement un `file_id` sans
+  contrôle de statut/purpose.
+- Source : Contrat DiddiFiles staging vérifié le 2026-11-26 | Agent, à valider
+- Impact : catalogue, DiddiFiles, frontend, sécurité S2S.
