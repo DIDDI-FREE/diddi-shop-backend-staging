@@ -118,3 +118,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S23-B — fermer le contrat DiddiPay et l’historique/pagination commandes
 - [x] S23-C — fermer le contrat réclamations, preuves et remboursements
 - [x] S23-D — normaliser le contrat de suivi DiddiSend
+- [x] S24-A — transmettre toutes les variables d’exécution au Compose Portainer

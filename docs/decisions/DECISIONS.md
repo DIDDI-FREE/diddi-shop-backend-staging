@@ -421,3 +421,18 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   frontend gérer `lat/lng` et tous les alias ; dupliquer la vérité logistique.
 - Source : Agent, à valider
 - Impact : delivery, DiddiSend, commandes, OpenAPI et frontend.
+
+### D-040 — Injection Portainer des paramètres d’exécution
+- Date : 2026-11-26
+- Phase / sous-lot : S24-A
+- Décision : le Compose Portainer transmet explicitement les URLs des services,
+  les clients S2S, les secrets de webhook, les paramètres de délais/finance et
+  les marqueurs OTEL. Les valeurs sensibles restent injectées par Portainer
+  ou le secret manager et ne sont jamais commitées.
+- Pourquoi : une variable présente dans `portainer.env.example` mais non
+  transmise au conteneur est silencieusement ignorée par l’application.
+- Alternatives écartées : dépendre de variables implicites du shell ; mettre
+  des secrets dans le dépôt ; réutiliser un seul credential S2S.
+- Source : Utilisateur | Agent, à valider
+- Impact : Portainer, Compose, DiddiFreeID, DiddiPay, DiddiSend,
+  DiddiObserve et paramètres métier.

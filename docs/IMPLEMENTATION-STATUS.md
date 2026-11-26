@@ -101,6 +101,9 @@ leurs ports.
   explicitement en staging.
 - `portainer.env.example` contient les valeurs staging non sensibles et la
   forme exacte des secrets à injecter ; `portainer.env` est local et ignoré.
+- Le Compose Portainer transmet explicitement les paramètres de sécurité,
+  délais métier, finance V1 et observabilité ; les secrets DiddiFreeID,
+  webhooks et OTLP restent des variables obligatoires à injecter hors Git.
 - Le `docker-compose.yml` principal inclut désormais aussi `docs`, afin qu’un
   déploiement Portainer qui sélectionne le Compose par défaut conserve API et
   documentation dans la même stack.
