@@ -101,6 +101,9 @@ leurs ports.
   explicitement en staging.
 - `portainer.env.example` contient les valeurs staging non sensibles et la
   forme exacte des secrets à injecter ; `portainer.env` est local et ignoré.
+- Le `docker-compose.yml` principal inclut désormais aussi `docs`, afin qu’un
+  déploiement Portainer qui sélectionne le Compose par défaut conserve API et
+  documentation dans la même stack.
 - Le Compose publie par défaut des ports hôte élevés et configurables
   (`48180` pour l’API et `48182` pour la documentation), afin de fonctionner
   même sans accès au réseau Docker de Nginx Proxy Manager. L’overlay

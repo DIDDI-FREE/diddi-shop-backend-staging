@@ -49,5 +49,16 @@ services:
       timeout: 5s
       retries: 10
 
+  # Keep the public MkDocs portal in the same default stack as the API.
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile.docs
+    environment:
+      DOCS_PUBLIC_ENABLED: ${DOCS_PUBLIC_ENABLED:-true}
+    ports:
+      - "${DIDDI_SHOP_DOCS_PORT:-48182}:80"
+    restart: unless-stopped
+
 volumes:
   diddishop-postgres:

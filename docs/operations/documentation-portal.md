@@ -1,10 +1,22 @@
 # Portail documentaire public
 
-Le portail MkDocs est un conteneur statique séparé de l’API. Il ne lit aucune
+Le portail MkDocs est un conteneur statique distinct dans la même stack Compose
+que l’API. Il ne lit aucune
 base, ne contient aucun secret et ne dépend pas de Git ou du poste du frontend
 une fois publié.
 
 ## Construction locale
+
+Le fichier Compose principal lance les quatre services, dont `docs` :
+
+```powershell
+docker compose up -d --build
+Invoke-WebRequest http://localhost:48182/healthz
+Invoke-WebRequest http://localhost:48182/
+```
+
+Le fichier `docker-compose.docs.yml` reste disponible pour un démarrage
+documentation-only.
 
 ```powershell
 docker compose -f docker-compose.docs.yml up -d --build

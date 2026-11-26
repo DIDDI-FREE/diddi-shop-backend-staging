@@ -13,6 +13,9 @@
 - Ajout de `portainer.env` local, prêt à charger après remplacement des
   secrets, et de `portainer.env.example` versionné avec les valeurs staging
   non sensibles.
+- Le service `docs` est également présent dans `docker-compose.yml`, afin que
+  la stack Compose principale utilisée par Portainer ne puisse pas oublier
+  MkDocs.
 
 ## S15-C — Vérifications
 

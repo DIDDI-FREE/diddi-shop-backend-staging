@@ -39,17 +39,19 @@ uvicorn app_base.main:app --reload
 
 ## Vérification locale avec Docker
 
-Le Compose local démarre PostgreSQL, Redis et l’API en mode développement :
+Le Compose principal démarre PostgreSQL, Redis, l’API et le portail MkDocs dans
+la même stack :
 
 ```powershell
 docker compose up -d --build
 docker compose ps
 Invoke-WebRequest http://localhost:48180/health
 Invoke-WebRequest http://localhost:48180/ready
+Invoke-WebRequest http://localhost:48182/
 docker compose down
 ```
 
-Le portail documentaire public est une stack séparée :
+Pour démarrer uniquement le portail documentaire :
 
 ```powershell
 docker compose -f docker-compose.docs.yml up -d --build

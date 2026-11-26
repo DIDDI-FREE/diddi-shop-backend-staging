@@ -233,3 +233,12 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Alternatives écartées : committer des secrets réels ; inventer des credentials ; laisser Portainer déduire des variables non déclarées par Compose.
 - Source : Agent, à valider
 - Impact : Portainer, Docker Compose, DiddiFreeID, DiddiPay, DiddiSend, DiddiObserve.
+
+### D-026 — Documentation dans la stack Compose principale
+- Date : 2026-11-26
+- Phase / sous-lot : S15-E — alignement de la stack réellement déployée
+- Décision : inclure le service `docs` directement dans `docker-compose.yml`, en plus du fichier Portainer dédié, afin que le déploiement Compose par défaut de DiddiShop publie aussi MkDocs dans la même stack que l’API.
+- Pourquoi : éviter qu’un déploiement Portainer sélectionnant le fichier Compose principal oublie le portail documentaire ; conserver l’URL frontend découplée du Git et du poste local.
+- Alternatives écartées : dépendre uniquement du fichier `docker-compose.portainer.yml` ; laisser Portainer déployer une stack API sans documentation.
+- Source : Utilisateur, à valider
+- Impact : Docker Compose, Portainer, MkDocs, Nginx Proxy Manager, frontend.
