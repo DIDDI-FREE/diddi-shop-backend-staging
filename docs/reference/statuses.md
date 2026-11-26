@@ -22,7 +22,7 @@ propriétaire DiddiSend ou DiddiPay sans mapping explicite.
 | `PAYMENT_PENDING` | paiement initial non confirmé | non |
 | `TO_CONFIRM` | paiement confirmé, attente de confirmation vendeur | non |
 | `TO_PREPARE` | vendeur a confirmé, préparation en cours | non |
-| `READY_FOR_PICKUP` | colis prêt pour DiddiSend | non |
+| `READY_FOR_PICKUP` | vendeur a signalé « prête » ; DiddiShop demande DiddiSend | non |
 | `PICKED_UP` | colis remis à la livraison | non |
 | `IN_TRANSIT` | livraison en transit | non |
 | `DELIVERED` | livraison remise | non |

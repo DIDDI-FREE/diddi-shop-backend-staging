@@ -293,3 +293,33 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   contrôle de statut/purpose.
 - Source : Contrat DiddiFiles staging vérifié le 2026-11-26 | Agent, à valider
 - Impact : catalogue, DiddiFiles, frontend, sécurité S2S.
+
+### D-031 — Déclenchement DiddiSend par DiddiShop après signal vendeur
+- Date : 2026-11-26
+- Phase / sous-lot : S19-A — orchestration prête à expédier
+- Décision : l’application vendeur appelle uniquement
+  `POST /v1/orders/{order_id}/ready`. DiddiShop valide la transition vers
+  `READY_FOR_PICKUP`, appelle immédiatement DiddiSend avec la clé
+  `shop:create-delivery:{order_id}:1` et persiste la projection de livraison.
+- Pourquoi : reproduire le parcours DiddiFood et garder l’autorité de la
+  création d’expédition, de l’idempotence et de l’intégration S2S dans le
+  backend DiddiShop.
+- Alternatives écartées : laisser le frontend appeler DiddiSend ; créer la
+  livraison avant la transition locale ; exiger un second clic opérationnel.
+- Source : Utilisateur | Agent, à valider
+- Impact : commandes, DiddiSend, projection livraison, API vendeur, MkDocs.
+
+### D-032 — Transparence de couverture documentaire
+- Date : 2026-11-26
+- Phase / sous-lot : S20-A/B/C — audit MkDocs API et protocoles
+- Décision : MkDocs doit distinguer l’inventaire exhaustif des routes de la
+  complétude de leurs schémas. Les routes sans modèle de réponse explicite sont
+  marquées `à typer`. L’absence de WebSocket est documentée ; REST/JSON,
+  webhooks, S2S et OTLP sont les seuls protocoles annoncés.
+- Pourquoi : éviter que la présence d’une route dans OpenAPI soit interprétée
+  comme un contrat frontend complet.
+- Alternatives écartées : déclarer tous les contrats complets sur la base de
+  réponses génériques ; laisser le frontend déduire les valeurs ; annoncer un
+  WebSocket non implémenté.
+- Source : Utilisateur | Agent, à valider
+- Impact : MkDocs, OpenAPI, frontend, intégrations et backlog de contrats.

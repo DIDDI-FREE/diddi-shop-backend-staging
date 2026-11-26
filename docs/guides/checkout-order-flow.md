@@ -22,10 +22,14 @@ DiddiShop checkout
   payment.succeeded
         │
         ▼
-  TO_CONFIRM → TO_PREPARE → READY_FOR_PICKUP
-                                      │
-                                      ▼
-                              création DiddiSend
+  TO_CONFIRM → TO_PREPARE
+                     │
+                     │ vendeur signale « prête » dans l’application
+                     ▼
+              POST /v1/orders/{id}/ready
+                     │
+                     ▼
+              DiddiShop crée DiddiSend
 ```
 
 ## Règles de reprise
@@ -37,8 +41,14 @@ DiddiShop checkout
    avec ses propres références logistiques.
 4. Une confirmation de paiement ne confirme pas que le vendeur a préparé le
    colis.
-5. Une commande prête est le seul point à partir duquel le use case livraison
-   peut demander DiddiSend.
+5. Le vendeur ne crée pas directement la livraison. Il signale que la commande
+   est prête via `POST /v1/orders/{order_id}/ready`.
+6. DiddiShop valide le passage à `READY_FOR_PICKUP`, appelle immédiatement
+   DiddiSend avec `shop:create-delivery:{order_id}:1` et persiste `delivery_id`.
+7. Un rejeu du signal vendeur est idempotent : si la projection existe déjà,
+   DiddiShop ne crée pas une seconde livraison.
+8. `POST /v1/deliveries/orders/{order_id}` reste une opération de reprise
+   contrôlée pour l’exploitation ; l’application vendeur ne doit pas l’appeler.
 
 ## Snapshot financier
 

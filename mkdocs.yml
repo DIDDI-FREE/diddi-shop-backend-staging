@@ -42,6 +42,7 @@ nav:
       - MVP figé: product/DIDDISHOP-MVP-FIGE.md
   - API:
       - Contrat HTTP et webhooks: api/API_CONTRACT.md
+      - Protocoles et couverture: api/PROTOCOLS_AND_COVERAGE.md
       - Questions ouvertes: api/open-questions.md
   - Architecture:
       - Exécution: architecture/RUNTIME_ARCHITECTURE.md

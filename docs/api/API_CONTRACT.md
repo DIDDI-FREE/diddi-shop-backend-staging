@@ -8,6 +8,9 @@ pas à lui seul le déploiement staging ni les contrats externes non authentifi�
 Les écarts et contrats à confirmer sont listés dans
 [`open-questions.md`](open-questions.md).
 
+L’audit exhaustif des routes, protocoles, valeurs et limites de couverture est
+dans [`PROTOCOLS_AND_COVERAGE.md`](PROTOCOLS_AND_COVERAGE.md).
+
 ## Références et surfaces
 
 | Surface | Source locale | Usage |
@@ -84,7 +87,7 @@ Les routes suivantes sont la surface métier actuellement montée par
 | POST | `/v1/orders/{order_id}/transitions` | Demander une transition contrôlée |
 | POST | `/v1/orders/{order_id}/confirm` | Confirmer la commande côté vendeur |
 | POST | `/v1/orders/{order_id}/ready` | Marquer la commande prête |
-| POST | `/v1/deliveries/orders/{order_id}` | Demander l’expédition DiddiSend |
+| POST | `/v1/deliveries/orders/{order_id}` | Reprise contrôlée de l’expédition DiddiSend |
 | GET | `/v1/deliveries/orders/{order_id}` | Lire la projection livraison |
 | POST | `/v1/claims/orders/{order_id}/cancel` | Demander l’annulation |
 | POST | `/v1/claims/orders/{order_id}` | Ouvrir une réclamation |
@@ -308,6 +311,19 @@ PAYMENT_PENDING, TO_CONFIRM, TO_PREPARE, READY_FOR_PICKUP -> CANCELLED
 suivi de livraison ; DiddiShop conserve uniquement la projection nécessaire à
 la commande. `PaymentStatus` est séparé : un événement de livraison ne prouve
 jamais le paiement et un remboursement ne change pas seul l’état logistique.
+
+### Déclenchement de l’expédition
+
+Le vendeur signale la fin de préparation avec
+`POST /v1/orders/{order_id}/ready`. DiddiShop effectue alors, dans ce use case,
+la transition `TO_PREPARE -> READY_FOR_PICKUP`, appelle DiddiSend avec la clé
+`shop:create-delivery:{order_id}:1` et enregistre `delivery_id`. Le frontend
+vendeur ne doit pas appeler directement la route de création DiddiSend.
+
+La commande `ready` est rejouable : si l’état est déjà `READY_FOR_PICKUP` et
+qu’une projection existe, DiddiShop renvoie la projection sans créer une
+seconde livraison. La route `POST /v1/deliveries/orders/{order_id}` est une
+opération de reprise réservée à l’exploitation.
 
 ## Idempotence et événements
 

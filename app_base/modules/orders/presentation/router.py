@@ -65,6 +65,10 @@ async def confirm_order(order_id: str, service: OrderService = Depends(get_order
 
 
 @router.post("/{order_id}/ready", response_model=OrderResponse)
-async def mark_order_ready(order_id: str, service: OrderService = Depends(get_order_service)):
-    order = await service.transition(order_id, FulfillmentStatus.READY_FOR_PICKUP, reason="seller_ready", actor="seller")
-    return order_response(order)
+async def mark_order_ready(
+    order_id: str,
+    request: Request,
+    service: OrderService = Depends(get_order_service),
+):
+    await request.app.state.delivery_service.mark_ready_and_request(order_id)
+    return order_response(await service.get(order_id))

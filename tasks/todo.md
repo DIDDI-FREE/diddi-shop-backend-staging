@@ -110,3 +110,5 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S16 — compléter la surface frontend V1 et formaliser les réponses HTTP
 - [x] S17 — intégrer CORS pour les sous-domaines DiddiFree et localhost
 - [x] S18 — formaliser les contrats frontend, catégories, médias et schémas OpenAPI
+- [x] S19 — déclencher DiddiSend après le signal vendeur « commande prête »
+- [x] S20 — auditer la couverture MkDocs des routes, protocoles et valeurs

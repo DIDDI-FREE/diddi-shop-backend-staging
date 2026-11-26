@@ -81,3 +81,31 @@ async def test_diddisend_event_updates_only_local_projection_and_order():
     assert delivery.id == "del-1"
     assert delivery.proof_ref == "proof-1"
     assert (await orders.get("o1")).fulfillment_status == FulfillmentStatus.DELIVERED
+
+
+@pytest.mark.asyncio
+async def test_seller_ready_immediately_requests_diddisend_and_is_retryable():
+    class CountingSender:
+        def __init__(self):
+            self.calls = 0
+
+        async def create_delivery(self, command, payload):
+            self.calls += 1
+            return {"delivery": {"id": "del-ready-1", "status": "created"}}
+
+    repo = InMemoryOrderRepository()
+    order = Order("o-ready", "s1", "c1", 1000, fulfillment_status=FulfillmentStatus.TO_PREPARE)
+    await repo.create(order)
+    orders = OrderService(repo, [])
+    deliveries = InMemoryDeliveryRepository()
+    sender = CountingSender()
+    service = DeliveryService(deliveries, sender, orders)
+
+    first = await service.mark_ready_and_request("o-ready")
+    second = await service.mark_ready_and_request("o-ready")
+
+    assert first.id == second.id == "del-ready-1"
+    assert sender.calls == 1
+    saved = await orders.get("o-ready")
+    assert saved.fulfillment_status == FulfillmentStatus.READY_FOR_PICKUP
+    assert saved.delivery_id == "del-ready-1"

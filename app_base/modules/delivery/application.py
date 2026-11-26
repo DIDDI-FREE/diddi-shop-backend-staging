@@ -35,6 +35,24 @@ class DeliveryService:
         await self.orders.repository.save(order)
         return projection
 
+    async def mark_ready_and_request(self, order_id: str) -> DeliveryProjection:
+        """Mark a seller-ready order and immediately create its DiddiSend delivery.
+
+        Repeating the command after a timeout is safe: an existing projection is
+        returned and ``request_for_order`` does not create a second delivery.
+        """
+        order = await self.orders.get(order_id)
+        if order.fulfillment_status == FulfillmentStatus.TO_PREPARE:
+            await self.orders.transition(
+                order_id,
+                FulfillmentStatus.READY_FOR_PICKUP,
+                reason="seller_ready",
+                actor="seller",
+            )
+        elif order.fulfillment_status != FulfillmentStatus.READY_FOR_PICKUP:
+            raise ConflictError("order is not being prepared")
+        return await self.request_for_order(order_id)
+
     async def apply_event(self, order_id: str, event_type: str, payload: dict) -> DeliveryProjection:
         target = {
             "delivery.created": DeliveryStatus.REQUESTED,

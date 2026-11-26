@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-26
-**Phase courante :** S18 terminé localement
+**Phase courante :** S20 terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 ## État global
@@ -170,3 +170,22 @@ leurs ports.
   `https://docs-diddishop-staging.diddifree.com`.
 - Vérifier que le staging exige bien le Bearer DiddiFreeID ; `X-Actor-ID` reste
   réservé au développement local.
+
+## S19 — déclenchement DiddiSend après signal vendeur
+
+- Le signal vendeur `POST /v1/orders/{order_id}/ready` passe la commande à
+  `READY_FOR_PICKUP` puis appelle automatiquement DiddiSend.
+- La clé `shop:create-delivery:{order_id}:1` et la projection `delivery_id`
+  rendent le rejeu sûr après timeout.
+- La route directe de création livraison reste disponible uniquement comme
+  reprise contrôlée d’exploitation.
+
+## S20 — audit documentaire des protocoles et routes
+
+- Les 39 chemins métier présents dans l’OpenAPI sont listés dans
+  `docs/api/PROTOCOLS_AND_COVERAGE.md`.
+- REST/JSON, webhooks JSON, S2S Bearer, client credentials et OTLP
+  HTTP/protobuf sont décrits avec leurs headers et limites.
+- L’absence de WebSocket est explicitement documentée.
+- Les routes dont la réponse OpenAPI reste générique sont signalées comme
+  `à typer` au lieu d’être présentées comme complètement contractuelles.
