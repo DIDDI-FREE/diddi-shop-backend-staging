@@ -36,7 +36,7 @@ docker compose -f docker-compose.docs.yml down
 ## Publication staging
 
 Comme dans DiddiGo, la stack Portainer dédiée
-`docker-compose.portainer.yml` construit l’API et `Dockerfile.docs` depuis le
+`docker-compose.yml` construit l’API et `Dockerfile.docs` depuis le
 même checkout Git. Le conteneur `docs` fait donc partie de la même livraison
 que l’API et sert le contrat correspondant à cette révision. Dans Portainer,
 déployer ce fichier depuis le dépôt, puis définir au minimum :
@@ -78,7 +78,7 @@ Si le réseau Docker NPM est accessible, l’overlay réseau reste disponible :
 
 ```powershell
 $env:NPM_NETWORK = "<nom-exact-du-reseau-partage-avec-NPM>"
-docker compose -f docker-compose.yml -f docker-compose.docs.yml -f docker-compose.proxy.yml up -d --build
+docker compose --env-file portainer.env -f docker-compose.yml -f docker-compose.proxy.yml up -d --build
 ```
 
 Dans Nginx Proxy Manager, créer un Proxy Host :
@@ -99,7 +99,7 @@ les cibles deviennent `api:8000` et `docs:80`.
 Avant le déploiement Portainer, valider le fichier comme Compose :
 
 ```powershell
-docker compose -f docker-compose.portainer.yml config --quiet
+docker compose --env-file portainer.env -f docker-compose.yml config --quiet
 ```
 
 Après le déploiement, vérifier dans Portainer que `diddishop-api-1` et

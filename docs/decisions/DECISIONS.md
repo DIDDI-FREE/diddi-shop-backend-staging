@@ -436,3 +436,19 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : Utilisateur | Agent, à valider
 - Impact : Portainer, Compose, DiddiFreeID, DiddiPay, DiddiSend,
   DiddiObserve et paramètres métier.
+
+### D-041 — Compose canonique Portainer
+- Date : 2026-11-26
+- Phase / sous-lot : S24-B
+- Décision : conserver `docker-compose.yml` comme fichier configuré par la
+  stack Portainer existante, y déplacer le Compose staging complet, et créer
+  `docker-compose.local.yml` pour le développement local.
+- Pourquoi : la stack existante pointe déjà vers `docker-compose.yml` ; changer
+  son nom de fichier aurait nécessité une reconfiguration de stack et pouvait
+  laisser le déploiement sur l’ancien Compose sans toutes les variables.
+- Alternatives écartées : modifier manuellement la stack Portainer ; conserver
+  deux Compose staging concurrents ; laisser le fichier par défaut en mode
+  développement.
+- Source : Utilisateur | Agent, à valider
+- Impact : Portainer, Docker Compose, documentation, déploiement staging et
+  développement local.

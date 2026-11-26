@@ -39,16 +39,16 @@ uvicorn app_base.main:app --reload
 
 ## Vérification locale avec Docker
 
-Le Compose principal démarre PostgreSQL, Redis, l’API et le portail MkDocs dans
+Le Compose local démarre PostgreSQL, Redis, l’API et le portail MkDocs dans
 la même stack :
 
 ```powershell
-docker compose up -d --build
-docker compose ps
+docker compose -f docker-compose.local.yml up -d --build
+docker compose -f docker-compose.local.yml ps
 Invoke-WebRequest http://localhost:48180/health
 Invoke-WebRequest http://localhost:48180/ready
 Invoke-WebRequest http://localhost:48182/
-docker compose down
+docker compose -f docker-compose.local.yml down
 ```
 
 Pour démarrer uniquement le portail documentaire :
@@ -59,7 +59,7 @@ Invoke-WebRequest http://localhost:48182/
 ```
 
 Pour reproduire le déploiement Portainer de DiddiGo, utiliser
-`docker-compose.portainer.yml`. Cette stack construit l’API et MkDocs depuis
+`docker-compose.yml`. Cette stack construit l’API et MkDocs depuis
 la même révision Git, puis expose les ports hôte configurables `48180` et
 `48182` pour Nginx Proxy Manager. Voir
 [`docs/operations/documentation-portal.md`](docs/operations/documentation-portal.md)
@@ -79,7 +79,7 @@ réseau NPM est finalement accessible, l’overlay réseau reste disponible :
 
 ```powershell
 $env:NPM_NETWORK = "<nom-exact-du-reseau-partage-avec-NPM>"
-docker compose -f docker-compose.yml -f docker-compose.docs.yml -f docker-compose.proxy.yml up -d --build
+docker compose --env-file portainer.env -f docker-compose.yml -f docker-compose.proxy.yml up -d --build
 ```
 
 Sans réseau Docker partagé, Nginx Proxy Manager doit cibler le host Docker et

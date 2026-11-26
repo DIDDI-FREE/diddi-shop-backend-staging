@@ -119,3 +119,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S23-C — fermer le contrat réclamations, preuves et remboursements
 - [x] S23-D — normaliser le contrat de suivi DiddiSend
 - [x] S24-A — transmettre toutes les variables d’exécution au Compose Portainer
+- [x] S24-B — rendre docker-compose.yml canonique pour Portainer et isoler le local

@@ -103,7 +103,7 @@ Règles :
 
 ## Exécution locale
 
-Le `docker-compose.yml` local démarre PostgreSQL, Redis et l’API en mode
+Le `docker-compose.local.yml` démarre PostgreSQL, Redis et l’API en mode
 `development`. Les repositories de développement utilisent encore les
 implémentations locales prévues par le squelette ; `/ready` vérifie néanmoins
 les connexions réelles PostgreSQL/Redis et Alembic applique les migrations

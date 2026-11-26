@@ -85,7 +85,7 @@ leurs ports.
   aligné sur `amount` et la normalisation de ses identifiants de réponse ; les
   routes DiddiSend, DiddiFiles, DiddiRewards, DiddiComms et DiddiSupport sont
   couvertes par des tests de câblage avec faux services.
-- Un `Dockerfile` et un `docker-compose.yml` local fournissent PostgreSQL,
+- Un `Dockerfile` et un `docker-compose.local.yml` fournissent PostgreSQL,
   Redis et l’API en mode développement ; l’image est construite, les
   migrations sont appliquées et les trois conteneurs sont healthy. Les
   endpoints `/health` et `/ready` répondent 200.
@@ -95,7 +95,7 @@ leurs ports.
 - Le portail documentaire MkDocs est construit dans `Dockerfile.docs` puis
   servi par Nginx dans un conteneur séparé. La vérification locale sur le port
   `48182` répond 200 pour `/` et `/api/API_CONTRACT/`.
-- La stack `docker-compose.portainer.yml` reprend le modèle DiddiGo : API et
+- La stack canonique `docker-compose.yml` reprend le modèle DiddiGo : API et
   MkDocs sont construits dans la même stack et depuis la même révision Git.
   `DOCS_PUBLIC_ENABLED` reste désactivé par défaut et doit être activé
   explicitement en staging.
@@ -104,9 +104,9 @@ leurs ports.
 - Le Compose Portainer transmet explicitement les paramètres de sécurité,
   délais métier, finance V1 et observabilité ; les secrets DiddiFreeID,
   webhooks et OTLP restent des variables obligatoires à injecter hors Git.
-- Le `docker-compose.yml` principal inclut désormais aussi `docs`, afin qu’un
-  déploiement Portainer qui sélectionne le Compose par défaut conserve API et
-  documentation dans la même stack.
+- Le Compose local est séparé sous `docker-compose.local.yml` ; le fichier
+  `docker-compose.yml` est réservé à Portainer/staging et transmet toutes les
+  variables nécessaires à l’API.
 - La surface frontend V1 expose maintenant les listes catalogue/boutique,
   boutiques et produits vendeur, modification prix/stock, suppression de
   ligne panier, listes de commandes, commandes à confirmer, upload/attachement
@@ -146,6 +146,9 @@ leurs ports.
   réelle.
 - publication du conteneur docs sur `docs-diddishop-staging.diddifree.com`,
   Proxy Host Nginx, certificat TLS et vérification externe des pages.
+- redéploiement de la stack Portainer `diddishop-backend` avec le nouveau
+  `docker-compose.yml` canonique ; l’audit live a confirmé que la révision
+  précédente exécutait encore l’ancien Compose en mode développement.
 - choix des ports hôte disponibles si les valeurs par défaut `48180`/`48182`
   sont déjà utilisées ;
 - ou fourniture du nom exact du réseau Docker partagé avec Nginx Proxy Manager
