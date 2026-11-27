@@ -49,6 +49,11 @@ class DeliveryQuoteUnavailableError(DiddiShopError):
     status_code = 502
 
 
+class DeliveryCreationUnavailableError(DiddiShopError):
+    code = "DELIVERY_CREATION_UNAVAILABLE"
+    status_code = 502
+
+
 class InvalidTransitionError(DiddiShopError):
     code = "INVALID_TRANSITION"
 

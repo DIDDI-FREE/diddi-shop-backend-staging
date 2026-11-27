@@ -90,6 +90,23 @@ PaymentIntent DiddiPay déjà confirmé, et éventuellement
 au moment de l’appel `/ready`. Cette lecture au dernier moment couvre aussi
 les commandes créées avant l’ajout du champ au snapshot de livraison.
 
+### Vérification du paiement d’origine
+
+DiddiSend vérifie lui-même le PaymentIntent avec `GET
+/payfund/v1/payment-intents/{origin_payment_reference}`. DiddiPay applique une
+visibilité par `client_id` : un PaymentIntent créé par le client DiddiShop n’est
+pas lisible par le client DiddiSend, même si l’identifiant UUID est correct.
+Un `404` à cette étape signifie donc « paiement non visible pour le client
+appelant » ; il ne prouve pas que le paiement n’existe pas.
+
+Le correctif doit être défini entre DiddiPay et DiddiSend : lecture inter-service
+autorisée du paiement d’origine, ou mécanisme explicite de délégation/ownership.
+DiddiShop ne réutilise pas le credential DiddiSend pour créer le paiement et ne
+désactive pas la vérification prépayée. Tant que ce contrat n’est pas disponible,
+DiddiShop transforme l’échec de création DiddiSend en `502
+DELIVERY_CREATION_UNAVAILABLE`, conserve la commande `READY_FOR_PICKUP` et
+permet le rejeu idempotent ; aucun second paiement n’est créé.
+
 ## Événements
 
 Les événements utiles sont `delivery.created`, `delivery.picked_up`,

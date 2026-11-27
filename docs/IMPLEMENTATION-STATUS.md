@@ -1,8 +1,9 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-27
-**Phase courante :** S24-P terminé localement
-**Statut :** implémentation locale complète ; recette staging en attente
+**Phase courante :** S24-X terminé localement
+**Statut :** correction locale poussable ; recette staging bloquée par la
+visibilité inter-client du PaymentIntent DiddiPay
 
 **Correction du 2026-11-27 :** le Compose staging exécute désormais
 `alembic upgrade head` avant Uvicorn. L'incident staging `relation "carts"
@@ -59,6 +60,10 @@ leurs ports.
 5. DiddiRewards : confirmer le provisioning du client Shop, une campagne
    publiée avec budget, et le contrat de ventilation `professional_payout_minor`
    en V1.
+6. DiddiPay/DiddiSend : autoriser DiddiSend à lire, avec son credential, le
+   PaymentIntent créé par DiddiShop et référencé par `origin_payment_reference`.
+   Le 404 actuel est une restriction `client_id`, pas une absence prouvée du
+   paiement.
 
 ## S0 réalisé
 
@@ -132,6 +137,15 @@ distinct des credentials S2S sortants.
 - CORS autorise les sous-domaines `*.diddifree.com` et `localhost` avec port
   optionnel, accepte le préflight et le header `Authorization`, sans activer
   les credentials navigateur.
+
+## Dernier lot implémenté — S24-X
+
+Les erreurs HTTP de création DiddiSend ne remontent plus comme exceptions
+non gérées : DiddiShop répond `502 DELIVERY_CREATION_UNAVAILABLE` avec le
+statut upstream non sensible. La commande reste `READY_FOR_PICKUP`, la
+projection n’est pas créée et le rejeu conserve la même clé idempotente.
+Le blocage de lecture du PaymentIntent est documenté dans les contrats : sa
+correction nécessite une décision DiddiPay/DiddiSend.
 
 ## Dernier lot implémenté — S24-D
 

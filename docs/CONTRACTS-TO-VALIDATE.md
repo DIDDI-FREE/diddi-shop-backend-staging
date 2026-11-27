@@ -44,6 +44,18 @@ renvoient l’identifiant sous `id`; l’adaptateur DiddiShop le normalise en
 `payment_intent_id`/`refund_id` pour le domaine local. Aucun corps de carte n’est
 envoyé.
 
+### Lecture inter-service du paiement d’origine
+
+Blocage identifié par la recette E2E du 27 novembre 2026 : DiddiSend reçoit
+`origin_payment_reference`, valide le trajet et le tarif, puis obtient `404`
+sur `GET /payfund/v1/payment-intents/{intent_id}`. Le code DiddiPay audité
+retourne `404` lorsque `intent.client_id` ne correspond pas au client appelant.
+
+Le contrat à valider doit préciser comment DiddiSend peut vérifier un paiement
+créé par DiddiShop : délégation de lecture autorisée, ownership partagé limité
+au PaymentIntent référencé, ou endpoint inter-service dédié. Une modification
+de payload DiddiShop seule ne résout pas cette visibilité.
+
 ## DiddiFiles
 
 Routes observées : upload-session, confirmation, métadonnées, download-url et

@@ -141,3 +141,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-U — exposer destination et ETA de livraison sans inventer de données
 - [x] S24-V — réhydrater les coordonnées sender pour les anciennes commandes
 - [x] S24-W — transmettre la référence PaymentIntent aux livraisons prépayées
+- [x] S24-X — mapper les refus DiddiSend et documenter la visibilité inter-client DiddiPay

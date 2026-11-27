@@ -1,6 +1,9 @@
 import httpx
 
-from app_base.core.errors import DeliveryQuoteUnavailableError
+from app_base.core.errors import (
+    DeliveryCreationUnavailableError,
+    DeliveryQuoteUnavailableError,
+)
 from app_base.core.request_context import get_request_context
 from app_base.integrations.base import ServiceAdapter
 from app_base.shared_kernel.contracts.delivery import DeliveryCommand, DeliveryRequest
@@ -99,7 +102,15 @@ class DiddiSendAdapter(ServiceAdapter):
             headers=headers,
             json=request.model_dump(),
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            # A downstream rejection must not become an opaque Shop 500. The
+            # order remains READY_FOR_PICKUP and can be retried idempotently.
+            raise DeliveryCreationUnavailableError(
+                "DiddiSend delivery creation failed",
+                details={"upstream_status": exc.response.status_code},
+            ) from exc
         return response.json()
 
     async def cancel_delivery(self, delivery_id: str, idempotency_key: str) -> None:

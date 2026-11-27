@@ -892,3 +892,36 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : contrat et code DiddiSend audités en lecture seule ; rapport E2E
   staging ; Agent, décision à valider au rejeu.
 - Impact : delivery, checkout/order metadata, DiddiSend et recette paiement.
+
+### D-071 — Ne pas masquer un échec de création DiddiSend en HTTP 500
+- Date : 2026-11-27
+- Phase / sous-lot : S24-X
+- Décision : mapper les réponses HTTP non réussies de `POST /v1/deliveries`
+  vers `502 DELIVERY_CREATION_UNAVAILABLE`, en conservant la commande
+  `READY_FOR_PICKUP` et la clé d’idempotence de création.
+- Pourquoi : DiddiSend peut refuser la création après validation du trajet et
+  du tarif ; un 500 Shop opaque empêche le diagnostic et donne l’impression
+  qu’une nouvelle commande ou un nouveau paiement est nécessaire.
+- Alternatives écartées : créer un second PaymentIntent, désactiver la
+  vérification prépayée, ou modifier DiddiSend/DiddiPay depuis ce dépôt.
+- Source : recette staging du 27 novembre 2026 ; code DiddiPay/DiddiSend audité
+  en lecture seule ; Agent, décision prudente à valider en rejeu.
+- Impact : adaptateur DiddiSend, API `/ready`, observabilité et runbook.
+
+### D-072 — Visibilité inter-client du PaymentIntent à traiter hors DiddiShop
+- Date : 2026-11-27
+- Phase / sous-lot : S24-X
+- Décision : conserver le PaymentIntent sous le client DiddiShop et demander
+  un contrat DiddiPay/DiddiSend de lecture inter-service autorisée. DiddiShop
+  ne réutilise pas le credential DiddiSend pour créer le paiement et ne
+  transmet pas de secret ou de client propriétaire dans le payload livraison.
+- Pourquoi : DiddiPay retourne 404 lorsque le `client_id` du lecteur diffère
+  de celui qui possède l’intention ; changer seulement le payload Shop ne
+  peut pas résoudre cette règle d’autorisation.
+- Alternatives écartées : partager un client S2S entre services, désactiver la
+  vérification du paiement, ou considérer le 404 comme preuve d’un paiement
+  absent.
+- Source : code DiddiPay/DiddiSend audité en lecture seule et trace E2E ; Agent,
+  à valider par les équipes Pay/Send.
+- Impact : contrat DiddiPay, vérification DiddiSend, recette E2E ; aucun
+  déploiement Portainer.

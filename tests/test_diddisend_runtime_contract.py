@@ -3,7 +3,10 @@ import json
 import httpx
 import pytest
 
-from app_base.core.errors import DeliveryQuoteUnavailableError
+from app_base.core.errors import (
+    DeliveryCreationUnavailableError,
+    DeliveryQuoteUnavailableError,
+)
 from app_base.integrations.diddisend import DiddiSendAdapter
 from app_base.shared_kernel.contracts.delivery import DeliveryCommand
 
@@ -81,3 +84,35 @@ async def test_diddisend_adapter_serializes_integer_quote_as_contract_string():
 
     assert captured
     assert json.loads(captured[0].content)["quoted_price"] == "500"
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("status", [400, 404, 502, 503, 504])
+async def test_diddisend_adapter_maps_delivery_creation_failure(status: int):
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(status, json={"error": "upstream failure"})
+
+    adapter = DiddiSendAdapter(
+        base_url="https://send.test",
+        audience="diddisend",
+        transport=httpx.MockTransport(handler),
+    )
+
+    with pytest.raises(DeliveryCreationUnavailableError) as exc_info:
+        await adapter.create_delivery(
+            DeliveryCommand(order_id="order-1", idempotency_key="delivery-1"),
+            {
+                "order_reference": "shop-order:order-1",
+                "customer_user_id": "buyer-1",
+                "recipient_name": "Buyer",
+                "recipient_phone": "237000000000",
+                "pickup_location": {"lat": 3.8, "lng": 11.5},
+                "pickup_address": "pickup",
+                "dropoff_location": {"lat": 3.9, "lng": 11.6},
+                "dropoff_address": "dropoff",
+                "package": {"label": "order-1"},
+                "quoted_price": 500,
+            },
+        )
+
+    assert exc_info.value.details == {"upstream_status": status}
