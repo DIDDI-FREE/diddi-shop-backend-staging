@@ -10,7 +10,10 @@ from app_base.core.platform_models import Base
 
 config = context.config
 if config.config_file_name:
-    fileConfig(config.config_file_name)
+    # Alembic runs in-process during startup; do not disable application
+    # loggers (or the Docker/OTLP observability handlers) while configuring
+    # Alembic's own logger.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 config.set_main_option("sqlalchemy.url", os.getenv("DIDDI_SHOP_DATABASE_URL", config.get_main_option("sqlalchemy.url")))
 target_metadata = Base.metadata
 

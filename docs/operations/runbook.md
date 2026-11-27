@@ -26,3 +26,14 @@ Avant recette : migrations Alembic, PostgreSQL, Redis, clients et scopes S2S,
 secrets webhook, URLs HTTPS, DiddiObserve OTLP et test des endpoints
 `/health`/`/ready`. La recette financière utilise uniquement des scénarios
 autorisés et sans transaction réelle non approuvée.
+
+### Migrations de démarrage
+
+Le service `api` exécute automatiquement `alembic upgrade head` avant Uvicorn
+dans le Compose staging. Cette étape est obligatoire pour les volumes
+PostgreSQL persistants : le démarrage n'accepte du trafic qu'après application
+des migrations `0001` et `0002`, dont `0002` crée notamment la table `carts`.
+
+Le Compose local conserve son mode développement et ses repositories en
+mémoire ; les migrations peuvent néanmoins être vérifiées séparément avec
+`alembic upgrade head`.

@@ -124,3 +124,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-D — aligner les scopes DiddiSend et isoler le blocage d’auth staging
 - [x] S24-E — corriger la validation JWT/JWKS dans l’image API
 - [x] S24-F — aligner les JWT utilisateurs sans audience et rendre l’issuer obligatoire
+- [x] S24-G — exécuter automatiquement les migrations Alembic avant l’API staging

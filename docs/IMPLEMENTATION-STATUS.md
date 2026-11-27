@@ -4,6 +4,11 @@
 **Phase courante :** S23-D terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
+**Correction du 2026-11-27 :** le Compose staging exécute désormais
+`alembic upgrade head` avant Uvicorn. L'incident staging `relation "carts"
+does not exist` venait de l'absence de cette étape au démarrage, pas d'un
+problème JWT ou DiddiSend.
+
 ## État global
 
 Le squelette Clean Architecture existe sous `app_base/`. Les frontières sont
@@ -311,3 +316,20 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   rejet JWT détaillé postérieur à l’appel de diagnostic.
 - Le dernier appel réel a ensuite révélé `MissingCryptographyError` ;
   reconstruire l’image avec la dépendance crypto avant le prochain test.
+
+## S24-G — migrations PostgreSQL au démarrage
+
+- Les migrations Alembic étaient présentes mais n’étaient pas exécutées par le
+  Compose staging ; cela expliquait `relation "carts" does not exist` après une
+  authentification réussie.
+- Le service API exécute maintenant `alembic upgrade head` avant de lancer
+  Uvicorn, suivant le modèle DiddiFood staging.
+- Vérifications locales : 82 tests passés, Ruff OK, image construite et test
+  d’intégration sur PostgreSQL vide réussi (`/health` HTTP 200, deux migrations
+  appliquées).
+
+### Vérifications de déploiement en attente — S24-G
+
+- Déployer manuellement le nouveau Compose/image dans Portainer.
+- Vérifier les marqueurs Alembic `Running upgrade` dans les logs API.
+- Rejouer `GET /v1/cart` avec un JWT acheteur et confirmer l’absence de 500.

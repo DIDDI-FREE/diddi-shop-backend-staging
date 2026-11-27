@@ -76,6 +76,9 @@ services:
       OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:-}
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:-}
       OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+    # Keep schema ownership with the API image, as in DiddiFood staging:
+    # upgrade the persistent PostgreSQL database before accepting traffic.
+    command: ["sh", "-c", "alembic upgrade head && exec uvicorn app_base.main:app --host 0.0.0.0 --port 8000"]
     depends_on:
       postgres:
         condition: service_healthy

@@ -530,3 +530,18 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : incident staging et JWT observé par l’utilisateur | Agent
 - Impact : authentification frontend, routes internes, Compose, configuration
   Portainer et tests.
+
+### D-047 — Migrations avant démarrage de l’API staging
+- Date : 2026-11-27
+- Phase / sous-lot : S24-G
+- Décision : le service API du Compose staging exécute `alembic upgrade head`
+  puis démarre Uvicorn avec `exec`. Les migrations restent dans l’image et la
+  base PostgreSQL conserve son volume persistant.
+- Pourquoi : les migrations `0001` et `0002` existaient déjà, mais aucune
+  commande ne les exécutait au démarrage ; la table `carts` manquait en staging.
+  Ce modèle suit DiddiFood staging et le runner de démarrage des autres modules.
+- Alternatives écartées : appliquer les migrations manuellement après chaque
+  déploiement ; utiliser `Base.metadata.create_all()` ; modifier la base
+  directement sans migration versionnée.
+- Source : incident staging et comparaison DiddiFood/DiddiPay/DiddiSupport | Agent
+- Impact : Dockerfile/Compose staging, démarrage API, PostgreSQL, runbook et tests.

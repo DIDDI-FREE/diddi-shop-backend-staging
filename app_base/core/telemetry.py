@@ -193,16 +193,20 @@ class TelemetryRuntime:
         tracer_provider: TracerProvider | None = None,
         logger_provider: LoggerProvider | None = None,
         handler: LoggingHandler | None = None,
+        logger_propagate: bool | None = None,
     ) -> None:
         self.stats = stats
         self.tracer_provider = tracer_provider
         self.logger_provider = logger_provider
         self.handler = handler
+        self.logger_propagate = logger_propagate
 
     def shutdown(self) -> None:
         logger = logging.getLogger("diddi_shop")
         if self.handler is not None:
             logger.removeHandler(self.handler)
+        if self.logger_propagate is not None:
+            logger.propagate = self.logger_propagate
         if self.logger_provider is not None:
             self.logger_provider.force_flush(5000)
             self.logger_provider.shutdown()
@@ -230,6 +234,7 @@ def configure_telemetry(settings: Settings) -> TelemetryRuntime:
     tracer_provider: TracerProvider | None = None
     logger_provider: LoggerProvider | None = None
     handler: LoggingHandler | None = None
+    logger_propagate: bool | None = None
 
     if settings.otel_exporter_otlp_traces_endpoint:
         tracer_provider = TracerProvider(resource=resource, shutdown_on_exit=False)
@@ -260,11 +265,14 @@ def configure_telemetry(settings: Settings) -> TelemetryRuntime:
         handler.set_name("diddiobserve-otlp")
         handler.addFilter(DiddiTelemetryFilter())
         application_logger = logging.getLogger("diddi_shop")
+        logger_propagate = application_logger.propagate
         application_logger.setLevel(logging.INFO)
-        application_logger.propagate = False
+        # Keep propagation enabled so the same application event remains
+        # visible in Docker/uvicorn logs as well as in DiddiObserve.
+        application_logger.propagate = True
         for existing in tuple(application_logger.handlers):
             if existing.get_name() == "diddiobserve-otlp":
                 application_logger.removeHandler(existing)
         application_logger.addHandler(handler)
 
-    return TelemetryRuntime(stats, tracer_provider, logger_provider, handler)
+    return TelemetryRuntime(stats, tracer_provider, logger_provider, handler, logger_propagate)
