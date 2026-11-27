@@ -48,10 +48,10 @@ app.add_middleware(
 
 @app.exception_handler(DiddiShopError)
 async def handle_domain_error(_request: Request, exc: DiddiShopError):
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"error": exc.code, "message": str(exc)},
-    )
+    content = {"error": exc.code, "message": str(exc)}
+    if exc.details is not None:
+        content["details"] = exc.details
+    return JSONResponse(status_code=exc.status_code, content=content)
 
 
 @app.exception_handler(RequestValidationError)

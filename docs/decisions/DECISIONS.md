@@ -779,3 +779,42 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   bloquer toute livraison sans boîte mail.
 - Source : Utilisateur ; contrat DiddiSend.
 - Impact : checkout, configuration, contrat DiddiSend et tests.
+
+### D-063 — Contrat stock en 422 dédié
+- Date : 2026-11-27
+- Phase / sous-lot : S24-R
+- Décision : répondre HTTP `422` avec `INSUFFICIENT_STOCK` et les quantités
+  demandée/disponible pour l’ajout et la modification d’une ligne panier.
+- Pourquoi : le frontend doit afficher une erreur métier stable, et la demande
+  est syntaxiquement valide mais impossible dans l’état courant du stock.
+- Alternatives écartées : `409 CONFLICT` générique et analyse du message texte.
+- Source : Utilisateur.
+- Impact : panier, handler d’erreurs, contrat frontend et tests.
+
+### D-064 — Normaliser l’expiration sans inventer un état financier
+- Date : 2026-11-27
+- Phase / sous-lot : S24-R
+- Décision : convertir `expires_at` fourni par DiddiPay en ISO 8601 UTC avec
+  suffixe `Z` dans la réponse Shop. DiddiPay reste source de vérité ; sans
+  webhook final, le checkout reste `payment_pending` et aucun état local
+  `payment_expired` n’est créé.
+- Pourquoi : DiddiPay expose `expires_at` dans `next_action` mais pas d’état
+  `expired` dans son contrat PaymentIntent ; une expiration locale pourrait
+  contredire un succès tardif confirmé par webhook.
+- Alternatives écartées : timer local Shop, changement automatique en
+  `payment_failed`, état public non supporté par DiddiPay.
+- Source : contrat DiddiPay audité et utilisateur.
+- Impact : contrat checkout, adaptateur Pay, réponse frontend et retry.
+
+### D-065 — Exposer le payeur et changer le moyen au retry
+- Date : 2026-11-27
+- Phase / sous-lot : S24-R
+- Décision : exposer `payment.customer_phone` complet et
+  `payment.payment_method`. Autoriser `payment_method` dans le corps du retry,
+  avec une clé d’idempotence nouvelle.
+- Pourquoi : le produit exige l’affichage du numéro et permet de reprendre un
+  échec avec Wave, MTN MoMo ou Orange Money.
+- Alternatives écartées : numéro masqué et conservation obligatoire du moyen
+  précédent.
+- Source : Utilisateur.
+- Impact : checkout, schéma frontend, adaptateur DiddiPay et tests.

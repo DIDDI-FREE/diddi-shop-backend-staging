@@ -173,6 +173,9 @@ route de création livraison.
 ### Checkout et commande
 
 - checkout : `payment_pending`, `payment_succeeded`, `payment_failed` ;
+- `expires_at` est renvoyé en ISO 8601 UTC (`...Z`) lorsqu’il est fourni par
+  DiddiPay. DiddiPay reste la source de vérité : DiddiShop ne crée pas
+  localement un état `payment_expired` et attend un webhook pour conclure.
 - fulfillment : `PAYMENT_PENDING`, `TO_CONFIRM`, `TO_PREPARE`,
   `READY_FOR_PICKUP`, `PICKED_UP`, `IN_TRANSIT`, `DELIVERED`, `RETURNED`,
   `CANCELLED`, `FAILED`, `DISPUTED`, `CLOSED` ;

@@ -4,6 +4,10 @@ class DiddiShopError(Exception):
     code = "SHOP_ERROR"
     status_code = 409
 
+    def __init__(self, message: str, *, details: dict | None = None):
+        super().__init__(message)
+        self.details = details
+
 
 class ConflictError(DiddiShopError):
     code = "CONFLICT"
@@ -17,6 +21,10 @@ class NotFoundError(DiddiShopError):
 class ValidationError(DiddiShopError):
     code = "VALIDATION_ERROR"
     status_code = 422
+
+
+class InsufficientStockError(ValidationError):
+    code = "INSUFFICIENT_STOCK"
 
 
 class PaymentPhoneRequiredError(ValidationError):

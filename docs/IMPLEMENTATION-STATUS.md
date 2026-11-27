@@ -531,3 +531,15 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   par DiddiSend : `DIDDISEND_SENDER_PHONE` et `DIDDISEND_SENDER_EMAIL`.
 - Après déploiement manuel, confirmer `POST /v1/orders/{order_id}/ready` →
   réponse DiddiSend 2xx et `delivery_id` non vide.
+
+## S24-R — première vague de contrats frontend
+
+- Stock insuffisant : `422 INSUFFICIENT_STOCK` avec les quantités demandée et
+  disponible.
+- `expires_at` DiddiPay est normalisé en ISO 8601 UTC ; DiddiPay reste la
+  source de vérité et aucun `payment_expired` local n’est inventé.
+- `payment.customer_phone` expose le numéro complet demandé par le produit et
+  `payment.payment_method` expose le moyen utilisé.
+- Le retry accepte `payment_method` (`wave`, `mtn_momo`, `orange_money`) avec
+  une nouvelle clé d’idempotence.
+- Vérification locale ciblée : 48 tests réussis après correction.

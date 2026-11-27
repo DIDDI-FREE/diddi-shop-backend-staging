@@ -19,6 +19,7 @@ class CreateCheckoutRequest(PaymentReturnOptions):
 
 class RetryCheckoutPaymentRequest(PaymentReturnOptions):
     model_config = ConfigDict(extra="forbid")
+    payment_method: str | None = Field(default=None, pattern=r"^(wave|mtn_momo|orange_money)$")
 
 
 class CheckoutQuoteRequest(BaseModel):

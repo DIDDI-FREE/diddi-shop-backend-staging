@@ -241,6 +241,8 @@ valeurs existantes.
 - Le produit doit exister, être `published` et disponible.
 - Si la ligne existe, la quantité est augmentée.
 - Réponse : `CartResponse`.
+- Stock insuffisant : HTTP `422`, code `INSUFFICIENT_STOCK`, avec
+  `details.product_id`, `requested_quantity` et `available_quantity`.
 
 ### `DELETE /v1/cart/lines/{product_id}`
 
@@ -287,8 +289,9 @@ valeurs existantes.
   `subtotal_minor`, `delivery_fee_minor`, `discount_minor`,
   `shop_breakdowns`, `payment_attempt`, `currency`, `status`, `order_ids`,
   `created_at` et `payment`.
-- `payment` contient `payment_intent_id`, `amount_minor`, `currency`, `status`
-  et relaie éventuellement `payment_url`, `checkout_url`, `client_secret`,
+- `payment` contient `payment_intent_id`, `amount_minor`, `currency`, `status`,
+  `payment_method`, `customer_phone`, `expires_at` et relaie éventuellement
+  `payment_url`, `checkout_url`, `client_secret`,
   `payment_method`, `expires_at` et `next_action`. Le V1 accepte `wave`, `mtn_momo` et
   `orange_money`, avec `wave` par défaut. `return_url` est facultative et doit
   cibler `diddifree.com` ou un sous-domaine en HTTPS (port 443/default),
@@ -308,7 +311,9 @@ valeurs existantes.
   boutique et le total sans créer de paiement.
 - `GET /v1/checkouts/{checkout_id}` lit l’état du checkout et de son paiement.
 - `POST /v1/checkouts/{checkout_id}/retry` relance uniquement un checkout en
-  `payment_failed`, avec une nouvelle `Idempotency-Key`.
+  `payment_failed`, avec une nouvelle `Idempotency-Key`. Le corps peut aussi
+  fournir `payment_method` (`wave`, `mtn_momo` ou `orange_money`) pour changer
+  de moyen après un échec.
 
 ### `POST /v1/checkouts/quote`
 

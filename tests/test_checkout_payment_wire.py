@@ -156,7 +156,8 @@ async def test_create_read_and_retry_send_phone_through_real_adapter_and_sql(met
             assert "recipient_phone" not in body
         assert sent[1].headers["idempotency-key"] == "retry-2"
         assert (await service.products.get("product")).stock == 2
-        assert PHONE not in retry.text
+        assert retry.json()["payment"]["customer_phone"] == PHONE
+        assert retry.json()["payment"]["payment_method"] == method
 
 
 async def legacy_checkout(service, phone, stored_phone=None, return_url=RETURN_URL):

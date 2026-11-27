@@ -385,15 +385,16 @@ class CheckoutApplicationService:
         }
         await self.checkouts.save(checkout)
 
+        payment_method = (return_options or {}).get("payment_method") or previous_payment.get("payment_method", "wave")
         payment = await self.payments.create_with_options(
             checkout.id,
             checkout.total_minor,
             idempotency_key,
-            payment_method=previous_payment.get("payment_method", "wave"),
+            payment_method=payment_method,
             **payment_return.model_dump(),
             customer_phone=customer_phone,
         )
-        payment["payment_method"] = previous_payment.get("payment_method", "wave")
+        payment["payment_method"] = payment_method
         payment["customer_phone"] = customer_phone
         payment.update(payment_return.model_dump())
         checkout.status = self._checkout_status_for_payment(payment)

@@ -1,5 +1,5 @@
 
-from app_base.core.errors import ConflictError
+from app_base.core.errors import ConflictError, InsufficientStockError
 from app_base.modules.cart.domain import Cart, CartLine, CartRepository
 from app_base.modules.catalog.domain import ProductRepository
 
@@ -45,9 +45,27 @@ class CartService:
         cart = await self.get(customer_id)
         for line in cart.lines:
             if line.product_id == product_id:
+                if product.stock < line.quantity + quantity:
+                    raise InsufficientStockError(
+                        "Stock insuffisant",
+                        details={
+                            "product_id": product_id,
+                            "requested_quantity": line.quantity + quantity,
+                            "available_quantity": product.stock,
+                        },
+                    )
                 line.quantity += quantity
                 await self.repository.save(cart)
                 return cart
+        if product.stock < quantity:
+            raise InsufficientStockError(
+                "Stock insuffisant",
+                details={
+                    "product_id": product_id,
+                    "requested_quantity": quantity,
+                    "available_quantity": product.stock,
+                },
+            )
         cart.lines.append(CartLine(product.id, product.shop_id, quantity))
         await self.repository.save(cart)
         return cart
@@ -63,7 +81,14 @@ class CartService:
         if product is None or product.status.value != "published":
             raise ConflictError("product is not purchasable")
         if product.stock < quantity:
-            raise ConflictError("insufficient stock")
+            raise InsufficientStockError(
+                "Stock insuffisant",
+                details={
+                    "product_id": product_id,
+                    "requested_quantity": quantity,
+                    "available_quantity": product.stock,
+                },
+            )
         line.quantity = quantity
         await self.repository.save(cart)
         return cart

@@ -1,6 +1,6 @@
 """Stable HTTP representations consumed by the web and mobile clients."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -10,6 +10,21 @@ from app_base.modules.catalog.domain import Product
 from app_base.modules.checkout.domain import Checkout
 from app_base.modules.orders.domain.entities import Order
 from app_base.modules.shops.domain import Shop
+
+
+def _normalize_payment_datetime(value: object) -> object:
+    if isinstance(value, datetime):
+        parsed = value
+    elif isinstance(value, str):
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return value
+    else:
+        return value
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC).isoformat().replace("+00:00", "Z")
 
 
 class ProductResponse(BaseModel):
@@ -148,6 +163,7 @@ class CheckoutPaymentResponse(BaseModel):
     currency: Literal["XOF"]
     status: str
     payment_method: str | None = None
+    customer_phone: str | None = None
     expires_at: str | None = None
     payment_url: str | None = None
     checkout_url: str | None = None
@@ -488,11 +504,13 @@ def checkout_response(checkout: Checkout, payment: dict[str, Any] | None = None)
         "status": source.get("status", "pending"),
     }
     for key in (
-        "payment_method", "expires_at", "payment_url", "checkout_url", "client_secret", "next_action",
+        "payment_method", "customer_phone", "payment_url", "checkout_url", "client_secret", "next_action",
         "payment_failure_code", "payment_failure_message", "payment_provider_status",
     ):
         if source.get(key) is not None:
             payment_response[key] = source[key]
+    if source.get("expires_at") is not None:
+        payment_response["expires_at"] = _normalize_payment_datetime(source["expires_at"])
     return {
         "id": checkout.id,
         "customer_id": checkout.customer_id,

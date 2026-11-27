@@ -306,7 +306,12 @@ utilise sa configuration : par défaut sa page publique `/payments/return`.
 Les URLs explicites doivent être HTTPS sur `diddifree.com` ou un sous-domaine,
 sans credentials, fragment ni traversée de chemin (2048 caractères maximum).
 Le retry accepte ces mêmes options dans un corps facultatif pour réparer un
-ancien checkout ; la clé d'idempotence couvre aussi ce corps.
+ancien checkout ; la clé d’idempotence couvre aussi ce corps.
+
+Le retry peut également contenir `payment_method` avec l’une des valeurs
+`wave`, `mtn_momo` ou `orange_money`. Le téléphone complet du payeur est
+retourné dans `payment.customer_phone`, avec le moyen utilisé dans
+`payment.payment_method`.
 
 `payment.next_action` expose `type`, `url?`, `instructions?`, `expires_at?`.
 Pour `redirect`, ouvrir `payment.payment_url`, égal à `next_action.url`.
