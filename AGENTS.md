@@ -1,5 +1,11 @@
 # MISSION : IMPLÉMENTER LE PLAN EN ENTIER, EN AUTONOMIE
 
+## INTERDICTION PERMANENTE — PORTAINER
+
+Ne jamais déployer ni redéployer quoi que ce soit sur Portainer, sous aucun
+prétexte. Les vérifications Portainer sont strictement en lecture seule. Le
+déploiement est toujours effectué manuellement par l’utilisateur.
+
 PLAN À IMPLÉMENTER : IMPLEMENTATION_PLAN.md
 MAP DU PROJET: [text](INTEGRATION_MAP.md)
 
