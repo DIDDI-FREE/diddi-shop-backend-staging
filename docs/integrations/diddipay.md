@@ -10,6 +10,11 @@ En V1, DiddiShop utilise DiddiPay pour PaymentIntent, annulation, refund et
 `amount_minor` vers `amount` et normalise la réponse `id` en
 `payment_intent_id`.
 
+Pour le mobile money, il envoie `channel=mobile_money` et traduit `wave` vers
+`network=wave`, `mtn_momo` vers `network=mtn` et `orange_money` vers
+`network=orange`. Les champs `payment_method` et `return_url` ne font pas
+partie du schéma DiddiPay staging et ne sont pas envoyés.
+
 Un refund attend `amount` et `reason`. La réponse `id` est normalisée en
 `refund_id`. DiddiShop ne reçoit ni ne stocke de données carte.
 

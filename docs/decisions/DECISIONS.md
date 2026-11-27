@@ -571,3 +571,16 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   laisser l’exception Python remonter ; accepter silencieusement un montant nul.
 - Source : traces Grafana/Portainer et contrat DiddiSend | Agent
 - Impact : adaptateur DiddiSend, checkout, erreurs API et tests d’intégration.
+
+### D-050 — Mapper le paiement Shop vers le contrat DiddiPay PaymentIntent
+- Date : 2026-11-27
+- Phase / sous-lot : S24-J
+- Décision : envoyer `channel=mobile_money` et mapper `wave` vers `network=wave`,
+  `mtn_momo` vers `network=mtn` et `orange_money` vers `network=orange`.
+  Ne plus envoyer `payment_method` ni `return_url`.
+- Pourquoi : le schéma staging DiddiPay expose `channel`/`network` et rejette
+  les propriétés supplémentaires ; `return_url` n’est pas un champ accepté.
+- Alternatives écartées : ajouter un support `cash` ; transmettre les champs
+  Shop tels quels ; supprimer le moyen de paiement mobile money.
+- Source : OpenAPI DiddiPay staging vérifiée le 2026-11-27 | Agent
+- Impact : adaptateur DiddiPay, checkout, tests et documentation d’intégration.

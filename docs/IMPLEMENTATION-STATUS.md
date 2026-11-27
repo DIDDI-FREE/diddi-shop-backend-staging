@@ -359,3 +359,19 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Rejouer le devis avec des coordonnées de retrait et de livraison distinctes.
 - Si DiddiMap renvoie encore une distance nulle, corriger les coordonnées du
   scénario de test côté appelant ; ce n’est pas une erreur de parsing Shop.
+
+## S24-J — payload PaymentIntent DiddiPay
+
+- Payload aligné sur l’OpenAPI staging : `channel=mobile_money` et `network`
+  selon le moyen choisi. Les champs non contractuels `payment_method` et
+  `return_url` ont été retirés.
+- `cash` reste volontairement refusé : le MVP utilise uniquement Wave, MTN
+  Mobile Money et Orange Money.
+- Vérifications locales : `pytest -q` et `ruff check .`.
+
+### Vérifications de déploiement en attente — S24-J
+
+- Déployer manuellement le commit dans Portainer.
+- Rejouer le checkout avec `wave`, puis vérifier la création du PaymentIntent.
+- Vérifier ensuite `mtn_momo` et `orange_money` sans transaction réelle si le
+  fournisseur de paiement l’autorise.
