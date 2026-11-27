@@ -36,8 +36,13 @@ propriétaire DiddiSend ou DiddiPay sans mapping explicite.
 
 `PENDING`, `HELD`, `REFUND_PENDING`, `REFUNDED`, `PARTIALLY_REFUNDED`,
 `RELEASE_BLOCKED`, `RELEASE_PENDING` et `RELEASED` sont conservés séparément.
-Les états `HELD`, `RELEASE_*` documentent le port V2 et ne doivent pas
+Les états `RELEASE_*` sont réservés au port V2 ; aucun de ces états ne doit
 déclencher une séquestration en V1.
+
+Le traitement actuel de `payment.succeeded` utilise déjà `HELD` comme nom
+historique local pour la commande payée, avec `fulfillment_status=TO_CONFIRM`.
+Pour le frontend, le checkout expose `status=payment_succeeded`. Aucun appel
+de hold ou release vendeur n'est déclenché par cette confirmation en V1.
 
 ## Transitions autorisées
 

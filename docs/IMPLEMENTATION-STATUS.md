@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-27
-**Phase courante :** S24-O terminé localement
+**Phase courante :** S24-P terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 **Correction du 2026-11-27 :** le Compose staging exécute désormais
@@ -29,7 +29,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 133 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 238 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | OK dans PostgreSQL local Compose |
@@ -484,3 +484,31 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   client Shop→Pay. Un refus doit être visible via `payment_failure_code`.
 - Vérifier le paiement final par webhook signé puis GET authentifié, jamais
   depuis le navigateur. Aucun paiement réel n'a été testé par cet agent.
+
+## S24-P — webhook paiement SQL et parcours vendeur/livraison
+
+- Rapport E2E fourni : webhook `payment.succeeded` en 500 sur
+  `order.payment_status.value`, commandes/boutiques illisibles et méthode
+  ShopService.get inexistante. Reproduction locale : 5 tests échouaient sur 6.
+- Réhydratation des enums Order, Shop, DeliveryProjection ; sauvegarde de
+  l'instance modifiée par paiement/Rewards, sans relecture perdant les changements.
+- Lecture ShopService.get restaurée ; véritables 403/404 conservés sur les routes
+  commandes. Livraison : instance à jour après transition, date préservée au rejeu.
+- Tests : callback HMAC réel, repositories/inbox/outbox SQL, lecture acheteur et
+  vendeur, confirm/ready, création DiddiSend simulée, livraison jusqu'à DELIVERED,
+  panne de sauvegarde, reprise multi-boutiques partielle, refus d'accès/signature.
+- 238 tests réussis sur hôte et Docker Python 3.12 sans réseau ; un parcours
+  complet supplémentaire réussi sur PostgreSQL 16 Docker jetable (HMAC,
+  inbox/outbox, checkout, vendeur, livraison simulée). Ruff hôte/Linux,
+  compilation, MkDocs strict et génération SQL Alembic réussis.
+- Aucun schéma, secret ou variable à modifier. Aucun backend externe modifié.
+  Décisions D-059/D-060 ; état HELD historique maintenu sans séquestration V1.
+
+### Vérifications de déploiement en attente — S24-P
+
+- Déploiement manuel Git par l'utilisateur uniquement.
+- Confirmer chez Pay le succès de l'intention concernée ; reprendre son callback
+  original (automatiquement ou via l'équipe Pay), sans nouveau paiement.
+- Vérifier checkout `payment_succeeded`, commande `TO_CONFIRM` et liste vendeur.
+- Vérifier les lectures protégées, confirm/ready puis projection DiddiSend.
+- Aucun rejeu réel ni mutation des données staging n'a été effectué ici.

@@ -101,6 +101,16 @@ Un refund attend `amount` et `reason`. La réponse `id` est normalisée en
 - un événement déjà traité retourne un résultat `duplicate` sans nouvelle
   mutation.
 
+Après un `payment.succeeded` traité, le checkout est `payment_succeeded`,
+la commande est `TO_CONFIRM` et son statut paiement local historique est
+`HELD`. Ce dernier nom ne déclenche aucune séquestration V1. La confirmation
+paiement, l'historique et les métadonnées Rewards sont conservés après lecture
+et sauvegarde SQL.
+
+Si la sauvegarde Shop échoue en 500, le callback n'est pas acquitté dans
+l'inbox. Faire reprendre la notification originale par DiddiPay, **pas le
+paiement**. Procédure : [runbook de reprise](../operations/runbook.md#paiement-reussi-chez-diddipay-mais-webhook-shop-en-500).
+
 Les statuts locaux `PENDING`, `REFUNDED` et `PARTIALLY_REFUNDED` ne remplacent
 pas les statuts fournisseurs : le mapping doit être explicite.
 

@@ -21,11 +21,14 @@ class ShopService:
             raise ConflictError("shop does not belong to actor")
         return shop
 
-    async def get_public(self, shop_id: str) -> Shop:
+    async def get(self, shop_id: str) -> Shop:
         shop = await self.repository.get(shop_id)
         if shop is None:
             raise NotFoundError("shop not found")
         return shop
+
+    async def get_public(self, shop_id: str) -> Shop:
+        return await self.get(shop_id)
 
     async def list_for_owner(self, owner_id: str) -> list[Shop]:
         return await self.repository.list_for_owner(owner_id)

@@ -133,3 +133,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-M — réconcilier les anciens checkouts pending avec paiement failed
 - [x] S24-N — verrouiller customer_phone, tester routes/SQL/HTTP et identifier les rejeux
 - [x] S24-O — transmettre le retour Payment Page, reprendre les anciens checkouts et exposer next_action
+- [x] S24-P — réhydrater les statuts SQL et valider webhook → vendeur → livraison sur PostgreSQL Docker

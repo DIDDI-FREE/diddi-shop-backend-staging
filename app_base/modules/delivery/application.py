@@ -99,11 +99,11 @@ class DeliveryService:
             DeliveryStatus.RETURNED: FulfillmentStatus.RETURNED,
         }.get(target)
         if transition and order.fulfillment_status != transition:
-            await self.orders.transition(order_id, transition, reason=event_type, actor="diddisend")
+            order = await self.orders.transition(order_id, transition, reason=event_type, actor="diddisend")
         if target == DeliveryStatus.DELIVERED:
             now = datetime.now(UTC)
-            order.metadata["delivered_at"] = now
+            order.metadata.setdefault("delivered_at", now)
             if self.seller_release_enabled:
-                order.metadata["release_eligible_at"] = now + timedelta(hours=72)
+                order.metadata.setdefault("release_eligible_at", now + timedelta(hours=72))
             await self.orders.repository.save(order)
         return delivery

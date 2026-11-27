@@ -25,6 +25,10 @@ class OrderService:
 
     async def transition(self, order_id: str, target: FulfillmentStatus, reason: str, actor: str) -> Order:
         order = await self.get(order_id)
+        return await self._transition(order, target, reason, actor)
+
+    async def _transition(self, order: Order, target: FulfillmentStatus, reason: str, actor: str) -> Order:
+        # Persist the mutated aggregate, not a fresh copy that loses payment/rewards.
         history = order.transition(target, reason=reason, actor=actor)
         await self.repository.save(order)
         await append_outbox(self.outbox, new_outbox_message(
@@ -41,14 +45,14 @@ class OrderService:
             order.payment_status = PaymentStatus.HELD
             if order.fulfillment_status == FulfillmentStatus.PAYMENT_PENDING:
                 await self._confirm_reward(order, payload)
-                return await self.transition(order_id, FulfillmentStatus.TO_CONFIRM, "payment.succeeded", "diddipay")
+                return await self._transition(order, FulfillmentStatus.TO_CONFIRM, "payment.succeeded", "diddipay")
             await self.repository.save(order)
             return order
         if event_type == "payment.failed":
             order.payment_status = PaymentStatus.PENDING
             await self._release_reward(order)
             if order.fulfillment_status == FulfillmentStatus.PAYMENT_PENDING:
-                return await self.transition(order_id, FulfillmentStatus.CANCELLED, "payment.failed", "diddipay")
+                return await self._transition(order, FulfillmentStatus.CANCELLED, "payment.failed", "diddipay")
         if event_type == "payment.refunded":
             order.payment_status = PaymentStatus.PARTIALLY_REFUNDED if payload.get("partial") else PaymentStatus.REFUNDED
             await self._correct_reward(order, payload)

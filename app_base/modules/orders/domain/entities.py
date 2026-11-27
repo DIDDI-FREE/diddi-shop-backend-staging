@@ -67,6 +67,9 @@ class Order:
 
     def __post_init__(self) -> None:
         require_xof(self.currency)
+        # JSON stores strings; every loaded aggregate must recover domain enums.
+        self.fulfillment_status = FulfillmentStatus(self.fulfillment_status)
+        self.payment_status = PaymentStatus(self.payment_status)
         if self.seller_confirmation_deadline is None:
             try:
                 created = datetime.fromisoformat(self.created_at)

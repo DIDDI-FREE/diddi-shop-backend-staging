@@ -714,3 +714,39 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   exposer toute la réponse Pay ; contourner l'idempotence.
 - Source : Agent, à valider ; OpenAPI et resolver DiddiPay vérifiés en lecture seule.
 - Impact : adaptateur, application, contrat frontend, tests SQL/HTTP et docs.
+
+### D-059 — Réhydrater les agrégats SQL et sauvegarder leur instance modifiée
+- Date : 2026-11-27
+- Phase / sous-lot : S24-P
+- Décision : restaurer explicitement les enums Order (fulfillment/payment),
+  Shop et DeliveryProjection à la construction, comme pour Checkout. Toute
+  valeur inconnue reste rejetée, aucun statut par défaut inventé. La transition
+  paiement sauvegarde la même instance que celle où paiement/Rewards ont été
+  appliqués. La livraison réutilise l'instance retournée par sa transition et
+  préserve les dates déjà enregistrées lors d'un rejeu.
+- Pourquoi : cinq tests SQL/routes échouent avant correction. JSON transforme
+  les enums en chaînes ; recharger un agrégat perd les changements non sauvés.
+  Le défaut est masqué par les repositories mémoire retournant la même instance.
+- Alternatives écartées : remplacer partout `.value` par `str` ; convertir en
+  valeur par défaut ; forcer les états en staging ; demander un nouveau paiement.
+- Source : rapport E2E du 27 novembre fourni par l'utilisateur ; tests locaux.
+- Impact : domaine, services commandes/livraisons, tests SQL et recette. Aucun
+  changement de schéma, de statut public ou activation de séquestration/release.
+
+### D-060 — Restaurer les lectures autorisées et rejouer le callback original
+- Date : 2026-11-27
+- Phase / sous-lot : S24-P
+- Décision : ajouter la lecture ShopService.get attendue par les contrôles
+  d'accès ; maintenir get_public et les vérifications propriétaire. Ne plus
+  transformer toute exception de lecture commande en faux 404, ni tout refus
+  d'accès de transition en 409. Le webhook n'est acquitté dans l'inbox qu'après
+  traitement réussi ; reprise via sa notification authentique, jamais un paiement
+  supplémentaire ou un webhook de succès fabriqué en staging.
+- Pourquoi : le rapport démontre l'appel à une méthode inexistante, et les tests
+  reproduisent ces erreurs. Le paiement sandbox affiché ne suffit pas à déclarer
+  la commande validée ; sa projection locale doit être persistée.
+- Alternatives écartées : retirer les contrôles acheteur/vendeur ; utiliser
+  X-Actor-ID en staging ; purger l'inbox ; muter manuellement les données.
+- Source : Agent, à valider ; rapport E2E et tests de régression.
+- Impact : boutiques, routes commandes, lectures livraison/claims existantes,
+  documentation de reprise ; aucune mutation Portainer.

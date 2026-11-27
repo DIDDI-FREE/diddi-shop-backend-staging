@@ -92,11 +92,8 @@ async def get_order(
     actor: Actor = Depends(current_actor),
     service: OrderService = Depends(get_order_service),
 ):
-    try:
-        await _authorize_order(request, order_id, actor)
-        return order_response(await service.get(order_id))
-    except Exception as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    await _authorize_order(request, order_id, actor)
+    return order_response(await service.get(order_id))
 
 
 @router.post("/{order_id}/transitions", response_model=OrderResponse)
@@ -107,11 +104,8 @@ async def transition_order(
     actor: Actor = Depends(current_actor),
     service: OrderService = Depends(get_order_service),
 ):
-    try:
-        await _authorize_order(request, order_id, actor, seller_only=True)
-        return order_response(await service.transition(order_id, target, reason="api_command", actor="api"))
-    except Exception as exc:
-        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    await _authorize_order(request, order_id, actor, seller_only=True)
+    return order_response(await service.transition(order_id, target, reason="api_command", actor="api"))
 
 
 @router.post("/{order_id}/confirm", response_model=OrderResponse)

@@ -22,3 +22,6 @@ class DeliveryProjection:
     courier: dict | None = None
     dropoff_code: str | None = None
     position: dict | None = None
+
+    def __post_init__(self) -> None:
+        self.status = DeliveryStatus(self.status)

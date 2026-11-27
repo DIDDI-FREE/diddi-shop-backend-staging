@@ -18,6 +18,9 @@ class Shop:
     pickup_longitude: float
     status: ShopStatus = ShopStatus.ACTIVE
 
+    def __post_init__(self) -> None:
+        self.status = ShopStatus(self.status)
+
 
 class ShopRepository(Protocol):
     async def save(self, shop: Shop) -> None: ...
