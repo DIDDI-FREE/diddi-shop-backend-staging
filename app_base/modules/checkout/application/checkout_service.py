@@ -23,6 +23,14 @@ from app_base.shared_kernel.contracts.payments import (
 logger = logging.getLogger(__name__)
 
 
+def _technical_sender_email(phone: str, configured_email: str) -> str:
+    """Return a stable non-personal email when the sender has no mailbox."""
+    if configured_email.strip():
+        return configured_email.strip()
+    digits = "".join(character for character in phone if character.isdigit())
+    return f"{digits or 'diddishop-system'}@diddifree.com"
+
+
 class DeliveryQuotePort:
     async def quote(self, shop_id: str, cart_lines: list[dict], delivery_context: dict | None = None) -> int:
         raise NotImplementedError
@@ -229,7 +237,10 @@ class CheckoutApplicationService:
                             "sender_user_id": self.diddisend_service_user_id
                             or (shop.owner_id if shop is not None else "diddishop-system"),
                             "sender_phone": self.diddisend_sender_phone,
-                            "sender_email": self.diddisend_sender_email,
+                            "sender_email": _technical_sender_email(
+                                self.diddisend_sender_phone,
+                                self.diddisend_sender_email,
+                            ),
                             "recipient_name": quote_context.get("recipient_name", customer_id),
                             "recipient_phone": quote_context.get("recipient_phone", "unknown"),
                             "pickup_address": quote_context.get("pickup_location", {}).get("address", ""),

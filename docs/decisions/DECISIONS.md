@@ -766,3 +766,16 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : rapport staging fourni par l’utilisateur ; contrat DiddiFood audité.
 - Impact : settings, Compose, checkout, adaptateur DiddiSend, configuration
   Portainer hors dépôt, tests et documentation.
+
+### D-062 — Générer l’email technique sender quand il est absent
+- Date : 2026-11-27
+- Phase / sous-lot : S24-Q
+- Décision : rendre `DIDDISEND_SENDER_EMAIL` facultatif. Si aucune adresse n’est
+  fournie, générer `digits(phone)@diddifree.com` pour le payload DiddiSend.
+- Pourquoi : le sender possède un téléphone autorisé mais peut ne pas avoir de
+  boîte email. L’adresse technique est stable, non personnelle et respecte le
+  contrat de champ email sans inventer l’adresse d’un utilisateur.
+- Alternatives écartées : utiliser l’email de l’acheteur, envoyer `null`,
+  bloquer toute livraison sans boîte mail.
+- Source : Utilisateur ; contrat DiddiSend.
+- Impact : checkout, configuration, contrat DiddiSend et tests.

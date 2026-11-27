@@ -212,8 +212,6 @@ class Settings(BaseSettings):
             raise ValueError("DIDDISEND_SERVICE_USER_ID must be a valid UUID") from exc
         if not self.diddisend_sender_phone.strip():
             raise ValueError("Missing DiddiSend sender phone: DIDDISEND_SENDER_PHONE")
-        if not self.diddisend_sender_email.strip():
-            raise ValueError("Missing DiddiSend sender email: DIDDISEND_SENDER_EMAIL")
         if self.otel_logs_enabled:
             if self.otel_exporter_otlp_protocol != "http/protobuf":
                 raise ValueError("DiddiObserve requires OTLP HTTP/protobuf")

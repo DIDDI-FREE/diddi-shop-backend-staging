@@ -43,12 +43,15 @@ La création exige aussi les coordonnées du sender technique :
 
 ```ini
 DIDDISEND_SENDER_PHONE=<telephone-du-sender-technique-autorise>
-DIDDISEND_SENDER_EMAIL=<email-du-sender-technique-autorise>
+DIDDISEND_SENDER_EMAIL=<email-du-sender-technique-autorise> # optionnel
 ```
 
-Ces valeurs doivent correspondre au sender autorisé côté DiddiSend. En staging,
-l’application refuse de démarrer si elles sont absentes, afin d’éviter un HTTP
-422 tardif après le passage à `READY_FOR_PICKUP`.
+Le téléphone est obligatoire et doit correspondre au sender autorisé côté
+DiddiSend. L’email est facultatif. S’il est absent, DiddiShop génère une adresse
+technique stable avec les chiffres du téléphone, par exemple
+`237690000000@diddifree.com`. En staging, l’application refuse de démarrer si
+le téléphone est absent, afin d’éviter un HTTP 422 tardif après le passage à
+`READY_FOR_PICKUP`.
 
 ## Déclenchement depuis l’application vendeur
 

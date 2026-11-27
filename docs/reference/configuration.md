@@ -52,8 +52,8 @@ En environnement non développement, l’application refuse :
 
 - une base externe absente ou non HTTPS ;
 - un client ou secret S2S manquant ;
-- une coordonnée sender DiddiSend manquante (`DIDDISEND_SENDER_PHONE` ou
-  `DIDDISEND_SENDER_EMAIL`) ;
+- le téléphone sender DiddiSend manquant (`DIDDISEND_SENDER_PHONE`) ; l’email
+  sender est facultatif et peut être généré techniquement ;
 - un endpoint OTLP ou credential manquant lorsque les logs sont activés.
 
 Le Compose local est explicitement en `development` et utilise des valeurs
