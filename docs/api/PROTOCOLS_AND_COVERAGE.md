@@ -189,7 +189,10 @@ La projection locale utilise : `requested`, `assigned`, `picked_up`,
 `in_transit`, `delivered`, `failed`, `returned`. DiddiSend reste propriétaire
 du coursier, du code de remise, de la position et du suivi opérationnel.
 `courier` est normalisé avec `id`, `name`, `phone_masked`, `avatar_url` et
-`vehicle_type`. `position` utilise `latitude`, `longitude` et `updated_at`.
+`vehicle_type` vaut `motorbike`, `cargo_bike`, `tricycle`, `car`, `van` ou
+`truck` ; les alias entrants `moto` et `motorcycle` deviennent `motorbike`.
+`position` utilise `latitude`, `longitude` et `updated_at` ; `updated_at` reste
+facultatif si DiddiSend ne le fournit pas dans l’événement.
 
 ## Contrats encore dépendants d’un service externe
 

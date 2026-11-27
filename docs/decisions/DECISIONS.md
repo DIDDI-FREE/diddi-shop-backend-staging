@@ -833,3 +833,17 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   expiration locale inventée et modification des headers signés.
 - Source : code DiddiPay/DiddiFiles audité en lecture seule ; contrat produit.
 - Impact : claims, finance, réponses frontend et documentation d’intégration.
+
+### D-067 — Normaliser les erreurs claims et le suivi coursier
+- Date : 2026-11-27
+- Phase / sous-lot : S24-T
+- Décision : conserver HTTP `409` pour `CLAIM_WINDOW_EXPIRED` et
+  `CLAIM_ALREADY_OPEN`; normaliser `vehicle_type` vers le catalogue DiddiSend
+  (`motorbike`, `cargo_bike`, `tricycle`, `car`, `van`, `truck`) et conserver
+  `position.updated_at` nullable si la source ne l’envoie pas.
+- Pourquoi : les erreurs représentent un conflit d’état, le catalogue est
+  défini par DiddiSend, et Shop ne doit pas fabriquer l’heure d’une position.
+- Alternatives écartées : HTTP 422 pour les claims, chaîne libre frontend,
+  timestamp local de réception.
+- Source : code DiddiSend audité en lecture seule ; utilisateur ; contrat Shop.
+- Impact : claims, projection delivery, OpenAPI et frontend.

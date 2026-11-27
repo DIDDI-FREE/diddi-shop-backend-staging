@@ -553,3 +553,12 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   distingue l’expiration de l’URL d’upload de la durée de vie du fichier.
 - Aucune expiration automatique de fichier non joint n’est inventée côté Shop.
 - Tests complets : 239 passed.
+
+## S24-T — troisième vague de contrats frontend
+
+- Les deux erreurs de réclamation sont explicitement HTTP `409`.
+- `vehicle_type` est normalisé vers le catalogue DiddiSend à six valeurs, avec
+  alias `moto`/`motorcycle` vers `motorbike`.
+- `position.updated_at` reste facultatif si absent du callback DiddiSend ; aucun
+  timestamp artificiel n’est produit.
+- Tests complets : 239 passed.

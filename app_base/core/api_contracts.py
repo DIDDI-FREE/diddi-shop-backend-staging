@@ -234,7 +234,7 @@ class CourierResponse(BaseModel):
     name: str | None = None
     phone_masked: str | None = None
     avatar_url: str | None = None
-    vehicle_type: str | None = None
+    vehicle_type: Literal["motorbike", "cargo_bike", "tricycle", "car", "van", "truck"] | None = None
 
 
 class DeliveryPositionResponse(BaseModel):
@@ -363,12 +363,18 @@ def delivery_response(delivery: Any | None, order_id: str) -> dict[str, Any]:
         return {"id": None, "order_id": order_id, "status": "not_requested"}
     courier = delivery.courier
     if courier:
+        vehicle_type = courier.get("vehicle_type") or courier.get("vehicle")
+        vehicle_type = {"moto": "motorbike", "motorcycle": "motorbike"}.get(
+            str(vehicle_type).lower(), str(vehicle_type).lower()
+        )
+        if vehicle_type not in {"motorbike", "cargo_bike", "tricycle", "car", "van", "truck"}:
+            vehicle_type = None
         courier = {
             "id": courier.get("id") or courier.get("courier_id"),
             "name": courier.get("name") or courier.get("display_name"),
             "phone_masked": courier.get("phone_masked") or courier.get("masked_phone"),
             "avatar_url": courier.get("avatar_url"),
-            "vehicle_type": courier.get("vehicle_type") or courier.get("vehicle"),
+            "vehicle_type": vehicle_type,
         }
     position = delivery.position
     if position and ("latitude" not in position or "longitude" not in position):

@@ -137,3 +137,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-Q — transmettre les coordonnées obligatoires du sender DiddiSend
 - [x] S24-R — fermer la première vague de contrats frontend
 - [x] S24-S — fermer remboursements et preuves photo
+- [x] S24-T — normaliser claims et suivi coursier

@@ -452,9 +452,10 @@ facultatif. Jusqu’à trois preuves photo peuvent être uploadées avec le purp
 DiddiFiles `diddishop_claim_evidence`. `claim_deadline` est calculée à
 `delivered_at + 72 heures`.
 
-Les codes d’erreur sont `CLAIM_WINDOW_EXPIRED` et `CLAIM_ALREADY_OPEN`. Le
+Les codes d’erreur sont `CLAIM_WINDOW_EXPIRED` et `CLAIM_ALREADY_OPEN`, tous
+deux en HTTP `409`. Le
 remboursement est affiché par un statut, un moyen et une référence masquée ;
-aucun numéro de téléphone complet n’est envoyé au frontend.
+aucun numéro de téléphone complet n’est envoyé au frontend pour les claims.
 
 ## Limites explicites
 
