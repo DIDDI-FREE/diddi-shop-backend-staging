@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from opentelemetry.instrumentation.asgi import OpenTelemetryMiddleware
@@ -13,6 +14,7 @@ from app_base.modules.admin.presentation.router import router as admin_router
 from app_base.modules.campaigns.presentation.router import router as campaigns_router
 from app_base.modules.cart.router import router as cart_router
 from app_base.modules.catalog.router import router as catalog_router
+from app_base.modules.checkout.return_router import router as payment_return_router
 from app_base.modules.checkout.router import router as checkout_router
 from app_base.modules.claims.router import router as claims_router
 from app_base.modules.comms.presentation.router import router as comms_router
@@ -56,7 +58,10 @@ async def handle_domain_error(_request: Request, exc: DiddiShopError):
 async def handle_validation_error(_request: Request, exc: RequestValidationError):
     return JSONResponse(
         status_code=422,
-        content={"error": "VALIDATION_ERROR", "message": "request validation failed", "details": exc.errors()},
+        content={
+            "error": "VALIDATION_ERROR", "message": "request validation failed",
+            "details": jsonable_encoder(exc.errors(), custom_encoder={ValueError: str}),
+        },
     )
 
 
@@ -83,6 +88,7 @@ app.include_router(shops_router)
 app.include_router(catalog_router)
 app.include_router(cart_router)
 app.include_router(checkout_router)
+app.include_router(payment_return_router)
 app.include_router(delivery_router)
 app.include_router(claims_router)
 app.include_router(admin_router)

@@ -87,6 +87,7 @@ Les routes suivantes sont la surface métier actuellement montée par
 | POST | `/v1/checkouts/quote` | Calculer le devis avant paiement |
 | GET | `/v1/checkouts/{checkout_id}` | Lire l’état d’un checkout |
 | POST | `/v1/checkouts/{checkout_id}/retry` | Reprendre un paiement échoué |
+| GET | `/payments/return` | Retour navigateur HTML public, sans confirmation du paiement |
 | GET | `/v1/orders` | Lister les commandes de l’acheteur connecté |
 | GET | `/v1/orders/seller/to-confirm` | Lister les commandes vendeur à confirmer |
 | GET | `/v1/orders/{order_id}` | Lire une commande |
@@ -299,7 +300,19 @@ se fait avec `POST /v1/checkouts/{id}/retry`, uniquement après
 `payment_failed`, avec une nouvelle clé d’idempotence. `payment_attempt` expose
 le numéro de tentative sans exposer de secret DiddiPay. Le moyen de paiement
 V1 est `wave`, `mtn_momo` ou `orange_money` ; `return_url` est facultative mais
-n'est pas transmise dans le contrat PaymentIntent actuel.
+transmise sous le nom `callback_url` DiddiPay. `return_target` (1–64 caractères)
+est une alternative exclusive préconfigurée chez Pay. Sans ces options, Shop
+utilise sa configuration : par défaut sa page publique `/payments/return`.
+Les URLs explicites doivent être HTTPS sur `diddifree.com` ou un sous-domaine,
+sans credentials, fragment ni traversée de chemin (2048 caractères maximum).
+Le retry accepte ces mêmes options dans un corps facultatif pour réparer un
+ancien checkout ; la clé d'idempotence couvre aussi ce corps.
+
+`payment.next_action` expose `type`, `url?`, `instructions?`, `expires_at?`.
+Pour `redirect`, ouvrir `payment.payment_url`, égal à `next_action.url`.
+`requires_action` n'est pas un paiement réussi : le checkout reste pending.
+`GET /payments/return` est une page HTML neutre ; relire le checkout authentifié
+après retour dans l'app. Le navigateur ne confirme jamais le paiement.
 
 Le téléphone `recipient_phone` validé en E.164 devient `customer_phone` dans
 le JSON envoyé à DiddiPay, y compris lors du retry. Sans téléphone valide dans
@@ -316,7 +329,8 @@ clé jamais utilisée ; après une réponse perdue, conserver la clé existante.
 
 Les codes V1 sont `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`,
 `INVALID_TRANSITION`, `ORDER_NOT_CANCELLABLE`, `DELIVERY_ALREADY_PICKED_UP`,
-`VALIDATION_ERROR`, `PAYMENT_PHONE_REQUIRED`, `NOT_CONFIGURED` et `HTTP_ERROR`.
+`VALIDATION_ERROR`, `PAYMENT_PHONE_REQUIRED`, `PAYMENT_RETURN_REQUIRED`,
+`PAYMENT_RETURN_INVALID`, `NOT_CONFIGURED` et `HTTP_ERROR`.
 Exemple :
 
 ```json

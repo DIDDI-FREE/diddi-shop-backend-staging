@@ -135,6 +135,13 @@ class OrderListResponse(BaseModel):
     next_cursor: str | None = None
 
 
+class CheckoutPaymentNextAction(BaseModel):
+    type: Literal["redirect", "mobile_money_prompt", "display_instructions", "await_confirmation", "none"]
+    url: str | None = None
+    instructions: str | None = None
+    expires_at: str | None = None
+
+
 class CheckoutPaymentResponse(BaseModel):
     payment_intent_id: str | None
     amount_minor: int
@@ -145,6 +152,7 @@ class CheckoutPaymentResponse(BaseModel):
     payment_url: str | None = None
     checkout_url: str | None = None
     client_secret: str | None = None
+    next_action: CheckoutPaymentNextAction | None = None
     payment_failure_code: str | None = None
     payment_failure_message: str | None = None
     payment_provider_status: str | None = None
@@ -480,7 +488,7 @@ def checkout_response(checkout: Checkout, payment: dict[str, Any] | None = None)
         "status": source.get("status", "pending"),
     }
     for key in (
-        "payment_method", "expires_at", "payment_url", "checkout_url", "client_secret",
+        "payment_method", "expires_at", "payment_url", "checkout_url", "client_secret", "next_action",
         "payment_failure_code", "payment_failure_message", "payment_provider_status",
     ):
         if source.get(key) is not None:

@@ -16,6 +16,41 @@ def test_diddipay_adapter_exposes_payment_lifecycle_without_card_data():
 
 
 @pytest.mark.anyio
+@pytest.mark.parametrize("code", [
+    "PAYMENT_RETURN_TARGET_CONFLICT", "PAYMENT_RETURN_TARGET_FORBIDDEN",
+    "PAYMENT_CALLBACK_URL_DISABLED", "PAYMENT_CALLBACK_URL_FORBIDDEN",
+])
+async def test_explicit_return_rejection_is_failed_and_does_not_invent_intent(code):
+    adapter = DiddiPayAdapter(
+        base_url="https://pay.test/payfund/v1", audience="diddipay",
+        transport=httpx.MockTransport(lambda _: httpx.Response(422, json={"error": {"code": code}})),
+    )
+    result = await adapter.create_payment_intent(PaymentIntentCommand(
+        checkout_id="checkout", business_reference="diddishop:checkout:checkout",
+        amount_minor=1500, idempotency_key="return-rejected", customer_phone="+2250700000000",
+        return_target="app",
+    ))
+    assert result["status"] == "failed"
+    assert result["failure_code"] == code
+    assert result["payment_intent_id"] is None
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("status", [422, 500, 502, 503])
+async def test_unknown_errors_are_not_treated_as_definite_payment_failure(status):
+    adapter = DiddiPayAdapter(
+        base_url="https://pay.test/payfund/v1", audience="diddipay",
+        transport=httpx.MockTransport(lambda _: httpx.Response(status, json={"error": {"code": "UNKNOWN"}})),
+    )
+    with pytest.raises(httpx.HTTPStatusError):
+        await adapter.create_payment_intent(PaymentIntentCommand(
+            checkout_id="checkout", business_reference="diddishop:checkout:checkout",
+            amount_minor=1500, idempotency_key="unknown-error", customer_phone="+2250700000000",
+            return_target="app",
+        ))
+
+
+@pytest.mark.anyio
 async def test_diddipay_adapter_maps_shop_minor_units_to_staging_contract():
     requests: list[httpx.Request] = []
 
@@ -50,6 +85,7 @@ async def test_diddipay_adapter_maps_shop_minor_units_to_staging_contract():
     assert body["customer_phone"] == "+237690000000"
     assert "payment_method" not in body
     assert "return_url" not in body
+    assert body["callback_url"] == "https://app.diddifree.com/payment/complete"
     assert "amount_minor" not in body
     assert result["payment_intent_id"] == "00000000-0000-0000-0000-000000000001"
 

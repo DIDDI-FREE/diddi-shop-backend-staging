@@ -23,6 +23,14 @@ class PaymentPhoneRequiredError(ValidationError):
     code = "PAYMENT_PHONE_REQUIRED"
 
 
+class PaymentReturnRequiredError(ValidationError):
+    code = "PAYMENT_RETURN_REQUIRED"
+
+
+class PaymentReturnInvalidError(ValidationError):
+    code = "PAYMENT_RETURN_INVALID"
+
+
 class NotConfiguredError(DiddiShopError):
     code = "NOT_CONFIGURED"
     status_code = 503

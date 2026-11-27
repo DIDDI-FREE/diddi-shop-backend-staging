@@ -16,8 +16,19 @@ Git. Les exemples ci-dessous décrivent des noms de variables, pas des secrets.
 | DiddiSend S2S explicite | `DIDDISEND_CLIENT_ID`, `DIDDISEND_CLIENT_SECRET`, `DIDDISEND_AUDIENCE`, `DIDDISEND_ORIGIN_SERVICE`, `DIDDISEND_SERVICE_USER_ID` | client, audience, origine et sender technique |
 | Intégrations | `DIDDI_SHOP_DIDDIPAY_BASE_URL`, `DIDDI_SHOP_DIDDISEND_BASE_URL`, etc. | bases HTTPS |
 | Webhooks | `DIDDI_SHOP_DIDDIPAY_WEBHOOK_SECRET`, `DIDDI_SHOP_DIDDISEND_WEBHOOK_SECRET` | signatures entrantes |
+| Retour paiement | `DIDDI_SHOP_DIDDIPAY_RETURN_URL`, `DIDDI_SHOP_DIDDIPAY_RETURN_TARGET` | retour navigateur, pas un webhook |
 | V1 finance | `DIDDI_SHOP_SELLER_RELEASE_ENABLED=false` | interdit la release V1 |
 | DiddiObserve | `OTEL_*`, `DEPLOYMENT_ID`, `DIDDI_COMPONENT` | OTLP et ressource telemetry |
+
+## Retour navigateur DiddiPay
+
+Le retour paiement par défaut est
+`https://diddishop-backend.diddifree.com/payments/return`. Cette valeur non sensible
+est intégrée aux settings et aux deux Compose ; aucune variable supplémentaire
+n'est obligatoire pour la choisir. Une valeur explicitement vide peut désactiver
+ce défaut. Le target, vide par défaut, prend priorité quand il est renseigné et
+doit être enregistré chez DiddiPay. Détails, validation, priorité des snapshots
+et restrictions Pay : [intégration DiddiPay](../integrations/diddipay.md).
 
 ## Clients S2S
 

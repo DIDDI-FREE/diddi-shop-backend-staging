@@ -16,6 +16,7 @@ réponses et limites est dans
 | Protocole | Usage | Statut |
 | --- | --- | --- |
 | REST/HTTP JSON | API acheteur, vendeur, backoffice et modules internes | actif |
+| HTTP HTML | retour navigateur public `/payments/return`, sans confirmation financière | actif |
 | HTTP webhooks JSON | événements entrants DiddiPay et DiddiSend | actif |
 | HTTP S2S Bearer | appels sortants vers DiddiPay, DiddiSend, DiddiFiles, Rewards, Support et Comms | actif |
 | OAuth2 client credentials | obtention des tokens S2S par service cible | actif en configuration non-développement |
@@ -115,6 +116,7 @@ techniques FastAPI et le portail MkDocs est servi séparément.
 | POST | `/v1/checkouts/quote` | `CheckoutQuoteResponse` |
 | GET | `/v1/checkouts/{checkout_id}` | `CheckoutResponse` |
 | POST | `/v1/checkouts/{checkout_id}/retry` | `CheckoutResponse` |
+| GET | `/payments/return` | HTML neutre, aucun état de paiement |
 | GET | `/v1/orders` | `OrderListResponse` |
 | GET | `/v1/orders/seller/to-confirm` | `OrderListResponse` |
 | GET | `/v1/orders/{order_id}` | `OrderResponse` |

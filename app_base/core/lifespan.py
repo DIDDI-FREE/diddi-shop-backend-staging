@@ -105,6 +105,8 @@ async def lifespan(app: FastAPI):
         rewards=app.state.rewards_service,
         seller_confirmation_hours=app.state.settings.order_seller_confirmation_hours,
         diddisend_service_user_id=app.state.settings.diddisend_service_user_id,
+        payment_return_url=app.state.settings.diddipay_return_url,
+        payment_return_target=app.state.settings.diddipay_return_target,
     )
     app.state.order_service = OrderService(app.state.order_repository, app.state.outbox, app.state.rewards_service)
     app.state.delivery_service = DeliveryService(

@@ -30,6 +30,8 @@ services:
       DIDDI_SHOP_DATABASE_URL: postgresql+asyncpg://diddishop:diddishop-local-only@postgres:5432/diddishop
       DIDDI_SHOP_REDIS_URL: redis://redis:6379/0
       DIDDI_SHOP_INTERNAL_REQUEST_TIMEOUT_SECONDS: "5"
+      DIDDI_SHOP_DIDDIPAY_RETURN_URL: ${DIDDI_SHOP_DIDDIPAY_RETURN_URL-https://diddishop-backend.diddifree.com/payments/return}
+      DIDDI_SHOP_DIDDIPAY_RETURN_TARGET: ${DIDDI_SHOP_DIDDIPAY_RETURN_TARGET:-}
     depends_on:
       postgres:
         condition: service_healthy

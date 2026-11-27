@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-27
-**Phase courante :** S24-N terminé localement
+**Phase courante :** S24-O terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 **Correction du 2026-11-27 :** le Compose staging exécute désormais
@@ -29,7 +29,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 106 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 133 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | OK dans PostgreSQL local Compose |
@@ -451,3 +451,36 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   `checkout.payment.intent_resolved` avec DiddiPay ; ne jamais afficher le numéro.
 - La réussite d'un paiement Orange Money réel n'est pas établie par les tests
   simulés. Aucun prélèvement réel ni modification de données staging effectué.
+
+## S24-O — retour navigateur Payment Page
+
+- `return_url` est maintenant envoyé comme `callback_url`, ou remplacé par
+  `return_target` si configuré. Destination sauvegardée et récupérée pour les
+  retries historiques ; correction possible via corps facultatif et clé nouvelle.
+- Choix délégué : page publique HTTPS `/payments/return` sur le backend Shop,
+  comme DiddiSend. Aucun effet financier, aucune donnée privée ni redirection
+  depuis les paramètres du navigateur. Configuration modifiable dans les
+  settings et transmise par les deux Compose, sans nouveau secret requis.
+- `next_action` typée, lien Payment Page et expiration relayés. Un paiement
+  `requires_action` reste pending. Les refus de retour explicitement reconnus
+  chez Pay restent failed/retryables ; les erreurs ambiguës ne sont pas assimilées
+  à un échec définitif. Logs sans URL de session, téléphone ou secret.
+- 133 tests réussis localement et dans Docker Desktop Python 3.12 sans réseau ;
+  Ruff Windows/Linux, compilation, MkDocs strict, Alembic SQL et validation des
+  deux Compose réussis.
+- Décisions D-057/D-058. Pas de migration : snapshots JSON existants. Aucun
+  autre dépôt modifié, aucun accès en écriture à Portainer.
+
+### Vérifications de déploiement en attente — S24-O
+
+- Déploiement Git manuel par l'utilisateur uniquement ; vérifier ensuite le
+  `200 text/html` public de `/payments/return` et les nouvelles options OpenAPI.
+- Sur checkout échoué, nouvelle clé : vérifier `Idempotency-Replayed=false`,
+  incrément, disparition de l'erreur `callback_url is required` et URL Payment Page
+  si Pay crée la session. Le retry sans corps utilise le retour par défaut si
+  aucun snapshot ne l'avait enregistré.
+- Acceptation de la destination par DiddiPay à confirmer en recette : fallback
+  `callback_url` autorisé et chemin admis, ou target enregistré sous le vrai
+  client Shop→Pay. Un refus doit être visible via `payment_failure_code`.
+- Vérifier le paiement final par webhook signé puis GET authentifié, jamais
+  depuis le navigateur. Aucun paiement réel n'a été testé par cet agent.

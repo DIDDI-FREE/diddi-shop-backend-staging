@@ -61,6 +61,19 @@ Un retry HTTP 200 ne prouve pas qu'une nouvelle tentative a eu lieu : vérifier
 identifie une nouvelle opération. Après un échec confirmé, utiliser une
 nouvelle clé ; après un timeout, conserver la clé pour éviter un double paiement.
 
+## Retour de la Payment Page
+
+Le backend fournit par défaut sa page HTTPS `/payments/return`, comme les autres
+modules. Il transmet cette URL à Pay sous `callback_url`, pas sous `return_url`.
+Une cible serveur Pay configurée peut la remplacer. Le checkout conserve ce
+choix pour les retries, y compris les anciennes commandes sans URL sauvegardée.
+
+Quand `payment.next_action.type=redirect`, ouvrir `payment.payment_url`.
+Après retour, l'acheteur revient dans l'app qui relit `GET /v1/checkouts/{id}`
+avec son JWT. La page HTML ne déduit rien des paramètres du navigateur et
+n'annonce jamais un paiement réussi. Détails :
+[contrat DiddiPay](../integrations/diddipay.md#retour-navigateur-et-payment-page).
+
 ## Snapshot financier
 
 Le snapshot de commande conserve au minimum le prix des lignes, le total,

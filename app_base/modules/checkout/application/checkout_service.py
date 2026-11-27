@@ -12,7 +12,13 @@ from app_base.modules.orders.domain.entities import Order
 from app_base.modules.orders.domain.interfaces import OrderRepository
 from app_base.modules.rewards.application import RewardsService
 from app_base.modules.shops.domain import ShopRepository
-from app_base.shared_kernel.contracts.payments import require_customer_phone, valid_customer_phone
+from app_base.shared_kernel.contracts.payments import (
+    DEFAULT_PAYMENT_RETURN_URL,
+    PaymentReturnOptions,
+    require_customer_phone,
+    require_payment_return,
+    valid_customer_phone,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +40,7 @@ class PaymentIntentPort:
         *,
         payment_method: str = "wave",
         return_url: str | None = None,
+        return_target: str | None = None,
         customer_phone: str | None = None,
     ) -> dict:
         raise NotImplementedError("Payment ports must explicitly handle customer_phone")
@@ -52,6 +59,17 @@ class CheckoutApplicationService:
     rewards: RewardsService | None = None
     seller_confirmation_hours: int = 24
     diddisend_service_user_id: str = ""
+    payment_return_url: str | None = DEFAULT_PAYMENT_RETURN_URL
+    payment_return_target: str | None = None
+
+    def _payment_return(self, *sources: dict) -> PaymentReturnOptions:
+        for source in sources:
+            if source.get("return_url") or source.get("return_target"):
+                return require_payment_return(source.get("return_url"), source.get("return_target"))
+        return require_payment_return(
+            None if self.payment_return_target else (self.payment_return_url or None),
+            self.payment_return_target or None,
+        )
 
     @staticmethod
     def _checkout_status_for_payment(payment: dict) -> CheckoutStatus:
@@ -126,6 +144,7 @@ class CheckoutApplicationService:
     async def create(self, customer_id: str, idempotency_key: str, delivery_context: dict | None = None) -> Checkout:
         delivery_context = delivery_context or {}
         customer_phone = require_customer_phone(delivery_context.get("recipient_phone"))
+        payment_return = self._payment_return(delivery_context)
         grouped = await self._load_groups(customer_id)
 
         checkout_id = str(uuid4())
@@ -232,12 +251,13 @@ class CheckoutApplicationService:
                 total,
                 idempotency_key,
                 payment_method=delivery_context.get("payment_method", "wave"),
-                return_url=delivery_context.get("return_url"),
+                **payment_return.model_dump(),
                 customer_phone=customer_phone,
             )
             # Inputs are owned by Shop; a missing/null upstream echo cannot erase them.
             payment["payment_method"] = delivery_context.get("payment_method", "wave")
             payment["customer_phone"] = customer_phone
+            payment.update(payment_return.model_dump())
             payment = {**payment, **self._payment_failure_fields(payment)}
         except Exception:
             if self.rewards is not None:
@@ -324,17 +344,30 @@ class CheckoutApplicationService:
         await self.checkouts.save(checkout)
         return checkout
 
-    async def retry_payment(self, checkout_id: str, idempotency_key: str) -> Checkout:
+    async def retry_payment(
+        self, checkout_id: str, idempotency_key: str, return_options: dict | None = None,
+    ) -> Checkout:
         checkout = await self.get(checkout_id)
         if checkout.status != CheckoutStatus.PAYMENT_FAILED:
             raise ConflictError("only a failed checkout can retry payment")
         if checkout.payment_idempotency_key == idempotency_key:
             raise ConflictError("payment retry requires a new Idempotency-Key")
         customer_phone = await self._customer_phone_for_retry(checkout)
-        checkout.payment_attempt += 1
         previous_payment = checkout.payment or {}
+        historical_returns = []
+        for order_id in checkout.order_ids:
+            order = await self.orders.get(order_id)
+            if order is not None:
+                historical_returns.append(order.metadata.get("delivery_request") or {})
+        payment_return = self._payment_return(return_options or {}, previous_payment, *historical_returns)
+        checkout.payment_attempt += 1
         checkout.status = CheckoutStatus.PAYMENT_PENDING
         checkout.payment_idempotency_key = idempotency_key
+        checkout.payment = {
+            **previous_payment, **payment_return.model_dump(), "customer_phone": customer_phone,
+            "status": "pending", "failure_code": None, "failure_message": None,
+            "payment_failure_code": None, "payment_failure_message": None,
+        }
         await self.checkouts.save(checkout)
 
         payment = await self.payments.create_with_options(
@@ -342,11 +375,12 @@ class CheckoutApplicationService:
             checkout.total_minor,
             idempotency_key,
             payment_method=previous_payment.get("payment_method", "wave"),
-            return_url=previous_payment.get("return_url"),
+            **payment_return.model_dump(),
             customer_phone=customer_phone,
         )
         payment["payment_method"] = previous_payment.get("payment_method", "wave")
         payment["customer_phone"] = customer_phone
+        payment.update(payment_return.model_dump())
         checkout.status = self._checkout_status_for_payment(payment)
         checkout.payment_intent_id = payment.get("payment_intent_id", checkout.payment_intent_id)
         checkout.payment = {**payment, **self._payment_failure_fields(payment)}

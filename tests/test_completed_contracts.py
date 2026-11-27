@@ -84,7 +84,7 @@ class RetryablePayment(PaymentIntentPort):
 
     async def create_with_options(
         self, checkout_id, amount_minor, idempotency_key, *, payment_method="wave",
-        return_url=None, customer_phone=None,
+        return_url=None, return_target=None, customer_phone=None,
     ):
         self.options.append((payment_method, return_url, customer_phone))
         return await self.create(checkout_id, amount_minor, idempotency_key)

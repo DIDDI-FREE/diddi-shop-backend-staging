@@ -41,6 +41,22 @@ def test_staging_configuration_requires_all_https_service_urls():
     _staging_settings().validate_external_configuration()
 
 
+def test_payment_return_defaults_to_real_shop_route(monkeypatch):
+    monkeypatch.delenv("DIDDI_SHOP_DIDDIPAY_RETURN_URL", raising=False)
+    monkeypatch.delenv("DIDDI_SHOP_DIDDIPAY_RETURN_TARGET", raising=False)
+    settings = Settings()
+    assert settings.diddipay_return_url == "https://diddishop-backend.diddifree.com/payments/return"
+    assert settings.diddipay_return_target == ""
+
+
+def test_payment_return_can_be_overridden_from_environment(monkeypatch):
+    monkeypatch.setenv("DIDDI_SHOP_DIDDIPAY_RETURN_URL", "https://app.diddifree.com/return")
+    monkeypatch.setenv("DIDDI_SHOP_DIDDIPAY_RETURN_TARGET", "app")
+    settings = Settings()
+    assert settings.diddipay_return_url == "https://app.diddifree.com/return"
+    assert settings.diddipay_return_target == "app"
+
+
 def test_staging_configuration_rejects_missing_service_url():
     settings = _staging_settings(diddisend_base_url="")
     with pytest.raises(ValueError, match="diddisend"):

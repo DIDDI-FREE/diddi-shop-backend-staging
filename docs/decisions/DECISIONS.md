@@ -677,3 +677,40 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   avec une ancienne clé ; déduire la cause uniquement d'un statut HTTP.
 - Source : Agent, à valider
 - Impact : routes, observabilité, domaine checkout, documentation et tests.
+
+### D-057 — Retour navigateur configurable, distinct du webhook
+- Date : 2026-11-27
+- Phase / sous-lot : S24-O
+- Décision : complète D-050 et remplace la restriction URL de D-036 sur ce point.
+  `return_url` Shop devient `callback_url` DiddiPay ; `return_target` est aussi
+  supporté, jamais simultanément. Par défaut :
+  `https://diddishop-backend.diddifree.com/payments/return`, page HTML publique
+  neutre implémentée dans Shop. Pas de confirmation de paiement, redirection
+  arbitraire, identifiant sensible ni état financier dans cette page.
+- Pourquoi : choix délégué par l'utilisateur. DiddiSend et DiddiGo hébergent
+  eux aussi un retour navigateur backend. Cela fournit une vraie route sur un
+  domaine existant sans inventer un frontend ou un target DiddiPay provisionné.
+- Alternatives écartées : utiliser le webhook comme returnUrl ; inventer un
+  domaine d'app ; modifier DiddiPay/Portainer ; confirmer depuis `?status=paid`.
+- Source : Utilisateur (« choisis selon les autres… on peut changer ») ; code
+  DiddiSend `wallet/return_router.py`, settings et OpenAPI DiddiPay lus seulement.
+- Impact : settings/Compose/templates, validation HTTPS DiddiFree (HTTP/local
+  refusés), snapshots JSON paiement, reprise historique, MkDocs et tests.
+  La cible Pay configurée prévaut sur l'URL par défaut. L'URL explicite du
+  checkout prévaut sur les valeurs configurées. Aucune migration nécessaire.
+
+### D-058 — Restituer l'action de paiement et les refus de retour explicites
+- Date : 2026-11-27
+- Phase / sous-lot : S24-O
+- Décision : exposer `next_action` typée et mapper sa redirection vers
+  `payment_url`. `requires_action` reste `payment_pending`. Conserver le
+  retour indépendamment des réponses nullables. Retry avec corps facultatif
+  pour corriger la destination et clé nouvelle ; une clé réutilisée avec un
+  autre corps est refusée. Les quatre refus HTTP 422 de retour connus de Pay
+  deviennent `payment_failed` avec leur code, sans prétendre qu'un intent existe.
+- Pourquoi : sans URL Payment Page, le frontend ne peut pas poursuivre. Un
+  refus explicite avant paiement doit être corrigeable, pas bloqué en pending.
+- Alternatives écartées : déclarer tout 422/500/timeout comme échec certain ;
+  exposer toute la réponse Pay ; contourner l'idempotence.
+- Source : Agent, à valider ; OpenAPI et resolver DiddiPay vérifiés en lecture seule.
+- Impact : adaptateur, application, contrat frontend, tests SQL/HTTP et docs.

@@ -91,7 +91,7 @@ async def test_payment_rewards_files_support_and_comms_routes_are_wired():
     comms = DiddiCommsAdapter(base_url="https://comms.test", audience="diddicomms", credential=_credential("diddicomms"), transport=transport)
     support = DiddiSupportAdapter(base_url="https://support.test", audience="diddisupport", credential=_credential("diddisupport"), transport=transport)
 
-    await pay.create_payment_intent(PaymentIntentCommand(checkout_id="checkout-1", business_reference="diddishop:checkout:checkout-1", amount_minor=1000, idempotency_key="payment-1", customer_phone="+2250700000000"))
+    await pay.create_payment_intent(PaymentIntentCommand(checkout_id="checkout-1", business_reference="diddishop:checkout:checkout-1", amount_minor=1000, idempotency_key="payment-1", customer_phone="+2250700000000", return_target="app"))
     await rewards.quote({"consumer_id": "buyer-1", "campaign_id": "campaign-1", "amount_initial_minor": 1000, "currency": "XOF"})
     await files.create_upload_session({"purpose": "diddishop_product_image"})
     await comms.open_conversation("diddishop", "order", "00000000-0000-0000-0000-000000000001", "conversation-1")

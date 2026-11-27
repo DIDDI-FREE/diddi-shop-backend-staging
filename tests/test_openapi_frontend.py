@@ -37,3 +37,15 @@ def test_openapi_enumerates_product_statuses_and_xof():
     product = schemas["ProductResponse"]["properties"]
     assert product["currency"]["const"] == "XOF"
     assert product["status"]["enum"] == ["draft", "published", "paused", "retired"]
+
+
+def test_openapi_describes_browser_return_retry_body_and_payment_action():
+    schema = app.openapi()
+    paths = schema["paths"]
+    assert "text/html" in paths["/payments/return"]["get"]["responses"]["200"]["content"]
+    body = paths["/v1/checkouts/{checkout_id}/retry"]["post"]["requestBody"]
+    assert not body.get("required", False)
+    models = schema["components"]["schemas"]
+    assert {"return_url", "return_target"} <= models["RetryCheckoutPaymentRequest"]["properties"].keys()
+    assert "next_action" in models["CheckoutPaymentResponse"]["properties"]
+    assert "redirect" in models["CheckoutPaymentNextAction"]["properties"]["type"]["enum"]

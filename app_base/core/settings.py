@@ -4,6 +4,8 @@ from uuid import UUID
 from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app_base.shared_kernel.contracts.payments import DEFAULT_PAYMENT_RETURN_URL
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="DIDDI_SHOP_", extra="ignore")
@@ -17,6 +19,8 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     diddifreeid_base_url: str = ""
     diddipay_base_url: str = ""
+    diddipay_return_url: str = DEFAULT_PAYMENT_RETURN_URL
+    diddipay_return_target: str = ""
     diddisend_base_url: str = ""
     diddifiles_base_url: str = ""
     diddifiles_s3_endpoint: str = ""

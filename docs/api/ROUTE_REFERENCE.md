@@ -289,10 +289,17 @@ valeurs existantes.
   `created_at` et `payment`.
 - `payment` contient `payment_intent_id`, `amount_minor`, `currency`, `status`
   et relaie éventuellement `payment_url`, `checkout_url`, `client_secret`,
-  `payment_method` et `expires_at`. Le V1 accepte `wave`, `mtn_momo` et
+  `payment_method`, `expires_at` et `next_action`. Le V1 accepte `wave`, `mtn_momo` et
   `orange_money`, avec `wave` par défaut. `return_url` est facultative et doit
-  cibler `*.diddifree.com` ou `localhost` en HTTP(S). Elle n'est pas transmise
-  au PaymentIntent DiddiPay actuel (champ non contractuel).
+  cibler `diddifree.com` ou un sous-domaine en HTTPS (port 443/default),
+  sans credentials, fragment ni traversée de chemin, 1–2048 caractères.
+  Elle est transmise comme `callback_url` DiddiPay. `return_target` (1–64
+  caractères) est une alternative, jamais cumulable avec l'URL.
+  Sans option, le backend utilise sa configuration, par défaut
+  `https://diddishop-backend.diddifree.com/payments/return`.
+  `next_action` est décrit dans [l'intégration DiddiPay](../integrations/diddipay.md).
+  `requires_action` reste pending ; si l'action est `redirect`, ouvrir
+  `payment.payment_url` (égal à `next_action.url`).
 - Le téléphone est transmis à DiddiPay comme `customer_phone` et conservé
   côté backend pour le retry, sans être exposé dans `CheckoutResponse`.
 - Header de réponse `Idempotency-Replayed` : `false` pour une création nouvelle,
@@ -331,6 +338,14 @@ valeurs existantes.
   statut final renvoyé : `payment_pending`, `payment_failed` ou `payment_succeeded`.
 - Le téléphone valide est récupéré du paiement sauvegardé ou des métadonnées
   de la commande historique. Aucun corps JSON ni répétition du téléphone requis.
+- Corps JSON facultatif : `{"return_url":"https://app.diddifree.com/return"}`
+  ou `{"return_target":"app"}` (target à provisionner chez Pay). Même validation
+  qu'à la création, autres propriétés refusées. `{}` ou corps absent conserve
+  la destination sauvegardée, puis utilise la configuration si elle manque.
+  Une même clé avec une autre destination retourne `409 CONFLICT`.
+- `422 PAYMENT_RETURN_REQUIRED` ou `PAYMENT_RETURN_INVALID` : destination
+  absente ou configuration invalide, sans nouvel appel ni incrément.
+  Un corps invalide retourne `422 VALIDATION_ERROR`.
 - `422 PAYMENT_PHONE_REQUIRED` : aucun téléphone valide enregistré. Aucun
   appel DiddiPay, incrément de tentative ou changement de clé n'est effectué.
   Ce cas exige de retrouver la donnée manquante, pas de répéter le paiement.
@@ -339,6 +354,15 @@ valeurs existantes.
   reste identique, aucun nouvel appel DiddiPay. Une nouvelle tentative après
   échec confirmé exige une clé jamais utilisée et retourne `false`.
   Le header est accessible au navigateur via CORS et décrit dans OpenAPI.
+
+### `GET /payments/return`
+
+- Auth : publique, aucun Bearer requis pour le retour du navigateur PawaPay.
+- Corps/paramètres : aucun ; tout paramètre de requête est ignoré, non reflété.
+- Réponse `200 text/html` : invite à revenir dans l'application pour consulter
+  le paiement. `Cache-Control: no-store`, CSP restrictive, aucune redirection.
+- Aucun appel fournisseur, aucune lecture de données privées, aucune mutation.
+  Ce n'est **pas** le webhook HMAC et ce n'est jamais une preuve de paiement.
 
 ### `GET /v1/orders`
 
