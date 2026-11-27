@@ -299,3 +299,5 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Ajouter `DIDDI_SHOP_DIDDIFREEID_ISSUER=diddifree-id` dans Portainer.
 - Reconstruire l’image API depuis ce commit puis rejouer `GET /v1/cart` et
   `GET /v1/orders` avec le JWT acheteur.
+- Après redeploiement du diagnostic, lire la cause PyJWT exacte dans les logs
+  si le `401` persiste.

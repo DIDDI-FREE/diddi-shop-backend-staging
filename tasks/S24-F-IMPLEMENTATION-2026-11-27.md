@@ -26,3 +26,10 @@ vérification.
 - Ajouter `DIDDI_SHOP_DIDDIFREEID_ISSUER=diddifree-id` dans Portainer ;
 - reconstruire et redéployer l’image API ;
 - rejouer le panier et les commandes avec le même JWT acheteur.
+
+## Diagnostic complémentaire
+
+Le conteneur Portainer actuel contient bien le code S24-F et les variables
+issuer/audience attendues. Ses logs montrent uniquement `401`, car le détail
+de l’exception PyJWT était masqué. Un journal sûr a été ajouté : il conserve
+le type et le message de rejet, jamais le JWT.

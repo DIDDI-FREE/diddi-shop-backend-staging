@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from time import monotonic
 from typing import Any
@@ -8,6 +9,7 @@ from fastapi import Header, HTTPException, Request
 from jwt import PyJWK
 
 _VERIFY_DEFAULT = object()
+logger = logging.getLogger("diddi_shop.auth")
 
 
 @dataclass(frozen=True)
@@ -21,7 +23,9 @@ def actor_from_claims(claims: dict[str, Any]) -> Actor:
     subject = str(claims.get("sub") or claims.get("user_id") or "")
     if not subject:
         raise HTTPException(status_code=401, detail="JWT subject is required")
-    actor_type = "service" if str(subject).startswith("service:") else str(claims.get("actor_type", "user"))
+    actor_type = "service" if str(subject).startswith("service:") else str(
+        claims.get("actor_type", "user")
+    )
     roles = set(claims.get("roles", [])) if isinstance(claims.get("roles", []), list) else set()
     if roles & {"admin", "support", "backoffice"}:
         actor_type = "admin" if "admin" in roles or "backoffice" in roles else "support"
@@ -77,6 +81,9 @@ class JwtVerifier:
             )
             return actor_from_claims(claims)
         except (ValueError, jwt.PyJWTError, httpx.HTTPError) as exc:
+            # Keep the client response generic, but retain the precise safe
+            # rejection reason for staging/production troubleshooting.
+            logger.warning("DiddiFreeID JWT rejected (%s): %s", type(exc).__name__, exc)
             raise HTTPException(status_code=401, detail="Invalid DiddiFreeID token") from exc
 
 
