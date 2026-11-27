@@ -391,3 +391,17 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   et confirmer les trois champs d'échec.
 - Rejouer `POST /v1/checkouts/{id}/retry` avec une nouvelle clé et vérifier que
   le statut final est `payment_failed` ou `payment_succeeded`.
+
+## S24-L — customer_phone PaymentIntent
+
+- `recipient_phone` est maintenant propagé vers `customer_phone` dans le
+  payload DiddiPay/PawaPay.
+- Le téléphone est conservé dans le paiement du checkout et réutilisé lors du
+  retry.
+- Vérifications locales : 88 tests passés, Ruff OK.
+
+### Vérifications de déploiement en attente — S24-L
+
+- Déployer manuellement le commit dans Portainer.
+- Rejouer un checkout/retry mobile money avec un téléphone `+237...` et vérifier
+  que l'erreur `customer_phone is required` a disparu.

@@ -599,3 +599,18 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   autoriser le retry depuis `payment_pending` ; réutiliser la même clé.
 - Source : incident staging et contrat DiddiPay | Utilisateur / Agent
 - Impact : checkout application service, réponse API, persistance et retry.
+
+### D-052 — Transmettre le téléphone client au PaymentIntent
+- Date : 2026-11-27
+- Phase / sous-lot : S24-L
+- Décision : ajouter `customer_phone` au contrat interne PaymentIntent et le
+  transmettre à DiddiPay dans le payload. Le checkout le conserve dans son
+  résultat de paiement afin que les retries réutilisent le même téléphone.
+- Pourquoi : PawaPay exige `customer_phone` pour un dépôt mobile money ; le
+  checkout possédait déjà la valeur validée dans `recipient_phone`.
+- Alternatives écartées : réutiliser `recipient_phone` comme nom externe ;
+  demander au frontend de répéter le téléphone lors du retry ; modifier
+  DiddiPay/PawaPay.
+- Source : erreur staging `customer_phone is required by pawapay deposits` |
+  Utilisateur / Agent
+- Impact : contrat PaymentIntent, adaptateur DiddiPay, checkout et retries.

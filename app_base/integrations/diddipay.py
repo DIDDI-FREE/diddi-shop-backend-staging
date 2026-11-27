@@ -17,6 +17,8 @@ class DiddiPayAdapter(ServiceAdapter):
             "network": network_by_method[command.payment_method],
             "metadata": {"checkout_id": command.checkout_id, "origin_service": "diddishop"},
         }
+        if command.customer_phone:
+            request_payload["customer_phone"] = command.customer_phone
         response = await self.request(
             "POST", "/payment-intents",
             headers={"Idempotency-Key": command.idempotency_key},

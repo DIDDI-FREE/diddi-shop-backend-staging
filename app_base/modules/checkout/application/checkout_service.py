@@ -33,6 +33,7 @@ class PaymentIntentPort:
         *,
         payment_method: str = "wave",
         return_url: str | None = None,
+        customer_phone: str | None = None,
     ) -> dict:
         return await self.create(checkout_id, amount_minor, idempotency_key)
 
@@ -230,8 +231,10 @@ class CheckoutApplicationService:
                 idempotency_key,
                 payment_method=delivery_context.get("payment_method", "wave"),
                 return_url=delivery_context.get("return_url"),
+                customer_phone=delivery_context.get("recipient_phone"),
             )
             payment.setdefault("payment_method", delivery_context.get("payment_method", "wave"))
+            payment.setdefault("customer_phone", delivery_context.get("recipient_phone"))
             payment = {**payment, **self._payment_failure_fields(payment)}
         except Exception:
             if self.rewards is not None:
@@ -314,8 +317,10 @@ class CheckoutApplicationService:
             idempotency_key,
             payment_method=previous_payment.get("payment_method", "wave"),
             return_url=previous_payment.get("return_url"),
+            customer_phone=previous_payment.get("customer_phone"),
         )
         payment.setdefault("payment_method", previous_payment.get("payment_method", "wave"))
+        payment.setdefault("customer_phone", previous_payment.get("customer_phone"))
         checkout.status = self._checkout_status_for_payment(payment)
         checkout.payment_intent_id = payment.get("payment_intent_id", checkout.payment_intent_id)
         checkout.payment = {**payment, **self._payment_failure_fields(payment)}

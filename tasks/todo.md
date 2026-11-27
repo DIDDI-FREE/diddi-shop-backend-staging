@@ -129,3 +129,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-I — normaliser le devis DiddiSend et mapper les erreurs upstream
 - [x] S24-J — aligner le payload PaymentIntent sur DiddiPay staging
 - [x] S24-K — persister les échecs PaymentIntent et autoriser le retry
+- [x] S24-L — transmettre customer_phone à DiddiPay/PawaPay

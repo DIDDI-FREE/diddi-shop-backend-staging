@@ -37,6 +37,7 @@ async def test_diddipay_adapter_maps_shop_minor_units_to_staging_contract():
             idempotency_key="payment-1",
             payment_method="wave",
             return_url="https://app.diddifree.com/payment/complete",
+            customer_phone="+237690000000",
         )
     )
 
@@ -46,6 +47,7 @@ async def test_diddipay_adapter_maps_shop_minor_units_to_staging_contract():
     assert body["currency"] == "XOF"
     assert body["channel"] == "mobile_money"
     assert body["network"] == "wave"
+    assert body["customer_phone"] == "+237690000000"
     assert "payment_method" not in body
     assert "return_url" not in body
     assert "amount_minor" not in body

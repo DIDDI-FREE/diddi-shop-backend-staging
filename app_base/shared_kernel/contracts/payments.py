@@ -11,6 +11,7 @@ class PaymentIntentCommand(BaseModel):
     idempotency_key: str
     payment_method: Literal["wave", "mtn_momo", "orange_money"] = "wave"
     return_url: str | None = None
+    customer_phone: str | None = None
 
 
 class PaymentStatus(BaseModel):

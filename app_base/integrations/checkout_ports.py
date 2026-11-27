@@ -23,6 +23,7 @@ class DiddiPayPaymentIntentPort:
         *,
         payment_method: str = "wave",
         return_url: str | None = None,
+        customer_phone: str | None = None,
     ) -> dict:
         return await self.adapter.create_payment_intent(PaymentIntentCommand(
             checkout_id=checkout_id,
@@ -31,6 +32,7 @@ class DiddiPayPaymentIntentPort:
             idempotency_key=idempotency_key,
             payment_method=payment_method,
             return_url=return_url,
+            customer_phone=customer_phone,
         ))
 
 
