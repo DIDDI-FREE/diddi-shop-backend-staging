@@ -398,13 +398,18 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   payload DiddiPay/PawaPay.
 - Le téléphone est conservé dans le paiement du checkout et réutilisé lors du
   retry.
-- Vérifications locales : 88 tests passés, Ruff OK.
+- Les retries de checkouts historiques récupèrent le téléphone depuis les
+  métadonnées de commande si le paiement persistant ne le contient pas.
+- Vérifications locales : 90 tests passés, Ruff OK.
 
 ### Vérifications de déploiement en attente — S24-L
 
 - Déployer manuellement le commit dans Portainer.
 - Rejouer un checkout/retry mobile money avec un téléphone `+237...` et vérifier
-  que l'erreur `customer_phone is required` a disparu.
+  que l’erreur `customer_phone is required` a disparu.
+- Pour un checkout créé avant S24-L, relire la commande associée et rejouer
+  `/retry` avec une nouvelle clé ; confirmer dans les logs DiddiPay que le
+  payload contient `customer_phone` (sans afficher sa valeur).
 
 ## S24-M — réconciliation des checkouts historiques
 

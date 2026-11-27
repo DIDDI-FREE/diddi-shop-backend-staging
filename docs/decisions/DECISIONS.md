@@ -628,3 +628,18 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   depuis pending ; supprimer les anciens checkouts.
 - Source : logs staging du retry 409 et état persistant observé | Agent
 - Impact : service checkout, GET checkout et route retry.
+
+### D-054 — Récupérer le téléphone pour les retries historiques
+- Date : 2026-11-27
+- Phase / sous-lot : S24-L — correction post-vérification
+- Décision : lors d’un retry, utiliser d’abord `payment.customer_phone`, puis
+  récupérer `order.metadata.delivery_request.recipient_phone` pour les
+  checkouts créés avant la propagation S24-L.
+- Pourquoi : le retry staging réussissait techniquement mais PawaPay rejetait
+  encore le dépôt avec `customer_phone is required` lorsque le paiement
+  historique ne contenait pas ce champ.
+- Alternatives écartées : demander au frontend de renvoyer le téléphone ;
+  modifier directement les anciennes lignes en base ; redéployer sans test de
+  régression.
+- Source : résultat de retry fourni par l’utilisateur | Utilisateur / Agent
+- Impact : checkout application service, retries historiques, contrat DiddiPay.

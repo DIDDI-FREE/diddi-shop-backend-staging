@@ -294,6 +294,20 @@ class CheckoutApplicationService:
             await self.checkouts.save(checkout)
         return checkout
 
+    async def _customer_phone_for_retry(self, checkout: Checkout) -> str | None:
+        payment_phone = (checkout.payment or {}).get("customer_phone")
+        if payment_phone:
+            return payment_phone
+        for order_id in checkout.order_ids:
+            order = await self.orders.get(order_id)
+            if order is None:
+                continue
+            delivery_request = order.metadata.get("delivery_request") or {}
+            phone = delivery_request.get("recipient_phone")
+            if phone and phone != "unknown":
+                return phone
+        return None
+
     async def apply_payment_event(self, checkout_id: str, event_type: str, payload: dict) -> Checkout:
         checkout = await self.get(checkout_id)
         if event_type == "payment.succeeded":
@@ -319,16 +333,17 @@ class CheckoutApplicationService:
         checkout.payment_idempotency_key = idempotency_key
         await self.checkouts.save(checkout)
 
+        customer_phone = await self._customer_phone_for_retry(checkout)
         payment = await self.payments.create_with_options(
             checkout.id,
             checkout.total_minor,
             idempotency_key,
             payment_method=previous_payment.get("payment_method", "wave"),
             return_url=previous_payment.get("return_url"),
-            customer_phone=previous_payment.get("customer_phone"),
+            customer_phone=customer_phone,
         )
         payment.setdefault("payment_method", previous_payment.get("payment_method", "wave"))
-        payment.setdefault("customer_phone", previous_payment.get("customer_phone"))
+        payment.setdefault("customer_phone", customer_phone)
         checkout.status = self._checkout_status_for_payment(payment)
         checkout.payment_intent_id = payment.get("payment_intent_id", checkout.payment_intent_id)
         checkout.payment = {**payment, **self._payment_failure_fields(payment)}

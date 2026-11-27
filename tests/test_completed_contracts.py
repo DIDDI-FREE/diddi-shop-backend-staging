@@ -71,6 +71,7 @@ class FixedQuote(DeliveryQuotePort):
 class RetryablePayment(PaymentIntentPort):
     def __init__(self):
         self.calls = []
+        self.options = []
 
     async def create(self, checkout_id, amount_minor, idempotency_key):
         self.calls.append((checkout_id, amount_minor, idempotency_key))
@@ -80,6 +81,13 @@ class RetryablePayment(PaymentIntentPort):
             "currency": "XOF",
             "status": "pending",
         }
+
+    async def create_with_options(
+        self, checkout_id, amount_minor, idempotency_key, *, payment_method="wave",
+        return_url=None, customer_phone=None,
+    ):
+        self.options.append((payment_method, return_url, customer_phone))
+        return await self.create(checkout_id, amount_minor, idempotency_key)
 
 
 class FailedThenSuccessfulPayment(RetryablePayment):
@@ -126,6 +134,44 @@ async def test_failed_payment_persists_failure_and_retry_reopens_payment():
     assert retried.status == CheckoutStatus.PAYMENT_SUCCEEDED
     assert retried.payment_intent_id == "pi-success"
     assert retried.payment_attempt == 2
+
+
+@pytest.mark.asyncio
+async def test_retry_recovers_customer_phone_from_legacy_order_metadata():
+    products = InMemoryProductRepository()
+    await products.save(Product("p1", "shop-1", "Item", "", 2500, "XOF", 2, "books", [], ProductStatus.PUBLISHED))
+    carts = InMemoryCartRepository()
+    cart = await carts.get_or_create("buyer-1")
+    cart.lines = [CartLine("p1", "shop-1", 1)]
+    payments = RetryablePayment()
+    checkouts = InMemoryCheckoutRepository()
+    orders = InMemoryOrderRepository()
+    service = CheckoutApplicationService(
+        carts, products, checkouts, orders, FixedQuote(), payments, []
+    )
+    order = Order(
+        "order-legacy-phone",
+        "shop-1",
+        "legacy-phone-checkout",
+        3200,
+        metadata={"delivery_request": {"recipient_phone": "+237690000000"}},
+    )
+    await orders.save(order)
+    checkout = Checkout(
+        "legacy-phone-checkout",
+        "buyer-1",
+        3200,
+        "XOF",
+        order_ids=[order.id],
+        status=CheckoutStatus.PAYMENT_FAILED,
+        payment={"payment_method": "orange_money", "status": "failed"},
+    )
+    await checkouts.save(checkout)
+
+    await service.retry_payment(checkout.id, "retry-legacy-phone")
+
+    assert payments.calls[-1][2] == "retry-legacy-phone"
+    assert payments.options[-1][2] == "+237690000000"
 
 
 @pytest.mark.asyncio
