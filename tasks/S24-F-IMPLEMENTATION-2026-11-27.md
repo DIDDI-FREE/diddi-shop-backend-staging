@@ -33,3 +33,11 @@ Le conteneur Portainer actuel contient bien le code S24-F et les variables
 issuer/audience attendues. Ses logs montrent uniquement `401`, car le détail
 de l’exception PyJWT était masqué. Un journal sûr a été ajouté : il conserve
 le type et le message de rejet, jamais le JWT.
+
+Après contrôle, le logger initial était routé vers l’export OTLP et n’était
+donc pas visible dans `docker logs`. Il est maintenant routé vers
+`uvicorn.error`, sans journaliser le token. Il faut redéployer cette version,
+puis effectuer un appel réel avec un JWT acheteur pour obtenir la cause PyJWT
+exacte. Le contrôle Portainer du 27/11/2026 confirme que le conteneur est
+healthy, mais aucun appel réel postérieur au redéploiement n’a encore fourni
+ce diagnostic.

@@ -293,6 +293,8 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   `diddifree-id` ; une valeur vide provoque désormais un échec de démarrage
   explicite.
 - Vérifications locales : 81 tests passés et Ruff OK.
+- Le détail sûr du rejet JWT est routé vers `uvicorn.error` afin d’être
+  visible dans `docker logs` ; aucun JWT n’est journalisé.
 
 ### Vérifications de déploiement en attente — S24-F
 
@@ -301,3 +303,6 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   `GET /v1/orders` avec le JWT acheteur.
 - Après redeploiement du diagnostic, lire la cause PyJWT exacte dans les logs
   si le `401` persiste.
+- Faire un appel réel `GET /v1/cart` avec un JWT acheteur après ce redeploiement;
+  le conteneur contrôlé est healthy, mais ses logs ne contiennent encore aucun
+  rejet JWT détaillé postérieur à l’appel de diagnostic.

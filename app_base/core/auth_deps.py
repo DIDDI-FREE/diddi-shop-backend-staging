@@ -9,7 +9,7 @@ from fastapi import Header, HTTPException, Request
 from jwt import PyJWK
 
 _VERIFY_DEFAULT = object()
-logger = logging.getLogger("diddi_shop.auth")
+logger = logging.getLogger("uvicorn.error")
 
 
 @dataclass(frozen=True)
