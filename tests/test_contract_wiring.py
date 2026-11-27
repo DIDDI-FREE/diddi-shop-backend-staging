@@ -61,6 +61,7 @@ async def test_diddisend_wire_contract_is_prepaid_and_traceable():
                 "package": {"label": "order-1"},
                 "quoted_price": 500,
                 "financial_breakdown": {"currency": "XOF", "delivery_fee_minor": 500},
+                "origin_payment_reference": "00000000-0000-0000-0000-000000000001",
             },
         )
 
@@ -78,6 +79,7 @@ async def test_diddisend_wire_contract_is_prepaid_and_traceable():
     assert body["sender_phone"] == "+237690000000"
     assert body["sender_email"] == "shop@diddifree.com"
     assert body["financial_breakdown"]["currency"] == "XOF"
+    assert body["origin_payment_reference"] == "00000000-0000-0000-0000-000000000001"
 
 
 @pytest.mark.anyio

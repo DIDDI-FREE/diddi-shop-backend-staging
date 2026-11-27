@@ -597,3 +597,19 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   `READY_FOR_PICKUP` et confirmer un `delivery_id` non vide.
 - Vérifier côté DiddiSend que le payload contient les deux champs sender et
   que la réponse n’est plus HTTP 422.
+
+## S24-W — référence PaymentIntent pour livraison prépayée
+
+- Cause staging : DiddiSend refusait `prepaid_by_origin=true` sans
+  `origin_payment_reference`, puis DiddiShop remontait ce 422 en 500.
+- Correction : le payload DiddiSend reprend `order.metadata.payment_intent_id`
+  comme référence du PaymentIntent déjà payé.
+- La référence est injectée au moment de `/ready`, donc les anciennes
+  commandes sont couvertes sans migration destructive ni nouveau paiement.
+- Aucun paiement n’est créé par DiddiSend.
+
+### Vérifications de déploiement en attente — S24-W
+
+- Déploiement manuel depuis GitHub.
+- Rejouer `/ready` avec une commande nouvellement payée et confirmer la
+  création de livraison sans nouveau PaymentIntent.

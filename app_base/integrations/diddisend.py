@@ -88,6 +88,7 @@ class DiddiSendAdapter(ServiceAdapter):
             # a string, while the Shop domain keeps minor units as integers.
             quoted_price=str(payload["quoted_price"]),
             financial_breakdown=financial_breakdown,
+            origin_payment_reference=payload.get("origin_payment_reference"),
         )
         context = get_request_context()
         headers = {"Idempotency-Key": command.idempotency_key}

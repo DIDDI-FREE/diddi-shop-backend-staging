@@ -43,3 +43,4 @@ class DeliveryRequest(BaseModel):
     quoted_price: str
     financial_breakdown: dict[str, str | int] | None = None
     prepaid_by_origin: bool = True
+    origin_payment_reference: str | None = None

@@ -55,6 +55,13 @@ class DeliveryService:
         payload["sender_email"] = payload.get("sender_email") or _technical_sender_email(
             payload["sender_phone"], self.diddisend_sender_email
         )
+        # DiddiSend verifies the already-paid DiddiPay intent for prepaid
+        # origin deliveries. This reference is written after checkout creation
+        # and therefore must be read from the order at delivery time.
+        payload["origin_payment_reference"] = (
+            payload.get("origin_payment_reference")
+            or order.metadata.get("payment_intent_id")
+        )
         payload.setdefault("order_reference", f"shop-order:{order.id}")
         payload.setdefault("customer_user_id", payload.get("customer_user_id", "unknown"))
         response = await self.sender.create_delivery(

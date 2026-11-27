@@ -113,7 +113,14 @@ async def test_seller_ready_immediately_requests_diddisend_and_is_retryable():
             return {"delivery": {"id": "del-ready-1", "status": "created"}}
 
     repo = InMemoryOrderRepository()
-    order = Order("o-ready", "s1", "c1", 1000, fulfillment_status=FulfillmentStatus.TO_PREPARE)
+    order = Order(
+        "o-ready",
+        "s1",
+        "c1",
+        1000,
+        fulfillment_status=FulfillmentStatus.TO_PREPARE,
+        metadata={"payment_intent_id": "00000000-0000-0000-0000-000000000001"},
+    )
     await repo.create(order)
     orders = OrderService(repo, [])
     deliveries = InMemoryDeliveryRepository()
@@ -132,6 +139,7 @@ async def test_seller_ready_immediately_requests_diddisend_and_is_retryable():
     assert sender.calls == 1
     assert sender.payloads[0]["sender_phone"] == "+237690000000"
     assert sender.payloads[0]["sender_email"] == "237690000000@diddifree.com"
+    assert sender.payloads[0]["origin_payment_reference"] == "00000000-0000-0000-0000-000000000001"
     saved = await orders.get("o-ready")
     assert saved.fulfillment_status == FulfillmentStatus.READY_FOR_PICKUP
     assert saved.delivery_id == "del-ready-1"

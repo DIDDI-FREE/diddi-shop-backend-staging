@@ -878,3 +878,17 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   correction réversible à valider après rejeu staging.
 - Impact : service delivery, intégration DiddiSend, anciennes commandes et
   recette staging.
+
+### D-070 — Réutiliser la référence PaymentIntent pour DiddiSend
+- Date : 2026-11-27
+- Phase / sous-lot : S24-W
+- Décision : transmettre `order.metadata.payment_intent_id` comme
+  `origin_payment_reference` pour toute livraison `prepaid_by_origin=true`.
+- Pourquoi : DiddiSend doit vérifier le PaymentIntent DiddiPay déjà confirmé ;
+  il ne doit pas créer ni initier un second paiement. La lecture au moment de
+  `/ready` couvre les commandes historiques.
+- Alternatives écartées : créer un nouveau paiement, réutiliser l’idempotency
+  key comme référence financière, ou désactiver la vérification DiddiSend.
+- Source : contrat et code DiddiSend audités en lecture seule ; rapport E2E
+  staging ; Agent, décision à valider au rejeu.
+- Impact : delivery, checkout/order metadata, DiddiSend et recette paiement.

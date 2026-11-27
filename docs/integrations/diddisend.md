@@ -82,8 +82,13 @@ reprise contrôlée par l’exploitation.
 Le payload porte `origin_module=diddishop`, `order_reference`,
 `sender_phone`, `sender_email`, pickup/dropoff, colis,
 `payment_method=diddipay`, `quoted_price`,
-`prepaid_by_origin=true` et éventuellement `financial_breakdown`. Aucun
-paiement n’est recréé dans DiddiSend.
+`prepaid_by_origin=true`, `origin_payment_reference` égal à l’identifiant du
+PaymentIntent DiddiPay déjà confirmé, et éventuellement
+`financial_breakdown`. Aucun paiement n’est recréé dans DiddiSend.
+
+`origin_payment_reference` est relu depuis `order.metadata.payment_intent_id`
+au moment de l’appel `/ready`. Cette lecture au dernier moment couvre aussi
+les commandes créées avant l’ajout du champ au snapshot de livraison.
 
 ## Événements
 
