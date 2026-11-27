@@ -46,6 +46,8 @@ async def test_diddisend_wire_contract_is_prepaid_and_traceable():
                 "customer_user_id": "buyer-1",
                 "recipient_name": "Buyer",
                 "recipient_phone": "237000000000",
+                "sender_phone": "+237690000000",
+                "sender_email": "shop@diddifree.com",
                 "pickup_location": {"lat": 3.8, "lng": 11.5},
                 "pickup_address": "pickup",
                 "dropoff_location": {"lat": 3.9, "lng": 11.6},
@@ -67,6 +69,8 @@ async def test_diddisend_wire_contract_is_prepaid_and_traceable():
     assert body["origin_module"] == "diddishop"
     assert body["prepaid_by_origin"] is True
     assert body["payment_method"] == "diddipay"
+    assert body["sender_phone"] == "+237690000000"
+    assert body["sender_email"] == "shop@diddifree.com"
     assert body["financial_breakdown"]["currency"] == "XOF"
 
 

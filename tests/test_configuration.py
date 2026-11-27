@@ -32,6 +32,8 @@ def _staging_settings(**overrides: str) -> Settings:
             "diddisupport": "support-secret",
         },
         "diddisend_service_user_id": "5cf96b1d-005a-49b8-b6b9-1a6c3c42fd7c",
+        "diddisend_sender_phone": "+237690000000",
+        "diddisend_sender_email": "shop@diddifree.com",
     }
     values.update(overrides)
     return Settings(**values)

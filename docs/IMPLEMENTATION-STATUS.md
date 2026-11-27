@@ -512,3 +512,22 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Vérifier checkout `payment_succeeded`, commande `TO_CONFIRM` et liste vendeur.
 - Vérifier les lectures protégées, confirm/ready puis projection DiddiSend.
 - Aucun rejeu réel ni mutation des données staging n'a été effectué ici.
+
+## S24-Q — coordonnées sender DiddiSend
+
+- Cause staging : DiddiSend refusait `POST /v1/deliveries` en HTTP 422 car
+  `sender_phone` et `sender_email` n’étaient pas présents dans le payload.
+- Correction : les deux valeurs sont injectées par configuration, copiées dans
+  le snapshot `delivery_request`, puis envoyées explicitement par l’adaptateur.
+- En environnement non développement, leur absence provoque une erreur de
+  configuration explicite au démarrage au lieu d’un échec tardif après
+  `READY_FOR_PICKUP`.
+- Tests ciblés : 8 réussis ; aucun appel staging, paiement ou livraison réel
+  n’a été effectué par l’agent.
+
+### Vérifications de déploiement en attente — S24-Q
+
+- Renseigner dans Portainer les coordonnées réelles du sender technique autorisé
+  par DiddiSend : `DIDDISEND_SENDER_PHONE` et `DIDDISEND_SENDER_EMAIL`.
+- Après déploiement manuel, confirmer `POST /v1/orders/{order_id}/ready` →
+  réponse DiddiSend 2xx et `delivery_id` non vide.

@@ -67,8 +67,10 @@ def test_staging_telemetry_requires_complete_otlp_contract():
             service_client_secrets={service: f"secret-{service}" for service in (
                 "diddipay", "diddisend", "diddifiles", "diddirewards", "diddicomms", "diddisupport"
             )},
-            diddisend_service_user_id="5cf96b1d-005a-49b8-b6b9-1a6c3c42fd7c",
-            otel_logs_enabled=True,
+                diddisend_service_user_id="5cf96b1d-005a-49b8-b6b9-1a6c3c42fd7c",
+                diddisend_sender_phone="+237690000000",
+                diddisend_sender_email="shop@diddifree.com",
+                otel_logs_enabled=True,
         otel_exporter_otlp_protocol="http/protobuf",
         otel_exporter_otlp_logs_endpoint="https://logs-otel.diddifree.com/otlp/diddishop/v1/logs",
         otel_exporter_otlp_traces_endpoint="",

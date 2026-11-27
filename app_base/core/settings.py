@@ -137,6 +137,18 @@ class Settings(BaseSettings):
             "DIDDISEND_SERVICE_USER_ID", "DIDDI_SHOP_DIDDISEND_SERVICE_USER_ID", "diddisend_service_user_id"
         ),
     )
+    diddisend_sender_phone: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "DIDDISEND_SENDER_PHONE", "DIDDI_SHOP_DIDDISEND_SENDER_PHONE", "diddisend_sender_phone"
+        ),
+    )
+    diddisend_sender_email: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "DIDDISEND_SENDER_EMAIL", "DIDDI_SHOP_DIDDISEND_SENDER_EMAIL", "diddisend_sender_email"
+        ),
+    )
     jwt_audience: str = "diddishop"
     diddifreeid_issuer: str = "diddifree-id"
     diddifreeid_jwks_url: str = ""
@@ -198,6 +210,10 @@ class Settings(BaseSettings):
             UUID(self.diddisend_service_user_id)
         except ValueError as exc:
             raise ValueError("DIDDISEND_SERVICE_USER_ID must be a valid UUID") from exc
+        if not self.diddisend_sender_phone.strip():
+            raise ValueError("Missing DiddiSend sender phone: DIDDISEND_SENDER_PHONE")
+        if not self.diddisend_sender_email.strip():
+            raise ValueError("Missing DiddiSend sender email: DIDDISEND_SENDER_EMAIL")
         if self.otel_logs_enabled:
             if self.otel_exporter_otlp_protocol != "http/protobuf":
                 raise ValueError("DiddiObserve requires OTLP HTTP/protobuf")

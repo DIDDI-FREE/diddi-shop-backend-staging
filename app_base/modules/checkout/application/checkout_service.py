@@ -59,6 +59,8 @@ class CheckoutApplicationService:
     rewards: RewardsService | None = None
     seller_confirmation_hours: int = 24
     diddisend_service_user_id: str = ""
+    diddisend_sender_phone: str = ""
+    diddisend_sender_email: str = ""
     payment_return_url: str | None = DEFAULT_PAYMENT_RETURN_URL
     payment_return_target: str | None = None
 
@@ -226,6 +228,8 @@ class CheckoutApplicationService:
                             "recipient_user_id": customer_id,
                             "sender_user_id": self.diddisend_service_user_id
                             or (shop.owner_id if shop is not None else "diddishop-system"),
+                            "sender_phone": self.diddisend_sender_phone,
+                            "sender_email": self.diddisend_sender_email,
                             "recipient_name": quote_context.get("recipient_name", customer_id),
                             "recipient_phone": quote_context.get("recipient_phone", "unknown"),
                             "pickup_address": quote_context.get("pickup_location", {}).get("address", ""),

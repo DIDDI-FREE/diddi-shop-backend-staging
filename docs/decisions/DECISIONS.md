@@ -750,3 +750,19 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : Agent, à valider ; rapport E2E et tests de régression.
 - Impact : boutiques, routes commandes, lectures livraison/claims existantes,
   documentation de reprise ; aucune mutation Portainer.
+
+### D-061 — Rendre explicites les coordonnées du sender DiddiSend
+- Date : 2026-11-27
+- Phase / sous-lot : S24-Q
+- Décision : transmettre `sender_phone` et `sender_email` depuis deux variables
+  dédiées (`DIDDISEND_SENDER_PHONE` et `DIDDISEND_SENDER_EMAIL`) dans chaque
+  création DiddiSend. Refuser une configuration staging incomplète au démarrage.
+- Pourquoi : DiddiSend retourne HTTP 422 sans ces champs ; le vendeur pouvait
+  déjà passer la commande à `READY_FOR_PICKUP`, laissant `delivery_id` vide.
+  Les coordonnées ne sont pas disponibles dans l’entité Shop et ne doivent pas
+  être inventées ni prises depuis l’acheteur.
+- Alternatives écartées : utiliser le téléphone/email acheteur, envoyer des
+  valeurs fictives, modifier DiddiSend ou persister manuellement une livraison.
+- Source : rapport staging fourni par l’utilisateur ; contrat DiddiFood audité.
+- Impact : settings, Compose, checkout, adaptateur DiddiSend, configuration
+  Portainer hors dépôt, tests et documentation.

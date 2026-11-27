@@ -39,6 +39,17 @@ commité. `DIDDISEND_SERVICE_USER_ID` doit être un UUID technique autorisé par
 DiddiSend ; il est aussi utilisé comme `sender_user_id` dans la création de
 livraison.
 
+La création exige aussi les coordonnées du sender technique :
+
+```ini
+DIDDISEND_SENDER_PHONE=<telephone-du-sender-technique-autorise>
+DIDDISEND_SENDER_EMAIL=<email-du-sender-technique-autorise>
+```
+
+Ces valeurs doivent correspondre au sender autorisé côté DiddiSend. En staging,
+l’application refuse de démarrer si elles sont absentes, afin d’éviter un HTTP
+422 tardif après le passage à `READY_FOR_PICKUP`.
+
 ## Déclenchement depuis l’application vendeur
 
 Le vendeur ne contacte jamais DiddiSend directement. Lorsque la préparation est
@@ -59,8 +70,9 @@ Si la requête frontend expire après le changement d’état, le même appel pe
 n’est créée. La route `POST /v1/deliveries/orders/{order_id}` est réservée à la
 reprise contrôlée par l’exploitation.
 
-Le payload porte `origin_module=diddishop`, `order_reference`, pickup/dropoff,
-colis, `payment_method=diddipay`, `quoted_price`,
+Le payload porte `origin_module=diddishop`, `order_reference`,
+`sender_phone`, `sender_email`, pickup/dropoff, colis,
+`payment_method=diddipay`, `quoted_price`,
 `prepaid_by_origin=true` et éventuellement `financial_breakdown`. Aucun
 paiement n’est recréé dans DiddiSend.
 

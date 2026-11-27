@@ -13,7 +13,7 @@ Git. Les exemples ci-dessous décrivent des noms de variables, pas des secrets.
 | Données | `DIDDI_SHOP_DATABASE_URL`, `DIDDI_SHOP_REDIS_URL` | PostgreSQL et Redis |
 | DiddiFreeID | `DIDDI_SHOP_DIDDIFREEID_*` | JWKS et token service |
 | Cibles S2S | `DIDDI_SHOP_SERVICE_CLIENT_IDS`, `DIDDI_SHOP_SERVICE_CLIENT_SECRETS` | un client par service |
-| DiddiSend S2S explicite | `DIDDISEND_CLIENT_ID`, `DIDDISEND_CLIENT_SECRET`, `DIDDISEND_AUDIENCE`, `DIDDISEND_ORIGIN_SERVICE`, `DIDDISEND_SERVICE_USER_ID` | client, audience, origine et sender technique |
+| DiddiSend S2S explicite | `DIDDISEND_CLIENT_ID`, `DIDDISEND_CLIENT_SECRET`, `DIDDISEND_AUDIENCE`, `DIDDISEND_ORIGIN_SERVICE`, `DIDDISEND_SERVICE_USER_ID`, `DIDDISEND_SENDER_PHONE`, `DIDDISEND_SENDER_EMAIL` | client, audience, origine, identité et coordonnées du sender technique |
 | Intégrations | `DIDDI_SHOP_DIDDIPAY_BASE_URL`, `DIDDI_SHOP_DIDDISEND_BASE_URL`, etc. | bases HTTPS |
 | Webhooks | `DIDDI_SHOP_DIDDIPAY_WEBHOOK_SECRET`, `DIDDI_SHOP_DIDDISEND_WEBHOOK_SECRET` | signatures entrantes |
 | Retour paiement | `DIDDI_SHOP_DIDDIPAY_RETURN_URL`, `DIDDI_SHOP_DIDDIPAY_RETURN_TARGET` | retour navigateur, pas un webhook |
@@ -52,6 +52,8 @@ En environnement non développement, l’application refuse :
 
 - une base externe absente ou non HTTPS ;
 - un client ou secret S2S manquant ;
+- une coordonnée sender DiddiSend manquante (`DIDDISEND_SENDER_PHONE` ou
+  `DIDDISEND_SENDER_EMAIL`) ;
 - un endpoint OTLP ou credential manquant lorsque les logs sont activés.
 
 Le Compose local est explicitement en `development` et utilise des valeurs
