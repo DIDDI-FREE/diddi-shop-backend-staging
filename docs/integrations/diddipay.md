@@ -87,6 +87,12 @@ la réussite d'un prélèvement réel.
 Un refund attend `amount` et `reason`. La réponse `id` est normalisée en
 `refund_id`. DiddiShop ne reçoit ni ne stocke de données carte.
 
+Les états de remboursement DiddiPay sont `pending`, `processing`, `succeeded`
+et `failed`, en minuscules. DiddiShop expose aussi `not_requested` avant toute
+demande de remboursement. Le moyen est normalisé vers `wave`, `mtn_momo` ou
+`orange_money` lorsqu’il est disponible dans la réponse ou dans le paiement
+d’origine.
+
 ## Idempotence et webhooks
 
 - PaymentIntent : clé fournie à la création (`idempotency_key`), puis nouvelle

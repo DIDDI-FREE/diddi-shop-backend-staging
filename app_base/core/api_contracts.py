@@ -330,8 +330,8 @@ class ClaimResponse(BaseModel):
     evidence_file_ids: list[str]
     delivered_at: datetime | None = None
     claim_deadline: datetime | None = None
-    refund_status: str
-    refund_method: str | None = None
+    refund_status: Literal["not_requested", "pending", "processing", "succeeded", "failed"]
+    refund_method: Literal["wave", "mtn_momo", "orange_money"] | None = None
     refund_reference_masked: str | None = None
     refunded_at: datetime | None = None
 

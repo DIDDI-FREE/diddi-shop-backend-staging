@@ -543,3 +543,13 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Le retry accepte `payment_method` (`wave`, `mtn_momo`, `orange_money`) avec
   une nouvelle clé d’idempotence.
 - Vérification locale ciblée : 48 tests réussis après correction.
+
+## S24-S — deuxième vague de contrats frontend
+
+- `refund_status` est limité à `not_requested`, `pending`, `processing`,
+  `succeeded` et `failed`, en minuscules.
+- `refund_method` est normalisé vers `wave`, `mtn_momo` ou `orange_money`.
+- Le parcours DiddiFiles documente la reprise exacte des headers signés et
+  distingue l’expiration de l’URL d’upload de la durée de vie du fichier.
+- Aucune expiration automatique de fichier non joint n’est inventée côté Shop.
+- Tests complets : 239 passed.

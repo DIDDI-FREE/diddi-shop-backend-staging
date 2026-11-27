@@ -503,6 +503,9 @@ valeurs existantes.
 - Le frontend reçoit `refund_status`, `refund_method`, `refund_reference_masked`
   et `refunded_at` lorsqu’ils sont disponibles. Le numéro de téléphone complet
   n’est jamais exposé.
+- `refund_status` vaut `not_requested`, `pending`, `processing`, `succeeded` ou
+  `failed`, en minuscules. `refund_method` reprend `wave`, `mtn_momo` ou
+  `orange_money` lorsqu’il est connu.
 
 ## Campagnes, backoffice et support
 

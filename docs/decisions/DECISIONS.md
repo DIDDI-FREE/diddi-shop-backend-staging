@@ -818,3 +818,18 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   précédent.
 - Source : Utilisateur.
 - Impact : checkout, schéma frontend, adaptateur DiddiPay et tests.
+
+### D-066 — Fermer les contrats de remboursement et de preuves photo
+- Date : 2026-11-27
+- Phase / sous-lot : S24-S
+- Décision : exposer les états de remboursement en minuscules avec l’ensemble
+  `not_requested|pending|processing|succeeded|failed`, normaliser le moyen vers
+  `wave|mtn_momo|orange_money`, et exiger la reprise exacte des headers de la
+  session DiddiFiles avant confirmation/attachement.
+- Pourquoi : ces valeurs correspondent au contrat DiddiPay vérifié. DiddiFiles
+  ne fournit actuellement qu’une durée de signature d’upload, pas une règle
+  démontrée de purge des fichiers pending non joints.
+- Alternatives écartées : chaîne libre côté OpenAPI, conversion en majuscules,
+  expiration locale inventée et modification des headers signés.
+- Source : code DiddiPay/DiddiFiles audité en lecture seule ; contrat produit.
+- Impact : claims, finance, réponses frontend et documentation d’intégration.

@@ -9,6 +9,8 @@ from app_base.core.errors import (
     OrderNotCancellableError,
 )
 from app_base.modules.claims.domain import Claim, ClaimDecision, ClaimStatus
+
+SUPPORTED_REFUND_METHODS = {"wave", "mtn_momo", "orange_money"}
 from app_base.modules.orders.domain.entities import FulfillmentStatus, Order, PaymentStatus
 from app_base.modules.rewards.application import RewardsService
 
@@ -128,11 +130,16 @@ class FinanceService:
             if order.metadata.get("refund_operation") != operation:
                 refund = await self.financial.refund(payment_id, amount, operation)
                 order.metadata["refund_operation"] = operation
-                claim.refund_status = (refund or {}).get("status", "pending")
-                claim.refund_method = (
+                claim.refund_status = str((refund or {}).get("status", "pending")).lower()
+                raw_refund_method = (
                     (refund or {}).get("payment_method")
                     or order.metadata.get("payment_method")
                     or order.metadata.get("delivery_request", {}).get("payment_method")
+                )
+                claim.refund_method = (
+                    str(raw_refund_method).lower()
+                    if str(raw_refund_method).lower() in SUPPORTED_REFUND_METHODS
+                    else None
                 )
                 refund_reference = (refund or {}).get("refund_id")
                 claim.refund_reference_masked = f"****{str(refund_reference)[-4:]}" if refund_reference else None
