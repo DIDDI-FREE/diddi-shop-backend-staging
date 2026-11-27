@@ -79,7 +79,8 @@ Si la requête frontend expire après le changement d’état, le même appel pe
 n’est créée. La route `POST /v1/deliveries/orders/{order_id}` est réservée à la
 reprise contrôlée par l’exploitation.
 
-Le payload porte `origin_module=diddishop`, `order_reference`,
+Le payload porte `origin_module=diddishop`, `order_reference` égal à la
+`business_reference` du PaymentIntent,
 `sender_phone`, `sender_email`, pickup/dropoff, colis,
 `payment_method=diddipay`, `quoted_price`,
 `prepaid_by_origin=true`, `origin_payment_reference` égal à l’identifiant du
@@ -123,9 +124,12 @@ localement.
 DiddiSend signe ses callbacks avec HMAC-SHA256 dans
 `X-DiddiSend-Signature` sous la forme `sha256=<digest>`. DiddiShop vérifie la
 signature avec `DIDDI_SHOP_DIDDISEND_WEBHOOK_SECRET`. L’enveloppe contient
-`delivery_id` et `order_reference=shop-order:{order_id}` ; elle est adaptée
-vers l’événement interne avant projection. Le secret DiddiSend entrant est
-distinct des credentials S2S sortants.
+`delivery_id` et `order_reference` ; pour une commande issue d’un checkout
+unique, DiddiShop résout la référence `diddishop:checkout:{checkout_id}` vers
+son unique `order_id` avant projection. Le secret DiddiSend entrant est
+distinct des credentials S2S sortants. Un checkout multi-boutiques ne peut pas
+encore utiliser un unique PaymentIntent pour plusieurs livraisons prépayées :
+ce cas nécessite une référence/ownership de paiement par livraison.
 
 DiddiSend doit être configuré avec l’URL suivante et le même secret HMAC que
 celui injecté dans DiddiShop :

@@ -151,6 +151,22 @@ async def diddisend_webhook(request: Request):
     except ValueError as exc:
         raise HTTPException(status_code=422, detail="DiddiSend callback must be valid JSON") from exc
     event, is_diddisend_envelope = _normalize_diddisend_event(raw)
+    # Coverage verification uses the PaymentIntent business_reference as the
+    # DiddiSend order_reference. Resolve that checkout reference back to the
+    # single Shop order before applying the delivery event. A multi-order
+    # checkout is intentionally rejected here because one prepaid PaymentIntent
+    # cannot identify a unique delivery order under the current contract.
+    if is_diddisend_envelope and not event.payload.get("order_id"):
+        checkout_id = _checkout_id_from_business_reference(event.payload.get("order_reference"))
+        if checkout_id:
+            checkout = await request.app.state.checkout_service.get(checkout_id)
+            if len(checkout.order_ids) == 1:
+                event = event.model_copy(
+                    update={
+                        "aggregate_id": checkout.order_ids[0],
+                        "payload": {**event.payload, "order_id": checkout.order_ids[0]},
+                    }
+                )
     if is_diddisend_envelope and not event.payload.get("order_id"):
         raise HTTPException(
             status_code=422,

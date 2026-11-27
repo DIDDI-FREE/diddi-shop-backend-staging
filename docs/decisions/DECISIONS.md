@@ -925,3 +925,18 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   à valider par les équipes Pay/Send.
 - Impact : contrat DiddiPay, vérification DiddiSend, recette E2E ; aucun
   déploiement Portainer.
+
+### D-073 — Aligner la référence de livraison sur le PaymentIntent
+- Date : 2026-11-28
+- Phase / sous-lot : S24-Y
+- Décision : envoyer à DiddiSend `order_reference` égal à la
+  `business_reference` du PaymentIntent (`diddishop:checkout:{checkout_id}`),
+  sans modifier `quoted_price`, qui reste le montant de livraison en XOF.
+- Pourquoi : la vérification DiddiPay exige une référence strictement égale ;
+  l’ancien alias `shop-order:{order_id}` provoquait le prochain rejet après
+  correction du mode `coverage`.
+- Alternatives écartées : envoyer le total du paiement comme prix de livraison,
+  créer un second PaymentIntent ou désactiver la vérification de référence.
+- Source : contrat Pay/Send transmis le 2026-11-28 ; code Shop audité ; Agent,
+  décision à valider en staging.
+- Impact : checkout, livraison, callbacks DiddiSend et recette E2E.

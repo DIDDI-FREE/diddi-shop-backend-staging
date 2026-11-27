@@ -62,7 +62,14 @@ class DeliveryService:
             payload.get("origin_payment_reference")
             or order.metadata.get("payment_intent_id")
         )
-        payload.setdefault("order_reference", f"shop-order:{order.id}")
+        # DiddiPay owns the payment reference used by DiddiSend verification.
+        # For a prepaid delivery it must be byte-for-byte identical to the
+        # PaymentIntent business_reference, not a local order-only alias.
+        payload.setdefault(
+            "order_reference",
+            order.metadata.get("payment_business_reference")
+            or f"diddishop:checkout:{order.checkout_id}",
+        )
         payload.setdefault("customer_user_id", payload.get("customer_user_id", "unknown"))
         response = await self.sender.create_delivery(
             DeliveryCommand(order_id=order.id, idempotency_key=f"shop:create-delivery:{order.id}:1"),

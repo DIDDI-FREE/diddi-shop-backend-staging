@@ -1,9 +1,9 @@
 # DiddiShop — état d’implémentation
 
 **Date :** 2026-11-27
-**Phase courante :** S24-X terminé localement
-**Statut :** correction locale poussable ; recette staging bloquée par la
-visibilité inter-client du PaymentIntent DiddiPay
+**Phase courante :** S24-Y terminé localement
+**Statut :** correction locale poussable ; recette staging en attente du
+contrat coverage DiddiPay/DiddiSend et d’un rejeu manuel
 
 **Correction du 2026-11-27 :** le Compose staging exécute désormais
 `alembic upgrade head` avant Uvicorn. L'incident staging `relation "carts"
@@ -146,6 +146,15 @@ statut upstream non sensible. La commande reste `READY_FOR_PICKUP`, la
 projection n’est pas créée et le rejeu conserve la même clé idempotente.
 Le blocage de lecture du PaymentIntent est documenté dans les contrats : sa
 correction nécessite une décision DiddiPay/DiddiSend.
+
+## Dernier lot implémenté — S24-Y
+
+`order_reference` envoyé à DiddiSend reprend désormais la
+`business_reference` du PaymentIntent (`diddishop:checkout:{checkout_id}`). Le
+prix de livraison reste séparé et exprimé en XOF. Les callbacks DiddiSend
+peuvent résoudre cette référence vers l’unique commande du checkout. Un
+checkout multi-boutiques avec un seul PaymentIntent reste à traiter dans un
+contrat financier dédié avant activation.
 
 ## Dernier lot implémenté — S24-D
 

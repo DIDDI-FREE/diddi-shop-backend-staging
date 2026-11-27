@@ -140,6 +140,7 @@ async def test_seller_ready_immediately_requests_diddisend_and_is_retryable():
     assert sender.payloads[0]["sender_phone"] == "+237690000000"
     assert sender.payloads[0]["sender_email"] == "237690000000@diddifree.com"
     assert sender.payloads[0]["origin_payment_reference"] == "00000000-0000-0000-0000-000000000001"
+    assert sender.payloads[0]["order_reference"] == "diddishop:checkout:c1"
     saved = await orders.get("o-ready")
     assert saved.fulfillment_status == FulfillmentStatus.READY_FOR_PICKUP
     assert saved.delivery_id == "del-ready-1"

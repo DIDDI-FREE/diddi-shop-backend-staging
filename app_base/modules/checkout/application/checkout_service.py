@@ -311,6 +311,7 @@ class CheckoutApplicationService:
         await self.checkouts.save(checkout)
         for order in created_orders:
             order.metadata["payment_intent_id"] = checkout.payment_intent_id
+            order.metadata["payment_business_reference"] = f"diddishop:checkout:{checkout.id}"
             await self.orders.save(order)
             await append_outbox(self.outbox, new_outbox_message(
                 "order.created", "order", order.id,
