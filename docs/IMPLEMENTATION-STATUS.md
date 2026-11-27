@@ -333,3 +333,14 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Déployer manuellement le nouveau Compose/image dans Portainer.
 - Vérifier les marqueurs Alembic `Running upgrade` dans les logs API.
 - Rejouer `GET /v1/cart` avec un JWT acheteur et confirmer l’absence de 500.
+
+## S24-H — correction panier après lecture PostgreSQL
+
+- Les produits relus depuis le payload JSON reconstruisent maintenant
+  `ProductStatus` avant d’être utilisés par le panier et le checkout.
+- Vérifications locales : 83 tests passés et Ruff OK.
+
+### Vérifications de déploiement en attente — S24-H
+
+- Déployer manuellement le commit sur Portainer.
+- Rejouer `POST /v1/cart/lines`, puis le devis checkout.

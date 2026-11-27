@@ -545,3 +545,15 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   directement sans migration versionnée.
 - Source : incident staging et comparaison DiddiFood/DiddiPay/DiddiSupport | Agent
 - Impact : Dockerfile/Compose staging, démarrage API, PostgreSQL, runbook et tests.
+
+### D-048 — Réhydrater les enums produit depuis PostgreSQL
+- Date : 2026-11-27
+- Phase / sous-lot : S24-H
+- Décision : convertir `payload.status` en `ProductStatus` dans le repository
+  SQL avant de reconstruire un `Product`.
+- Pourquoi : la persistance JSON stocke correctement la valeur texte, mais les
+  services panier et checkout utilisent ensuite l’API enum `.value`.
+- Alternatives écartées : comparer partout des chaînes ; modifier le schéma
+  SQL ; supprimer l’usage de l’enum du domaine.
+- Source : erreur runtime staging `str has no attribute value` | Agent
+- Impact : repository produit, panier, checkout et tests SQL.

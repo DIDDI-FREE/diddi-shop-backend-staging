@@ -16,7 +16,7 @@ from app_base.core.business_models import (
 )
 from app_base.core.errors import ConflictError, DiddiShopError
 from app_base.modules.cart.domain import Cart, CartLine
-from app_base.modules.catalog.domain import Product
+from app_base.modules.catalog.domain import Product, ProductStatus
 from app_base.modules.checkout.domain import Checkout
 from app_base.modules.claims.domain import Claim
 from app_base.modules.delivery.domain import DeliveryProjection
@@ -36,6 +36,14 @@ def _cart(payload: str) -> Cart:
     data = _load(payload)
     data["lines"] = [CartLine(**line) for line in data.get("lines", [])]
     return Cart(**data)
+
+
+def _product(payload: str) -> Product:
+    data = _load(payload)
+    # JSON persistence stores StrEnum values as strings. Rehydrate the domain
+    # enum before application services access ProductStatus.value.
+    data["status"] = ProductStatus(data["status"])
+    return Product(**data)
 
 
 class SqlShopRepository:
@@ -80,7 +88,7 @@ class SqlProductRepository:
     async def get(self, product_id: str) -> Product | None:
         async with self.factory() as session:
             row = await session.get(ProductRecord, product_id)
-            return Product(**_load(row.payload)) if row else None
+            return _product(row.payload) if row else None
 
     async def list_published(
         self,
@@ -93,7 +101,7 @@ class SqlProductRepository:
             if shop_id is not None:
                 query = query.where(ProductRecord.shop_id == shop_id)
             result = await session.execute(query)
-            products = [Product(**_load(row.payload)) for row in result.scalars()]
+            products = [_product(row.payload) for row in result.scalars()]
             needle = search.casefold().strip() if search else None
             return [
                 product for product in products
@@ -104,7 +112,7 @@ class SqlProductRepository:
     async def list_for_shop(self, shop_id: str) -> list[Product]:
         async with self.factory() as session:
             result = await session.execute(select(ProductRecord).where(ProductRecord.shop_id == shop_id))
-            return [Product(**_load(row.payload)) for row in result.scalars()]
+            return [_product(row.payload) for row in result.scalars()]
 
     async def apply_stock(self, product_id: str, delta: int, operation_id: str) -> Product:
         async with self.factory() as session, session.begin():
@@ -120,7 +128,7 @@ class SqlProductRepository:
                 payload["stock"] = row.stock
                 row.payload = json.dumps(payload, separators=(",", ":"))
                 session.add(StockOperationRecord(operation_id=operation_id, product_id=product_id))
-            return Product(**_load(row.payload))
+            return _product(row.payload)
 
 
 class SqlCartRepository:

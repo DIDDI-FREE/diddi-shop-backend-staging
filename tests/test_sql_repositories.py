@@ -23,6 +23,24 @@ async def test_sql_product_stock_operation_is_idempotent_and_persists():
 
 
 @pytest.mark.asyncio
+async def test_sql_product_round_trip_rehydrates_status_enum():
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
+    async with engine.begin() as connection:
+        await connection.run_sync(Base.metadata.create_all)
+    factory = async_sessionmaker(engine, expire_on_commit=False)
+    products = SqlProductRepository(factory)
+    product = Product("product-2", "shop-1", "Item", "Description", 1000, "XOF", 2, "cat", [], ProductStatus.PUBLISHED)
+
+    await products.save(product)
+
+    loaded = await products.get(product.id)
+    assert loaded is not None
+    assert loaded.status is ProductStatus.PUBLISHED
+    assert loaded.status.value == "published"
+    await engine.dispose()
+
+
+@pytest.mark.asyncio
 async def test_sql_cart_round_trip_rehydrates_cart_lines():
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
     async with engine.begin() as connection:

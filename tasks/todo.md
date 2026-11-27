@@ -125,3 +125,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-E — corriger la validation JWT/JWKS dans l’image API
 - [x] S24-F — aligner les JWT utilisateurs sans audience et rendre l’issuer obligatoire
 - [x] S24-G — exécuter automatiquement les migrations Alembic avant l’API staging
+- [x] S24-H — réhydrater le statut produit enum depuis PostgreSQL
