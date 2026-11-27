@@ -1,4 +1,4 @@
-# Rapport — correctif retour paiement S24-O
+# Rapport — correctifs paiement S24-O et S24-P
 
 - S24-O terminé : `751b1c93e0a6a16111c4481b261cb0ebceab35b4`.
   `return_url` → `callback_url`, conservation/reprise historique, alternative
@@ -20,3 +20,21 @@
 - Aucun autre dépôt modifié ; aucun secret commité ; aucune mutation Portainer.
 
 Réalisations antérieures : rapport du 24 novembre et journaux S24-A à S24-N.
+
+## S24-P — sauvegarde webhook et parcours vendeur/livraison
+
+- Terminé : `a7a78688bd58afd66706dc8b85bbcd3397c0f4be`.
+- Cause : enums non restaurés après JSON et modifications paiement/Rewards
+  perdues lors d'un rechargement. Correction des lectures ShopService.get et
+  de la sauvegarde de livraison avec une instance obsolète.
+- 238 tests hôte et Docker sans réseau, plus un parcours complet avec HMAC et
+  PostgreSQL 16 Docker réel : succès → vendeur → livraison simulée jusqu'à
+  DELIVERED. Lint hôte/Linux, compilation, MkDocs strict et Alembic SQL OK.
+- Base synthétique et réseau de test supprimés ; aucun volume de staging touché.
+- Décision D-059 documentée ; D-060 Agent à valider. Pas de sous-lot bloqué,
+  aucun nouveau contrat fournisseur ou changement de schéma requis.
+- Après déploiement Git manuel utilisateur : faire reprendre le callback original
+  par DiddiPay et vérifier checkout `payment_succeeded`, commande `TO_CONFIRM`.
+  **Ne pas relancer le paiement** pour réparer sa notification de succès.
+- Non testé : reprise du webhook réel en staging, concurrence distribuée et
+  appel DiddiSend réel dans ce parcours. Aucun autre backend ni Portainer modifié.
