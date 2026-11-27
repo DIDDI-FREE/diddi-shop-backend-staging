@@ -19,7 +19,7 @@ from app_base.modules.checkout.application.checkout_service import (
     DeliveryQuotePort,
     PaymentIntentPort,
 )
-from app_base.modules.checkout.domain import CheckoutStatus
+from app_base.modules.checkout.domain import Checkout, CheckoutStatus
 from app_base.modules.checkout.infra import InMemoryCheckoutRepository
 from app_base.modules.claims.infra import InMemoryClaimRepository
 from app_base.modules.delivery.domain import DeliveryProjection, DeliveryStatus
@@ -126,6 +126,40 @@ async def test_failed_payment_persists_failure_and_retry_reopens_payment():
     assert retried.status == CheckoutStatus.PAYMENT_SUCCEEDED
     assert retried.payment_intent_id == "pi-success"
     assert retried.payment_attempt == 2
+
+
+@pytest.mark.asyncio
+async def test_get_repairs_legacy_pending_checkout_with_failed_payment():
+    checkouts = InMemoryCheckoutRepository()
+    checkout = Checkout(
+        "legacy-checkout",
+        "buyer-1",
+        3200,
+        "XOF",
+        payment={
+            "payment_intent_id": "pi-failed",
+            "status": "failed",
+            "failure_code": "PROCESSOR_REQUEST_REJECTED",
+            "failure_message": "customer_phone is required",
+            "provider_status": "rejected_before_call",
+        },
+    )
+    await checkouts.save(checkout)
+    service = CheckoutApplicationService(
+        InMemoryCartRepository(),
+        InMemoryProductRepository(),
+        checkouts,
+        InMemoryOrderRepository(),
+        FixedQuote(),
+        RetryablePayment(),
+        [],
+    )
+
+    repaired = await service.get("legacy-checkout")
+
+    assert repaired.status == CheckoutStatus.PAYMENT_FAILED
+    assert repaired.payment["payment_failure_code"] == "PROCESSOR_REQUEST_REJECTED"
+    assert (await checkouts.get("legacy-checkout")).status == CheckoutStatus.PAYMENT_FAILED
 
 
 @pytest.mark.asyncio

@@ -614,3 +614,17 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : erreur staging `customer_phone is required by pawapay deposits` |
   Utilisateur / Agent
 - Impact : contrat PaymentIntent, adaptateur DiddiPay, checkout et retries.
+
+### D-053 — Réconcilier les checkouts historiques incohérents
+- Date : 2026-11-27
+- Phase / sous-lot : S24-M
+- Décision : lors de la lecture d’un checkout, si son statut local est
+  `payment_pending` mais que le paiement enregistré est `failed` ou
+  `succeeded`, persister immédiatement le statut dérivé et les champs de
+  diagnostic avant de retourner la réponse.
+- Pourquoi : les checkouts créés avant S24-K peuvent rester bloqués en pending ;
+  le correctif doit les rendre retryables sans migration destructive.
+- Alternatives écartées : modifier directement la base ; autoriser le retry
+  depuis pending ; supprimer les anciens checkouts.
+- Source : logs staging du retry 409 et état persistant observé | Agent
+- Impact : service checkout, GET checkout et route retry.

@@ -405,3 +405,16 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Déployer manuellement le commit dans Portainer.
 - Rejouer un checkout/retry mobile money avec un téléphone `+237...` et vérifier
   que l'erreur `customer_phone is required` a disparu.
+
+## S24-M — réconciliation des checkouts historiques
+
+- La lecture d’un checkout répare maintenant les anciens enregistrements où le
+  statut local est `payment_pending` mais le paiement est déjà `failed` ou
+  `succeeded`.
+- Cette réparation est idempotente et ne nécessite aucune migration destructive.
+- Vérifications locales : 89 tests passés, Ruff OK.
+
+### Vérifications de déploiement en attente — S24-M
+
+- Déployer manuellement le commit dans Portainer.
+- Relire le checkout historique puis rejouer `/retry` avec une nouvelle clé.

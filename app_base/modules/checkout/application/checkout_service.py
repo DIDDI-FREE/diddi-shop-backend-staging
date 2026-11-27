@@ -284,6 +284,14 @@ class CheckoutApplicationService:
         checkout = await self.checkouts.get(checkout_id)
         if checkout is None:
             raise ConflictError("checkout not found")
+        payment_status = self._checkout_status_for_payment(checkout.payment or {})
+        if checkout.status == CheckoutStatus.PAYMENT_PENDING and payment_status != CheckoutStatus.PAYMENT_PENDING:
+            checkout.status = payment_status
+            checkout.payment = {
+                **(checkout.payment or {}),
+                **self._payment_failure_fields(checkout.payment or {}),
+            }
+            await self.checkouts.save(checkout)
         return checkout
 
     async def apply_payment_event(self, checkout_id: str, event_type: str, payload: dict) -> Checkout:
