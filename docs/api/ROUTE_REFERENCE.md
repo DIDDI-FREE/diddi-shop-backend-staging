@@ -291,8 +291,12 @@ valeurs existantes.
   et relaie éventuellement `payment_url`, `checkout_url`, `client_secret`,
   `payment_method` et `expires_at`. Le V1 accepte `wave`, `mtn_momo` et
   `orange_money`, avec `wave` par défaut. `return_url` est facultative et doit
-  cibler `*.diddifree.com` ou `localhost` en HTTP(S) ; elle est transmise à
-  DiddiPay mais n’est jamais renvoyée au frontend comme un secret.
+  cibler `*.diddifree.com` ou `localhost` en HTTP(S). Elle n'est pas transmise
+  au PaymentIntent DiddiPay actuel (champ non contractuel).
+- Le téléphone est transmis à DiddiPay comme `customer_phone` et conservé
+  côté backend pour le retry, sans être exposé dans `CheckoutResponse`.
+- Header de réponse `Idempotency-Replayed` : `false` pour une création nouvelle,
+  `true` pour la réponse mémorisée d'une même clé (aucun nouveau paiement).
 - `POST /v1/checkouts/quote` calcule le sous-total, les frais DiddiSend par
   boutique et le total sans créer de paiement.
 - `GET /v1/checkouts/{checkout_id}` lit l’état du checkout et de son paiement.
@@ -323,8 +327,18 @@ valeurs existantes.
   de paiement et ne doit pas être la clé de création initiale.
 - Précondition : checkout en `payment_failed`.
 - Effet : crée une nouvelle tentative DiddiPay pour le même montant XOF et
-  passe le checkout à `payment_pending`.
-- Réponse : `CheckoutResponse`.
+  passe temporairement le checkout à `payment_pending`, puis conserve le
+  statut final renvoyé : `payment_pending`, `payment_failed` ou `payment_succeeded`.
+- Le téléphone valide est récupéré du paiement sauvegardé ou des métadonnées
+  de la commande historique. Aucun corps JSON ni répétition du téléphone requis.
+- `422 PAYMENT_PHONE_REQUIRED` : aucun téléphone valide enregistré. Aucun
+  appel DiddiPay, incrément de tentative ou changement de clé n'est effectué.
+  Ce cas exige de retrouver la donnée manquante, pas de répéter le paiement.
+- Réponse : `CheckoutResponse`, avec header `Idempotency-Replayed`.
+  `true` signifie que la réponse précédente a été rejouée : `payment_attempt`
+  reste identique, aucun nouvel appel DiddiPay. Une nouvelle tentative après
+  échec confirmé exige une clé jamais utilisée et retourne `false`.
+  Le header est accessible au navigateur via CORS et décrit dans OpenAPI.
 
 ### `GET /v1/orders`
 

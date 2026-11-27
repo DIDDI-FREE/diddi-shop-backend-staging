@@ -124,7 +124,7 @@ async def test_failed_payment_persists_failure_and_retry_reopens_payment():
         carts, products, checkouts, InMemoryOrderRepository(), FixedQuote(), payments, []
     )
 
-    checkout = await service.create("buyer-1", "create-failed-1")
+    checkout = await service.create("buyer-1", "create-failed-1", {"recipient_phone": "+2250700000000"})
     assert checkout.status == CheckoutStatus.PAYMENT_FAILED
     assert checkout.payment["payment_failure_code"] == "provider_declined"
     assert checkout.payment["payment_failure_message"] == "The provider declined the payment"
@@ -228,7 +228,7 @@ async def test_quote_and_payment_retry_have_stable_contracts():
     assert quote["total_minor"] == 3200
     assert quote["shop_breakdowns"][0]["shop_id"] == "shop-1"
 
-    checkout = await service.create("buyer-1", "create-1")
+    checkout = await service.create("buyer-1", "create-1", {"recipient_phone": "+2250700000000"})
     await service.apply_payment_event(checkout.id, "payment.failed", {"payment_intent_id": "pi-1"})
     retried = await service.retry_payment(checkout.id, "retry-1")
     assert retried.status == CheckoutStatus.PAYMENT_PENDING

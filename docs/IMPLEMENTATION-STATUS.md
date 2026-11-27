@@ -1,7 +1,7 @@
 # DiddiShop — état d’implémentation
 
-**Date :** 2026-11-26
-**Phase courante :** S23-D terminé localement
+**Date :** 2026-11-27
+**Phase courante :** S24-N terminé localement
 **Statut :** implémentation locale complète ; recette staging en attente
 
 **Correction du 2026-11-27 :** le Compose staging exécute désormais
@@ -29,7 +29,7 @@ leurs ports.
 | Commande | Usage | État |
 | --- | --- | --- |
 | `python -m compileall -q app_base tests alembic` | compilation Python | disponible, OK |
-| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 71 passed |
+| `pytest -q` | tests unitaires et contrats | disponible, dernier résultat : 106 passed |
 | `ruff check .` | lint | disponible, dernier résultat : OK |
 | `alembic upgrade head --sql` | vérification des migrations | disponible, OK |
 | `alembic upgrade head` | migrations réelles | OK dans PostgreSQL local Compose |
@@ -423,3 +423,31 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 
 - Déployer manuellement le commit dans Portainer.
 - Relire le checkout historique puis rejouer `/retry` avec une nouvelle clé.
+
+## S24-N — téléphone obligatoire et preuve de transmission
+
+- Validation du téléphone avant effets métier et avant HTTP DiddiPay. Le
+  retry restaure les valeurs historiques valides ; une donnée absente/invalide
+  entraîne `422 PAYMENT_PHONE_REQUIRED`, sans tentative ni changement de clé.
+- Les entrées Shop ne sont plus effacées par une réponse fournisseur nullable.
+- Le statut checkout est réhydraté après lecture SQL (GET/retry).
+- Header `Idempotency-Replayed` et événements distincts de rejeu/appel ; aucun
+  téléphone, corps de requête ou secret dans ces diagnostics.
+- 106 tests réussis localement et dans Docker Desktop Python 3.12, réseau
+  désactivé. 16 nouveaux cas couvrent routes réelles, repositories SQL SQLite,
+  port/adaptateur DiddiPay réels, transport HTTP simulé. Ruff, compilation,
+  MkDocs strict et génération SQL Alembic réussis.
+- Image de tests isolée : `Dockerfile.test`, contexte autorisé explicitement
+  par `Dockerfile.test.dockerignore` (aucune variable/secrets embarqués).
+- Aucun code externe au dépôt modifié ; aucune mutation/déploiement Portainer.
+
+### Vérifications de déploiement en attente — S24-N
+
+- Déploiement manuel par l'utilisateur uniquement.
+- Sur un checkout échoué : nouvelle clé jamais utilisée, vérifier
+  `Idempotency-Replayed=false` et l'incrément du compteur. Une clé déjà traitée
+  doit renvoyer `true` sans nouvel appel fournisseur.
+- Corréler les événements Shop `checkout.payment.intent_requested` et
+  `checkout.payment.intent_resolved` avec DiddiPay ; ne jamais afficher le numéro.
+- La réussite d'un paiement Orange Money réel n'est pas établie par les tests
+  simulés. Aucun prélèvement réel ni modification de données staging effectué.

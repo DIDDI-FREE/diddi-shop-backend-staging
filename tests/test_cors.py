@@ -19,6 +19,8 @@ def test_cors_allows_diddifree_subdomains_and_localhost():
             assert response.headers["access-control-allow-origin"] == origin
             assert "GET" in response.headers["access-control-allow-methods"]
             assert "authorization" in response.headers["access-control-allow-headers"].lower()
+            actual = client.get("/health", headers={"Origin": origin})
+            assert "idempotency-replayed" in actual.headers["access-control-expose-headers"].lower()
 
 
 def test_cors_rejects_arbitrary_origins():
@@ -30,4 +32,3 @@ def test_cors_rejects_arbitrary_origins():
 
         assert response.status_code == 200
         assert "access-control-allow-origin" not in response.headers
-

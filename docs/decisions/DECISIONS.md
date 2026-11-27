@@ -643,3 +643,37 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   régression.
 - Source : résultat de retry fourni par l’utilisateur | Utilisateur / Agent
 - Impact : checkout application service, retries historiques, contrat DiddiPay.
+
+### D-055 — Interdire les paiements sans téléphone et identifier les rejeux
+- Date : 2026-11-27
+- Phase / sous-lot : S24-N
+- Décision : complète D-052 et D-054. Le téléphone E.164 devient obligatoire
+  dans la commande PaymentIntent et le JSON DiddiPay. Validation avant effets
+  métier ; le retry recherche une valeur valide dans le paiement, puis les
+  commandes historiques. Sans valeur valide : `422 PAYMENT_PHONE_REQUIRED`,
+  sans appel, changement de clé ni incrément de tentative. L'entrée locale
+  ne peut pas être effacée par une réponse fournisseur contenant `null`.
+- Pourquoi : les tests routes + SQL + adaptateur réel reproduisent l'envoi
+  sans téléphone et le maintien de valeurs invalides. Le simple mapping
+  optionnel ne constituait pas une garantie.
+- Alternatives écartées : modifier DiddiPay ; inventer un numéro ; demander
+  systématiquement de recréer le checkout ; journaliser les téléphones.
+- Source : Utilisateur (corriger dans DiddiShop uniquement) | Agent, à valider
+- Impact : contrats, service checkout, adaptateur, tests et MkDocs ; aucun
+  changement de schéma ou migration destructive.
+
+### D-056 — Préserver l'idempotence et rendre son effet observable
+- Date : 2026-11-27
+- Phase / sous-lot : S24-N
+- Décision : création/retry renvoient `Idempotency-Replayed: true|false`,
+  décrit dans OpenAPI et exposé via CORS. Un rejeu conserve la réponse originale
+  et ne réémet pas un paiement. Logs distincts pour rejeu et appel PaymentIntent,
+  sans corps, téléphone, clé d'idempotence ni secret. Réhydrater CheckoutStatus
+  après lecture SQL pour permettre GET et le rejeu avec les données persistées.
+- Pourquoi : HTTP 200 et `payment_attempt=2` peuvent décrire une réponse
+  mémorisée, pas une nouvelle tentative. Le test historique reproduit exactement
+  ce comportement, sans conclure que c'est la cause certaine du dernier essai live.
+- Alternatives écartées : vider les caches d'idempotence ; forcer un paiement
+  avec une ancienne clé ; déduire la cause uniquement d'un statut HTTP.
+- Source : Agent, à valider
+- Impact : routes, observabilité, domaine checkout, documentation et tests.

@@ -12,6 +12,7 @@ from app_base.modules.orders.domain.entities import Order
 from app_base.modules.orders.domain.interfaces import OrderRepository
 from app_base.modules.rewards.application import RewardsService
 from app_base.modules.shops.domain import ShopRepository
+from app_base.shared_kernel.contracts.payments import require_customer_phone, valid_customer_phone
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class PaymentIntentPort:
         return_url: str | None = None,
         customer_phone: str | None = None,
     ) -> dict:
-        return await self.create(checkout_id, amount_minor, idempotency_key)
+        raise NotImplementedError("Payment ports must explicitly handle customer_phone")
 
 
 @dataclass
@@ -123,8 +124,9 @@ class CheckoutApplicationService:
         }
 
     async def create(self, customer_id: str, idempotency_key: str, delivery_context: dict | None = None) -> Checkout:
-        grouped = await self._load_groups(customer_id)
         delivery_context = delivery_context or {}
+        customer_phone = require_customer_phone(delivery_context.get("recipient_phone"))
+        grouped = await self._load_groups(customer_id)
 
         checkout_id = str(uuid4())
         created_orders: list[Order] = []
@@ -231,10 +233,11 @@ class CheckoutApplicationService:
                 idempotency_key,
                 payment_method=delivery_context.get("payment_method", "wave"),
                 return_url=delivery_context.get("return_url"),
-                customer_phone=delivery_context.get("recipient_phone"),
+                customer_phone=customer_phone,
             )
-            payment.setdefault("payment_method", delivery_context.get("payment_method", "wave"))
-            payment.setdefault("customer_phone", delivery_context.get("recipient_phone"))
+            # Inputs are owned by Shop; a missing/null upstream echo cannot erase them.
+            payment["payment_method"] = delivery_context.get("payment_method", "wave")
+            payment["customer_phone"] = customer_phone
             payment = {**payment, **self._payment_failure_fields(payment)}
         except Exception:
             if self.rewards is not None:
@@ -294,9 +297,9 @@ class CheckoutApplicationService:
             await self.checkouts.save(checkout)
         return checkout
 
-    async def _customer_phone_for_retry(self, checkout: Checkout) -> str | None:
+    async def _customer_phone_for_retry(self, checkout: Checkout) -> str:
         payment_phone = (checkout.payment or {}).get("customer_phone")
-        if payment_phone:
+        if valid_customer_phone(payment_phone):
             return payment_phone
         for order_id in checkout.order_ids:
             order = await self.orders.get(order_id)
@@ -304,9 +307,9 @@ class CheckoutApplicationService:
                 continue
             delivery_request = order.metadata.get("delivery_request") or {}
             phone = delivery_request.get("recipient_phone")
-            if phone and phone != "unknown":
+            if valid_customer_phone(phone):
                 return phone
-        return None
+        return require_customer_phone(None)
 
     async def apply_payment_event(self, checkout_id: str, event_type: str, payload: dict) -> Checkout:
         checkout = await self.get(checkout_id)
@@ -327,13 +330,13 @@ class CheckoutApplicationService:
             raise ConflictError("only a failed checkout can retry payment")
         if checkout.payment_idempotency_key == idempotency_key:
             raise ConflictError("payment retry requires a new Idempotency-Key")
+        customer_phone = await self._customer_phone_for_retry(checkout)
         checkout.payment_attempt += 1
         previous_payment = checkout.payment or {}
         checkout.status = CheckoutStatus.PAYMENT_PENDING
         checkout.payment_idempotency_key = idempotency_key
         await self.checkouts.save(checkout)
 
-        customer_phone = await self._customer_phone_for_retry(checkout)
         payment = await self.payments.create_with_options(
             checkout.id,
             checkout.total_minor,
@@ -342,8 +345,8 @@ class CheckoutApplicationService:
             return_url=previous_payment.get("return_url"),
             customer_phone=customer_phone,
         )
-        payment.setdefault("payment_method", previous_payment.get("payment_method", "wave"))
-        payment.setdefault("customer_phone", customer_phone)
+        payment["payment_method"] = previous_payment.get("payment_method", "wave")
+        payment["customer_phone"] = customer_phone
         checkout.status = self._checkout_status_for_payment(payment)
         checkout.payment_intent_id = payment.get("payment_intent_id", checkout.payment_intent_id)
         checkout.payment = {**payment, **self._payment_failure_fields(payment)}

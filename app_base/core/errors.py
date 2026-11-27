@@ -19,6 +19,10 @@ class ValidationError(DiddiShopError):
     status_code = 422
 
 
+class PaymentPhoneRequiredError(ValidationError):
+    code = "PAYMENT_PHONE_REQUIRED"
+
+
 class NotConfiguredError(DiddiShopError):
     code = "NOT_CONFIGURED"
     status_code = 503

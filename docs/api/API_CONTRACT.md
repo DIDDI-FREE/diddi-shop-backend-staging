@@ -298,14 +298,25 @@ statut `payment_pending`, `payment_succeeded` ou `payment_failed`. Une reprise
 se fait avec `POST /v1/checkouts/{id}/retry`, uniquement après
 `payment_failed`, avec une nouvelle clé d’idempotence. `payment_attempt` expose
 le numéro de tentative sans exposer de secret DiddiPay. Le moyen de paiement
-V1 est `wave`, `mtn_momo` ou `orange_money` ; `return_url` est facultative et
-transmise à DiddiPay uniquement pour le parcours de retour.
+V1 est `wave`, `mtn_momo` ou `orange_money` ; `return_url` est facultative mais
+n'est pas transmise dans le contrat PaymentIntent actuel.
+
+Le téléphone `recipient_phone` validé en E.164 devient `customer_phone` dans
+le JSON envoyé à DiddiPay, y compris lors du retry. Sans téléphone valide dans
+les données persistées, le retry retourne `422 PAYMENT_PHONE_REQUIRED` sans
+appel fournisseur et sans incrémenter `payment_attempt`.
+
+Création et retry renvoient le header `Idempotency-Replayed` (`true`/`false`),
+accessible via CORS : `true` signifie que la réponse mémorisée est rejouée,
+sans nouvelle tentative. Une erreur historique peut donc réapparaître avec
+la même clé. Après un échec confirmé, une nouvelle tentative nécessite une
+clé jamais utilisée ; après une réponse perdue, conserver la clé existante.
 
 ### Erreurs
 
 Les codes V1 sont `UNAUTHENTICATED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`,
 `INVALID_TRANSITION`, `ORDER_NOT_CANCELLABLE`, `DELIVERY_ALREADY_PICKED_UP`,
-`VALIDATION_ERROR`, `NOT_CONFIGURED` et `HTTP_ERROR`.
+`VALIDATION_ERROR`, `PAYMENT_PHONE_REQUIRED`, `NOT_CONFIGURED` et `HTTP_ERROR`.
 Exemple :
 
 ```json

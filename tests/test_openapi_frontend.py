@@ -26,6 +26,11 @@ def test_openapi_declares_frontend_response_schemas():
         response_schema = operation["responses"]["200"]["content"]["application/json"]["schema"]
         assert response_schema["$ref"] == f"#/components/schemas/{schema}"
 
+    for path in ("/v1/checkouts", "/v1/checkouts/{checkout_id}/retry"):
+        headers = paths[path]["post"]["responses"]["200"]["headers"]
+        assert headers["Idempotency-Replayed"]["schema"]["enum"] == ["true", "false"]
+    assert "PAYMENT_PHONE_REQUIRED" in paths["/v1/checkouts/{checkout_id}/retry"]["post"]["responses"]["422"]["description"]
+
 
 def test_openapi_enumerates_product_statuses_and_xof():
     schemas = app.openapi()["components"]["schemas"]

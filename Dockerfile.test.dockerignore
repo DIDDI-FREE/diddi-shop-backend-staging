@@ -1,0 +1,13 @@
+# Allow-list: no credentials, env files, Git metadata or unrelated local files.
+**
+!Dockerfile.test
+!pyproject.toml
+!app_base/
+!app_base/**
+!tests/
+!tests/**
+!alembic/
+!alembic/**
+!alembic.ini
+**/__pycache__
+**/*.pyc

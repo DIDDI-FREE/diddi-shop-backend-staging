@@ -27,6 +27,10 @@ class Payment(PaymentIntentPort):
         self.amounts.append(amount_minor)
         return {"payment_intent_id": f"pi-{checkout_id}", "amount_minor": amount_minor}
 
+    async def create_with_options(self, checkout_id, amount_minor, idempotency_key, **options):
+        assert options["customer_phone"] == "+2250700000000"
+        return await self.create(checkout_id, amount_minor, idempotency_key)
+
 
 @pytest.mark.asyncio
 async def test_checkout_creates_one_order_per_shop_and_snapshots_price():
@@ -40,7 +44,7 @@ async def test_checkout_creates_one_order_per_shop_and_snapshots_price():
     service = CheckoutApplicationService(
         carts, products, InMemoryCheckoutRepository(), InMemoryOrderRepository(), Quote(), Payment(), []
     )
-    checkout = await service.create("buyer", "shop:checkout:1")
+    checkout = await service.create("buyer", "shop:checkout:1", {"recipient_phone": "+2250700000000"})
     assert len(checkout.order_ids) == 2
     assert checkout.total_minor == 4000
     assert products.items["p1"].stock == 1
@@ -93,7 +97,7 @@ async def test_checkout_applies_xof_rewards_before_payment():
     checkout = await service.create(
         "buyer",
         "shop:checkout:rewards:1",
-        {"rewards_campaign_id": "campaign-1"},
+        {"rewards_campaign_id": "campaign-1", "recipient_phone": "+2250700000000"},
     )
 
     assert checkout.currency == "XOF"

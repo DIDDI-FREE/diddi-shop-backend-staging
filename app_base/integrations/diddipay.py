@@ -1,5 +1,6 @@
+from app_base.core.observability import log_event
 from app_base.integrations.base import ServiceAdapter
-from app_base.shared_kernel.contracts.payments import PaymentIntentCommand
+from app_base.shared_kernel.contracts.payments import PaymentIntentCommand, require_customer_phone
 
 
 class DiddiPayAdapter(ServiceAdapter):
@@ -15,10 +16,13 @@ class DiddiPayAdapter(ServiceAdapter):
             "currency": command.currency,
             "channel": "mobile_money",
             "network": network_by_method[command.payment_method],
+            "customer_phone": require_customer_phone(command.customer_phone),
             "metadata": {"checkout_id": command.checkout_id, "origin_service": "diddishop"},
         }
-        if command.customer_phone:
-            request_payload["customer_phone"] = command.customer_phone
+        log_event(
+            "checkout.payment.intent_requested", checkout_id=command.checkout_id,
+            network=request_payload["network"], customer_contact_present=True,
+        )
         response = await self.request(
             "POST", "/payment-intents",
             headers={"Idempotency-Key": command.idempotency_key},
@@ -30,6 +34,10 @@ class DiddiPayAdapter(ServiceAdapter):
             payload["payment_intent_id"] = payload["id"]
         if "amount_minor" not in payload and payload.get("amount") is not None:
             payload["amount_minor"] = payload["amount"]
+        log_event(
+            "checkout.payment.intent_resolved", checkout_id=command.checkout_id,
+            intent_id=payload.get("payment_intent_id"), status=payload.get("status"),
+        )
         return payload
 
     async def refund(self, order_id: str, amount_minor: int, idempotency_key: str) -> dict:

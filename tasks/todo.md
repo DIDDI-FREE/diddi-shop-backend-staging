@@ -131,3 +131,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-K — persister les échecs PaymentIntent et autoriser le retry
 - [x] S24-L — transmettre customer_phone à DiddiPay/PawaPay
 - [x] S24-M — réconcilier les anciens checkouts pending avec paiement failed
+- [x] S24-N — verrouiller customer_phone, tester routes/SQL/HTTP et identifier les rejeux

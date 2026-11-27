@@ -1,6 +1,6 @@
 from app_base.integrations.diddipay import DiddiPayAdapter
 from app_base.integrations.diddisend import DiddiSendAdapter
-from app_base.shared_kernel.contracts.payments import PaymentIntentCommand
+from app_base.shared_kernel.contracts.payments import PaymentIntentCommand, require_customer_phone
 
 
 class DiddiPayPaymentIntentPort:
@@ -8,12 +8,8 @@ class DiddiPayPaymentIntentPort:
         self.adapter = adapter
 
     async def create(self, checkout_id: str, amount_minor: int, idempotency_key: str) -> dict:
-        return await self.adapter.create_payment_intent(PaymentIntentCommand(
-            checkout_id=checkout_id,
-            business_reference=f"diddishop:checkout:{checkout_id}",
-            amount_minor=amount_minor,
-            idempotency_key=idempotency_key,
-        ))
+        # Legacy callers must not silently create a mobile-money intent without a phone.
+        return await self.create_with_options(checkout_id, amount_minor, idempotency_key)
 
     async def create_with_options(
         self,
@@ -32,7 +28,7 @@ class DiddiPayPaymentIntentPort:
             idempotency_key=idempotency_key,
             payment_method=payment_method,
             return_url=return_url,
-            customer_phone=customer_phone,
+            customer_phone=require_customer_phone(customer_phone),
         ))
 
 

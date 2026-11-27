@@ -50,6 +50,17 @@ DiddiShop checkout
 8. `POST /v1/deliveries/orders/{order_id}` reste une opération de reprise
    contrôlée pour l’exploitation ; l’application vendeur ne doit pas l’appeler.
 
+## Téléphone et rejeu de paiement
+
+Le paiement transmet `recipient_phone` sous le nom DiddiPay `customer_phone`.
+Le retry récupère la donnée conservée ; s'il ne trouve aucun téléphone valide,
+il répond `422 PAYMENT_PHONE_REQUIRED` sans tenter un nouveau paiement.
+
+Un retry HTTP 200 ne prouve pas qu'une nouvelle tentative a eu lieu : vérifier
+`Idempotency-Replayed`. `true` restitue une réponse déjà enregistrée ; `false`
+identifie une nouvelle opération. Après un échec confirmé, utiliser une
+nouvelle clé ; après un timeout, conserver la clé pour éviter un double paiement.
+
 ## Snapshot financier
 
 Le snapshot de commande conserve au minimum le prix des lignes, le total,

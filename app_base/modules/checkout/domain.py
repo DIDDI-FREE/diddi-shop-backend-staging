@@ -31,6 +31,7 @@ class Checkout:
 
     def __post_init__(self) -> None:
         require_xof(self.currency)
+        self.status = CheckoutStatus(self.status)
 
 
 class CheckoutRepository:
