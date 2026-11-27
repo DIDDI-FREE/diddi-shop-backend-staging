@@ -293,8 +293,9 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   `diddifree-id` ; une valeur vide provoque désormais un échec de démarrage
   explicite.
 - Vérifications locales : 81 tests passés et Ruff OK.
-- Le détail sûr du rejet JWT est routé vers `uvicorn.error` afin d’être
-  visible dans `docker logs` ; aucun JWT n’est journalisé.
+- Le détail sûr du rejet JWT est envoyé à la fois au logger applicatif OTLP
+  (`diddi_shop.auth`) et à `uvicorn.error` pour être visible dans
+  `docker logs` ; aucun JWT n’est journalisé.
 
 ### Vérifications de déploiement en attente — S24-F
 

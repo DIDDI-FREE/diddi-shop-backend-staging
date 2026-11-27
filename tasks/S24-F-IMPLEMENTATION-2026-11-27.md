@@ -35,9 +35,10 @@ de l’exception PyJWT était masqué. Un journal sûr a été ajouté : il cons
 le type et le message de rejet, jamais le JWT.
 
 Après contrôle, le logger initial était routé vers l’export OTLP et n’était
-donc pas visible dans `docker logs`. Il est maintenant routé vers
-`uvicorn.error`, sans journaliser le token. Il faut redéployer cette version,
-puis effectuer un appel réel avec un JWT acheteur pour obtenir la cause PyJWT
+donc pas visible dans `docker logs`. Le diagnostic sûr est maintenant envoyé
+aux deux sorties (`diddi_shop.auth` pour DiddiObserve et `uvicorn.error` pour
+Docker), sans journaliser le token. Il faut redéployer cette version, puis
+effectuer un appel réel avec un JWT acheteur pour obtenir la cause PyJWT
 exacte. Le contrôle Portainer du 27/11/2026 confirme que le conteneur est
 healthy, mais aucun appel réel postérieur au redéploiement n’a encore fourni
 ce diagnostic.

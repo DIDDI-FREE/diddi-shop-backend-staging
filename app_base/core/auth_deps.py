@@ -9,7 +9,8 @@ from fastapi import Header, HTTPException, Request
 from jwt import PyJWK
 
 _VERIFY_DEFAULT = object()
-logger = logging.getLogger("uvicorn.error")
+logger = logging.getLogger("diddi_shop.auth")
+console_logger = logging.getLogger("uvicorn.error")
 
 
 @dataclass(frozen=True)
@@ -83,7 +84,10 @@ class JwtVerifier:
         except (ValueError, jwt.PyJWTError, httpx.HTTPError) as exc:
             # Keep the client response generic, but retain the precise safe
             # rejection reason for staging/production troubleshooting.
-            logger.warning("DiddiFreeID JWT rejected (%s): %s", type(exc).__name__, exc)
+            rejection_message = "DiddiFreeID JWT rejected (%s): %s"
+            rejection_args = (type(exc).__name__, exc)
+            logger.warning(rejection_message, *rejection_args)
+            console_logger.warning(rejection_message, *rejection_args)
             raise HTTPException(status_code=401, detail="Invalid DiddiFreeID token") from exc
 
 
