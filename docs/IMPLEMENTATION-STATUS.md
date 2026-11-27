@@ -375,3 +375,19 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Rejouer le checkout avec `wave`, puis vérifier la création du PaymentIntent.
 - Vérifier ensuite `mtn_momo` et `orange_money` sans transaction réelle si le
   fournisseur de paiement l’autorise.
+
+## S24-K — échec PaymentIntent et retry checkout
+
+- Un PaymentIntent retourné avec `status=failed` produit maintenant un checkout
+  `payment_failed` sauvegardé avec les trois champs de diagnostic.
+- Le retry exige une nouvelle `Idempotency-Key`, sauvegarde `payment_pending`
+  avant l'appel fournisseur, puis sauvegarde l'état final selon la réponse.
+- Vérifications locales : 88 tests passés, Ruff OK.
+
+### Vérifications de déploiement en attente — S24-K
+
+- Déployer manuellement le commit dans Portainer.
+- Créer un checkout qui reçoit `status=failed`, vérifier `GET /v1/checkouts/{id}`
+  et confirmer les trois champs d'échec.
+- Rejouer `POST /v1/checkouts/{id}/retry` avec une nouvelle clé et vérifier que
+  le statut final est `payment_failed` ou `payment_succeeded`.

@@ -51,6 +51,23 @@ class CheckoutApplicationService:
     seller_confirmation_hours: int = 24
     diddisend_service_user_id: str = ""
 
+    @staticmethod
+    def _checkout_status_for_payment(payment: dict) -> CheckoutStatus:
+        status = str(payment.get("status", "pending")).lower()
+        if status in {"succeeded", "success", "paid", "completed"}:
+            return CheckoutStatus.PAYMENT_SUCCEEDED
+        if status in {"failed", "failure", "declined", "cancelled", "canceled"}:
+            return CheckoutStatus.PAYMENT_FAILED
+        return CheckoutStatus.PAYMENT_PENDING
+
+    @staticmethod
+    def _payment_failure_fields(payment: dict) -> dict:
+        return {
+            "payment_failure_code": payment.get("failure_code") or payment.get("code"),
+            "payment_failure_message": payment.get("failure_message") or payment.get("message"),
+            "payment_provider_status": payment.get("provider_status") or payment.get("status"),
+        }
+
     async def _load_groups(self, customer_id: str) -> dict[str, list[dict]]:
         cart = await self.carts.get_or_create(customer_id)
         if not cart.lines:
@@ -215,6 +232,7 @@ class CheckoutApplicationService:
                 return_url=delivery_context.get("return_url"),
             )
             payment.setdefault("payment_method", delivery_context.get("payment_method", "wave"))
+            payment = {**payment, **self._payment_failure_fields(payment)}
         except Exception:
             if self.rewards is not None:
                 for reservation in reward_reservations:
@@ -242,6 +260,7 @@ class CheckoutApplicationService:
             [o.id for o in created_orders],
             payment.get("payment_intent_id"),
             payment=payment,
+            status=self._checkout_status_for_payment(payment),
             subtotal_minor=subtotal,
             delivery_fee_minor=delivery_total,
             discount_minor=discount_total,
@@ -284,17 +303,21 @@ class CheckoutApplicationService:
         if checkout.payment_idempotency_key == idempotency_key:
             raise ConflictError("payment retry requires a new Idempotency-Key")
         checkout.payment_attempt += 1
+        previous_payment = checkout.payment or {}
+        checkout.status = CheckoutStatus.PAYMENT_PENDING
+        checkout.payment_idempotency_key = idempotency_key
+        await self.checkouts.save(checkout)
+
         payment = await self.payments.create_with_options(
             checkout.id,
             checkout.total_minor,
             idempotency_key,
-            payment_method=(checkout.payment or {}).get("payment_method", "wave"),
-            return_url=(checkout.payment or {}).get("return_url"),
+            payment_method=previous_payment.get("payment_method", "wave"),
+            return_url=previous_payment.get("return_url"),
         )
-        payment.setdefault("payment_method", (checkout.payment or {}).get("payment_method", "wave"))
-        checkout.status = CheckoutStatus.PAYMENT_PENDING
-        checkout.payment_idempotency_key = idempotency_key
+        payment.setdefault("payment_method", previous_payment.get("payment_method", "wave"))
+        checkout.status = self._checkout_status_for_payment(payment)
         checkout.payment_intent_id = payment.get("payment_intent_id", checkout.payment_intent_id)
-        checkout.payment = payment
+        checkout.payment = {**payment, **self._payment_failure_fields(payment)}
         await self.checkouts.save(checkout)
         return checkout

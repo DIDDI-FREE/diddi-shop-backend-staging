@@ -82,6 +82,52 @@ class RetryablePayment(PaymentIntentPort):
         }
 
 
+class FailedThenSuccessfulPayment(RetryablePayment):
+    async def create(self, checkout_id, amount_minor, idempotency_key):
+        self.calls.append((checkout_id, amount_minor, idempotency_key))
+        if len(self.calls) == 1:
+            return {
+                "payment_intent_id": "pi-failed",
+                "amount_minor": amount_minor,
+                "currency": "XOF",
+                "status": "failed",
+                "failure_code": "provider_declined",
+                "failure_message": "The provider declined the payment",
+                "provider_status": "DECLINED",
+            }
+        return {
+            "payment_intent_id": "pi-success",
+            "amount_minor": amount_minor,
+            "currency": "XOF",
+            "status": "succeeded",
+        }
+
+
+@pytest.mark.asyncio
+async def test_failed_payment_persists_failure_and_retry_reopens_payment():
+    products = InMemoryProductRepository()
+    await products.save(Product("p1", "shop-1", "Item", "", 2500, "XOF", 2, "books", [], ProductStatus.PUBLISHED))
+    carts = InMemoryCartRepository()
+    cart = await carts.get_or_create("buyer-1")
+    cart.lines = [CartLine("p1", "shop-1", 1)]
+    payments = FailedThenSuccessfulPayment()
+    checkouts = InMemoryCheckoutRepository()
+    service = CheckoutApplicationService(
+        carts, products, checkouts, InMemoryOrderRepository(), FixedQuote(), payments, []
+    )
+
+    checkout = await service.create("buyer-1", "create-failed-1")
+    assert checkout.status == CheckoutStatus.PAYMENT_FAILED
+    assert checkout.payment["payment_failure_code"] == "provider_declined"
+    assert checkout.payment["payment_failure_message"] == "The provider declined the payment"
+    assert checkout.payment["payment_provider_status"] == "DECLINED"
+
+    retried = await service.retry_payment(checkout.id, "retry-success-1")
+    assert retried.status == CheckoutStatus.PAYMENT_SUCCEEDED
+    assert retried.payment_intent_id == "pi-success"
+    assert retried.payment_attempt == 2
+
+
 @pytest.mark.asyncio
 async def test_quote_and_payment_retry_have_stable_contracts():
     products = InMemoryProductRepository()

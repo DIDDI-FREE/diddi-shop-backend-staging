@@ -128,3 +128,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-H — réhydrater le statut produit enum depuis PostgreSQL
 - [x] S24-I — normaliser le devis DiddiSend et mapper les erreurs upstream
 - [x] S24-J — aligner le payload PaymentIntent sur DiddiPay staging
+- [x] S24-K — persister les échecs PaymentIntent et autoriser le retry

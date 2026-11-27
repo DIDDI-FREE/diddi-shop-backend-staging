@@ -584,3 +584,18 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   Shop tels quels ; supprimer le moyen de paiement mobile money.
 - Source : OpenAPI DiddiPay staging vérifiée le 2026-11-27 | Agent
 - Impact : adaptateur DiddiPay, checkout, tests et documentation d’intégration.
+
+### D-051 — Persister l’échec du PaymentIntent dans le checkout
+- Date : 2026-11-27
+- Phase / sous-lot : S24-K
+- Décision : un résultat DiddiPay `status=failed` met immédiatement le checkout
+  à `payment_failed` et persiste `payment_failure_code`,
+  `payment_failure_message` et `payment_provider_status`. Le retry exige une
+  nouvelle clé d’idempotence, sauvegarde d’abord `payment_pending`, puis
+  conserve le résultat `payment_failed` ou `payment_succeeded`.
+- Pourquoi : le checkout ne doit pas rester `payment_pending` après un échec
+  terminal du PaymentIntent ; sinon la route retry refuse à tort la reprise.
+- Alternatives écartées : déduire l’échec uniquement depuis un webhook futur ;
+  autoriser le retry depuis `payment_pending` ; réutiliser la même clé.
+- Source : incident staging et contrat DiddiPay | Utilisateur / Agent
+- Impact : checkout application service, réponse API, persistance et retry.

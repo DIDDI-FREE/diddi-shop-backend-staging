@@ -145,6 +145,9 @@ class CheckoutPaymentResponse(BaseModel):
     payment_url: str | None = None
     checkout_url: str | None = None
     client_secret: str | None = None
+    payment_failure_code: str | None = None
+    payment_failure_message: str | None = None
+    payment_provider_status: str | None = None
 
 
 class CheckoutResponse(BaseModel):
@@ -476,7 +479,10 @@ def checkout_response(checkout: Checkout, payment: dict[str, Any] | None = None)
         "currency": source.get("currency", checkout.currency),
         "status": source.get("status", "pending"),
     }
-    for key in ("payment_method", "expires_at", "payment_url", "checkout_url", "client_secret"):
+    for key in (
+        "payment_method", "expires_at", "payment_url", "checkout_url", "client_secret",
+        "payment_failure_code", "payment_failure_message", "payment_provider_status",
+    ):
         if source.get(key) is not None:
             payment_response[key] = source[key]
     return {
