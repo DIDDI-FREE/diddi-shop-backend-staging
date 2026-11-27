@@ -296,6 +296,8 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Le détail sûr du rejet JWT est envoyé à la fois au logger applicatif OTLP
   (`diddi_shop.auth`) et à `uvicorn.error` pour être visible dans
   `docker logs` ; aucun JWT n’est journalisé.
+- Le runtime Docker installe explicitement `PyJWT[crypto]` afin de fournir le
+  backend RSA requis par les JWT RS256 de DiddiFreeID.
 
 ### Vérifications de déploiement en attente — S24-F
 
@@ -307,3 +309,5 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Faire un appel réel `GET /v1/cart` avec un JWT acheteur après ce redeploiement;
   le conteneur contrôlé est healthy, mais ses logs ne contiennent encore aucun
   rejet JWT détaillé postérieur à l’appel de diagnostic.
+- Le dernier appel réel a ensuite révélé `MissingCryptographyError` ;
+  reconstruire l’image avec la dépendance crypto avant le prochain test.

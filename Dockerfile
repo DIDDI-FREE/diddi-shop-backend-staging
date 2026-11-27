@@ -14,7 +14,7 @@ COPY alembic.ini ./alembic.ini
 RUN python -m pip install --upgrade pip \
     && python -m pip uninstall -y jwt \
     && python -m pip install . \
-    && python -c "import jwt; from jwt import PyJWK; assert jwt.__version__.split('.')[0] == '2'; assert PyJWK"
+    && python -c "import cryptography, jwt; from jwt import PyJWK; assert jwt.__version__.split('.')[0] == '2'; assert PyJWK; assert cryptography.__version__"
 
 COPY . .
 

@@ -40,5 +40,7 @@ aux deux sorties (`diddi_shop.auth` pour DiddiObserve et `uvicorn.error` pour
 Docker), sans journaliser le token. Il faut redéployer cette version, puis
 effectuer un appel réel avec un JWT acheteur pour obtenir la cause PyJWT
 exacte. Le contrôle Portainer du 27/11/2026 confirme que le conteneur est
-healthy, mais aucun appel réel postérieur au redéploiement n’a encore fourni
-ce diagnostic.
+healthy. Un appel réel postérieur au redéploiement a ensuite fourni la cause
+exacte : `MissingCryptographyError`, car l’image ne contenait pas le backend
+crypto requis par RS256. `PyJWT[crypto]` est maintenant déclaré et contrôlé
+au build ; il faut reconstruire et redéployer l’image avant le prochain test.
