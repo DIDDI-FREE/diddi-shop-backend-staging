@@ -133,6 +133,8 @@ class OrderResponse(BaseModel):
     seller_confirmation_deadline: str | None
     recipient_name: str | None
     dropoff_address: str | None
+    dropoff_latitude: float | None
+    dropoff_longitude: float | None
     delivered_at: str | None
     status_history: list[dict[str, Any]]
 
@@ -252,6 +254,7 @@ class DeliveryResponse(BaseModel):
     courier: CourierResponse | None = None
     dropoff_code: str | None = None
     position: DeliveryPositionResponse | None = None
+    eta_minutes: int | None = Field(default=None, ge=0)
 
 
 class HealthResponse(BaseModel):
@@ -392,6 +395,7 @@ def delivery_response(delivery: Any | None, order_id: str) -> dict[str, Any]:
         "courier": courier,
         "dropoff_code": delivery.dropoff_code,
         "position": position,
+        "eta_minutes": delivery.eta_minutes,
     }
 
 
@@ -496,6 +500,8 @@ def order_response(order: Order) -> dict[str, Any]:
         "seller_confirmation_deadline": order.seller_confirmation_deadline,
         "recipient_name": delivery_request.get("recipient_name"),
         "dropoff_address": delivery_request.get("dropoff_address"),
+        "dropoff_latitude": (delivery_request.get("dropoff_location") or {}).get("lat"),
+        "dropoff_longitude": (delivery_request.get("dropoff_location") or {}).get("lng"),
         "delivered_at": delivered_at,
         "status_history": list(order.status_history),
     }

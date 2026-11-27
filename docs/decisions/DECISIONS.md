@@ -847,3 +847,19 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   timestamp local de réception.
 - Source : code DiddiSend audité en lecture seule ; utilisateur ; contrat Shop.
 - Impact : claims, projection delivery, OpenAPI et frontend.
+
+### D-068 — Exposer la destination et ne pas fabriquer une ETA
+- Date : 2026-11-27
+- Phase / sous-lot : S24-U
+- Décision : exposer les coordonnées de destination déjà capturées dans la
+  commande via `dropoff_latitude`/`dropoff_longitude`, et exposer une
+  `eta_minutes` nullable uniquement quand DiddiSend la fournit réellement.
+- Pourquoi : les coordonnées existent déjà dans le contrat de checkout et
+  partent vers DiddiSend ; en revanche le détail DiddiSend ne garantit pas une
+  ETA live stable. Une estimation locale serait trompeuse.
+- Alternatives écartées : recalculer l’ETA côté Shop depuis le devis, inventer
+  un timestamp d’arrivée, ou modifier DiddiSend depuis ce dépôt.
+- Source : contrat DiddiSend audité en lecture seule ; Agent, décision
+  prudente et réversible.
+- Impact : réponses commande/livraison, projection delivery, documentation et
+  frontend.

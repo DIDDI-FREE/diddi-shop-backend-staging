@@ -252,7 +252,11 @@ async def test_order_and_delivery_responses_expose_operational_fields():
             "items_total": 2500,
             "delivery_fee": 700,
             "lines": [{"product_id": "p1", "title": "Item", "unit_price_minor": 2500, "quantity": 1}],
-            "delivery_request": {"recipient_name": "Buyer", "dropoff_address": "Douala"},
+            "delivery_request": {
+                "recipient_name": "Buyer",
+                "dropoff_address": "Douala",
+                "dropoff_location": {"lat": 3.9, "lng": 11.52},
+            },
         },
     )
     order_payload = order_response(order)
@@ -260,15 +264,19 @@ async def test_order_and_delivery_responses_expose_operational_fields():
     assert order_payload["created_at"]
     assert order_payload["seller_confirmation_deadline"]
     assert order_payload["recipient_name"] == "Buyer"
+    assert order_payload["dropoff_latitude"] == 3.9
+    assert order_payload["dropoff_longitude"] == 11.52
 
     delivery = DeliveryProjection(
         "d1", "o1", DeliveryStatus.IN_TRANSIT,
         courier={"name": "Courier"},
         dropoff_code="1234",
         position={"lat": 3.8, "lng": 11.5},
+        eta_minutes=18,
     )
     assert delivery_response(delivery, "o1")["dropoff_code"] == "1234"
     assert delivery_response(delivery, "o1")["position"]["latitude"] == 3.8
+    assert delivery_response(delivery, "o1")["eta_minutes"] == 18
 
 
 @pytest.mark.asyncio

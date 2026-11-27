@@ -68,6 +68,12 @@ DiddiShop vérifie que la commande est `TO_PREPARE`, la passe à
 `shop:create-delivery:{order_id}:1`. La réponse de DiddiSend est projetée dans
 DiddiShop sous `delivery_id`.
 
+La destination est conservée dans le snapshot de commande sous
+`delivery_request.dropoff_location` (`lat`, `lng`, `address`) et exposée au
+frontend via `OrderResponse.dropoff_latitude` et
+`OrderResponse.dropoff_longitude`. DiddiShop ne géocode pas et ne modifie pas
+ces coordonnées.
+
 Si la requête frontend expire après le changement d’état, le même appel peut
 être rejoué. Une projection existante est renvoyée et aucune deuxième livraison
 n’est créée. La route `POST /v1/deliveries/orders/{order_id}` est réservée à la
@@ -85,6 +91,12 @@ Les événements utiles sont `delivery.created`, `delivery.picked_up`,
 `delivery.in_transit`, `delivery.delivered`, `delivery.failed` et
 `delivery.returned`. Ils entrent par le webhook signé, passent par l’inbox et
 mettent à jour la projection locale.
+
+Quand DiddiSend fournit `eta_minutes` ou
+`estimated_duration_minutes` dans la réponse de création ou un événement,
+DiddiShop le projette dans `DeliveryResponse.eta_minutes`. Le champ reste
+`null` si la source ne l’envoie pas ; aucune ETA artificielle n’est calculée
+localement.
 
 DiddiSend signe ses callbacks avec HMAC-SHA256 dans
 `X-DiddiSend-Signature` sous la forme `sha256=<digest>`. DiddiShop vérifie la

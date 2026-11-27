@@ -562,3 +562,19 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - `position.updated_at` reste facultatif si absent du callback DiddiSend ; aucun
   timestamp artificiel n’est produit.
 - Tests complets : 239 passed.
+
+## S24-U — destination et ETA de livraison
+
+- `OrderResponse` expose maintenant `dropoff_latitude` et
+  `dropoff_longitude`, lus depuis le snapshot déjà envoyé à DiddiSend.
+- `DeliveryResponse` expose `eta_minutes` lorsqu’il est réellement fourni par
+  DiddiSend dans la création ou un événement ; il reste nullable sinon.
+- Aucune migration SQL n’est nécessaire : la projection de livraison est déjà
+  persistée dans un payload JSON.
+- Aucun déploiement Portainer ni appel de livraison réel n’a été effectué.
+
+### Vérifications de déploiement en attente — S24-U
+
+- Déploiement manuel par l’utilisateur, puis vérifier les coordonnées dans
+  `GET /v1/orders` et `eta_minutes` dans `GET /v1/deliveries/orders/{order_id}`.
+- Confirmer côté DiddiSend quel événement fournit l’ETA live en staging.

@@ -423,7 +423,10 @@ valeurs existantes.
 `fulfillment_status`, `payment_status`, `delivery_id`, `version`,
 `payment_intent_id`, `items`, `subtotal_minor`, `delivery_fee_minor`,
 `discount_minor`, `created_at`, `seller_confirmation_deadline`,
-`recipient_name` et `dropoff_address`.
+`recipient_name`, `dropoff_address`, `dropoff_latitude` et
+`dropoff_longitude`. Les coordonnées sont celles déjà fournies au devis et
+transmises à DiddiSend dans `delivery_request.dropoff_location`; elles ne sont
+pas recalculées par DiddiShop.
 
 - `items` contient `product_id`, `title`, `unit_price_minor`, `quantity` et
   `line_total_minor`. Le délai vendeur est fixé à 24 heures par défaut et est
@@ -439,7 +442,7 @@ valeurs existantes.
 - Idempotence : projection existante renvoyée ; clé externe
   `shop:create-delivery:{order_id}:1`.
 - Réponse : `DeliveryResponse` avec `id`, `order_id`, `status`, `proof_ref`,
-  `tracking`, `courier`, `dropoff_code` et `position`.
+  `tracking`, `courier`, `dropoff_code`, `position` et `eta_minutes`.
 - Le frontend vendeur ne doit pas appeler cette route ; il appelle `/ready`.
 
 ### `GET /v1/deliveries/orders/{order_id}`
@@ -448,7 +451,12 @@ valeurs existantes.
   staging.
 - Réponse actuelle : projection ou
   `{ "order_id": string, "status": "not_requested" }`.
-- Projection : `id`, `order_id`, `status`, `proof_ref`, `tracking`.
+- Projection : `id`, `order_id`, `status`, `proof_ref`, `tracking`, `courier`,
+  `dropoff_code`, `position` et `eta_minutes`.
+- `eta_minutes` est nullable : DiddiShop le projette uniquement si DiddiSend
+  l’envoie dans un événement (`eta_minutes` ou
+  `estimated_duration_minutes`). Il ne déduit pas une ETA locale à partir de
+  l’heure du devis, car cette estimation peut devenir obsolète.
 - DiddiSend reste la source de vérité de ces champs ; DiddiShop ne fait que les
   projeter dans son contrat de lecture.
 

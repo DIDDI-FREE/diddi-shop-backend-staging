@@ -7,6 +7,15 @@ from app_base.modules.orders.domain.entities import FulfillmentStatus
 from app_base.shared_kernel.contracts.delivery import DeliveryCommand
 
 
+def _optional_int(value) -> int | None:
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 class DeliveryService:
     def __init__(self, repository, sender, orders: OrderService, seller_release_enabled: bool = False):
         self.repository = repository
@@ -29,7 +38,12 @@ class DeliveryService:
             payload,
         )
         delivery = response.get("delivery", response)
-        projection = DeliveryProjection(delivery["id"], order.id, DeliveryStatus.REQUESTED)
+        projection = DeliveryProjection(
+            delivery["id"],
+            order.id,
+            DeliveryStatus.REQUESTED,
+            eta_minutes=_optional_int(delivery.get("eta_minutes")),
+        )
         await self.repository.save(projection)
         order.delivery_id = projection.id
         await self.orders.repository.save(order)
@@ -89,6 +103,11 @@ class DeliveryService:
                 "longitude": longitude,
                 "updated_at": position.get("updated_at") or position.get("recorded_at"),
             }
+        eta_value = payload.get("eta_minutes")
+        if eta_value is None:
+            eta_value = payload.get("estimated_duration_minutes")
+        if eta_value is not None:
+            delivery.eta_minutes = _optional_int(eta_value)
         await self.repository.save(delivery)
         order = await self.orders.get(order_id)
         transition = {
