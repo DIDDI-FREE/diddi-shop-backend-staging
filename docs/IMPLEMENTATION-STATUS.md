@@ -578,3 +578,22 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Déploiement manuel par l’utilisateur, puis vérifier les coordonnées dans
   `GET /v1/orders` et `eta_minutes` dans `GET /v1/deliveries/orders/{order_id}`.
 - Confirmer côté DiddiSend quel événement fournit l’ETA live en staging.
+
+## S24-V — rejeu DiddiSend des anciennes commandes
+
+- Cause : les commandes créées avant S24-Q ne contiennent pas forcément
+  `sender_phone`/`sender_email` dans leur snapshot `delivery_request`.
+- Correction : `DeliveryService` réinjecte les coordonnées runtime juste avant
+  chaque `POST /v1/deliveries`, y compris lors d’un rejeu de `/ready`.
+- Si l’email configuré est vide, le fallback stable basé sur les chiffres du
+  téléphone est utilisé (`<digits>@diddifree.com`).
+- Aucun changement de données existantes n’est écrit avant l’appel DiddiSend ;
+  la compatibilité est assurée au bord d’intégration.
+
+### Vérifications de déploiement en attente — S24-V
+
+- Déploiement manuel par l’utilisateur depuis GitHub.
+- Rejouer `/v1/orders/{order_id}/ready` sur une ancienne commande
+  `READY_FOR_PICKUP` et confirmer un `delivery_id` non vide.
+- Vérifier côté DiddiSend que le payload contient les deux champs sender et
+  que la réponse n’est plus HTTP 422.

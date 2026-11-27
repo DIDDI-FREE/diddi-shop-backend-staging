@@ -863,3 +863,18 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   prudente et réversible.
 - Impact : réponses commande/livraison, projection delivery, documentation et
   frontend.
+
+### D-069 — Réhydrater les coordonnées sender au rejeu
+- Date : 2026-11-27
+- Phase / sous-lot : S24-V
+- Décision : injecter les coordonnées sender configurées dans le payload juste
+  avant chaque création DiddiSend si elles manquent du snapshot historique.
+- Pourquoi : un déploiement ne réécrit pas les anciennes commandes ; attendre
+  une nouvelle commande laisserait les commandes déjà payées définitivement
+  bloquées à `READY_FOR_PICKUP`.
+- Alternatives écartées : migration destructive des snapshots, modification
+  de DiddiSend, ou demander au vendeur de recréer la commande.
+- Source : diagnostic staging en lecture seule et utilisateur ; Agent,
+  correction réversible à valider après rejeu staging.
+- Impact : service delivery, intégration DiddiSend, anciennes commandes et
+  recette staging.

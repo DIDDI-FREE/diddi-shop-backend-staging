@@ -74,7 +74,13 @@ async def test_diddisend_event_updates_only_local_projection_and_order():
     await repo.create(order)
     orders = OrderService(repo, [])
     deliveries = InMemoryDeliveryRepository()
-    service = DeliveryService(deliveries, Sender(), orders)
+    service = DeliveryService(
+        deliveries,
+        Sender(),
+        orders,
+        diddisend_sender_phone="+237690000000",
+        diddisend_sender_email="sender@diddifree.com",
+    )
     await service.apply_event("o1", "delivery.picked_up", {"delivery_id": "del-1"})
     await service.apply_event("o1", "delivery.in_transit", {"delivery_id": "del-1"})
     delivery = await service.apply_event(
@@ -99,9 +105,11 @@ async def test_seller_ready_immediately_requests_diddisend_and_is_retryable():
     class CountingSender:
         def __init__(self):
             self.calls = 0
+            self.payloads = []
 
         async def create_delivery(self, command, payload):
             self.calls += 1
+            self.payloads.append(payload)
             return {"delivery": {"id": "del-ready-1", "status": "created"}}
 
     repo = InMemoryOrderRepository()
@@ -110,13 +118,20 @@ async def test_seller_ready_immediately_requests_diddisend_and_is_retryable():
     orders = OrderService(repo, [])
     deliveries = InMemoryDeliveryRepository()
     sender = CountingSender()
-    service = DeliveryService(deliveries, sender, orders)
+    service = DeliveryService(
+        deliveries,
+        sender,
+        orders,
+        diddisend_sender_phone="+237690000000",
+    )
 
     first = await service.mark_ready_and_request("o-ready")
     second = await service.mark_ready_and_request("o-ready")
 
     assert first.id == second.id == "del-ready-1"
     assert sender.calls == 1
+    assert sender.payloads[0]["sender_phone"] == "+237690000000"
+    assert sender.payloads[0]["sender_email"] == "237690000000@diddifree.com"
     saved = await orders.get("o-ready")
     assert saved.fulfillment_status == FulfillmentStatus.READY_FOR_PICKUP
     assert saved.delivery_id == "del-ready-1"

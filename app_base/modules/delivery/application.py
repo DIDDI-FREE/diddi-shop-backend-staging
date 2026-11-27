@@ -16,12 +16,29 @@ def _optional_int(value) -> int | None:
         return None
 
 
+def _technical_sender_email(phone: str, configured_email: str) -> str:
+    if configured_email.strip():
+        return configured_email.strip()
+    digits = "".join(character for character in phone if character.isdigit())
+    return f"{digits}@diddifree.com" if digits else ""
+
+
 class DeliveryService:
-    def __init__(self, repository, sender, orders: OrderService, seller_release_enabled: bool = False):
+    def __init__(
+        self,
+        repository,
+        sender,
+        orders: OrderService,
+        seller_release_enabled: bool = False,
+        diddisend_sender_phone: str = "",
+        diddisend_sender_email: str = "",
+    ):
         self.repository = repository
         self.sender = sender
         self.orders = orders
         self.seller_release_enabled = seller_release_enabled
+        self.diddisend_sender_phone = diddisend_sender_phone
+        self.diddisend_sender_email = diddisend_sender_email
 
     async def request_for_order(self, order_id: str) -> DeliveryProjection:
         existing = await self.repository.get_by_order(order_id)
@@ -31,6 +48,13 @@ class DeliveryService:
         if order.fulfillment_status != FulfillmentStatus.READY_FOR_PICKUP:
             raise ConflictError("order is not ready for pickup")
         payload = dict(order.metadata.get("delivery_request", {}))
+        # Rehydrate these fields at send time as well as at checkout creation.
+        # Older orders may have been persisted before sender contacts became
+        # mandatory in DiddiSend.
+        payload["sender_phone"] = payload.get("sender_phone") or self.diddisend_sender_phone
+        payload["sender_email"] = payload.get("sender_email") or _technical_sender_email(
+            payload["sender_phone"], self.diddisend_sender_email
+        )
         payload.setdefault("order_reference", f"shop-order:{order.id}")
         payload.setdefault("customer_user_id", payload.get("customer_user_id", "unknown"))
         response = await self.sender.create_delivery(

@@ -139,3 +139,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-S — fermer remboursements et preuves photo
 - [x] S24-T — normaliser claims et suivi coursier
 - [x] S24-U — exposer destination et ETA de livraison sans inventer de données
+- [x] S24-V — réhydrater les coordonnées sender pour les anciennes commandes

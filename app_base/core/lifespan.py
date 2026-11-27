@@ -116,6 +116,8 @@ async def lifespan(app: FastAPI):
         app.state.integrations.diddisend,
         app.state.order_service,
         seller_release_enabled=app.state.settings.seller_release_enabled,
+        diddisend_sender_phone=app.state.settings.diddisend_sender_phone,
+        diddisend_sender_email=app.state.settings.diddisend_sender_email,
     )
     app.state.finance_service = FinanceService(
         app.state.order_service,
