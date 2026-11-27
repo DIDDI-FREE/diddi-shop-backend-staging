@@ -24,6 +24,11 @@ class NotConfiguredError(DiddiShopError):
     status_code = 503
 
 
+class DeliveryQuoteUnavailableError(DiddiShopError):
+    code = "DELIVERY_QUOTE_UNAVAILABLE"
+    status_code = 502
+
+
 class InvalidTransitionError(DiddiShopError):
     code = "INVALID_TRANSITION"
 

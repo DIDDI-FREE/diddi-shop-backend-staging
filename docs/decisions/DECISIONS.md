@@ -557,3 +557,17 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
   SQL ; supprimer l’usage de l’enum du domaine.
 - Source : erreur runtime staging `str has no attribute value` | Agent
 - Impact : repository produit, panier, checkout et tests SQL.
+
+### D-049 — Normaliser les réponses de devis DiddiSend
+- Date : 2026-11-27
+- Phase / sous-lot : S24-I
+- Décision : accepter les montants numériques et les objets de devis contenant
+  `amount_minor`, `quoted_price`, `delivery_fee`, `amount` ou `value`, puis
+  retourner un montant entier XOF au domaine.
+- Pourquoi : DiddiSend a renvoyé `quote` comme objet ; la conversion directe
+  en entier provoquait HTTP 500. Les erreurs upstream de devis deviennent un
+  502 métier explicite.
+- Alternatives écartées : convertir aveuglément le dictionnaire en chaîne ;
+  laisser l’exception Python remonter ; accepter silencieusement un montant nul.
+- Source : traces Grafana/Portainer et contrat DiddiSend | Agent
+- Impact : adaptateur DiddiSend, checkout, erreurs API et tests d’intégration.

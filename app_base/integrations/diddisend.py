@@ -1,6 +1,27 @@
+import httpx
+
+from app_base.core.errors import DeliveryQuoteUnavailableError
 from app_base.core.request_context import get_request_context
 from app_base.integrations.base import ServiceAdapter
 from app_base.shared_kernel.contracts.delivery import DeliveryCommand, DeliveryRequest
+
+
+def _quote_amount_minor(value: object) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float, str)):
+        try:
+            amount = int(value)
+        except (TypeError, ValueError):
+            return None
+        return amount if amount >= 0 else None
+    if isinstance(value, dict):
+        for key in ("amount_minor", "quoted_price", "delivery_fee", "amount", "value"):
+            if key in value:
+                amount = _quote_amount_minor(value[key])
+                if amount is not None:
+                    return amount
+    return None
 
 
 class DiddiSendAdapter(ServiceAdapter):
@@ -26,9 +47,21 @@ class DiddiSendAdapter(ServiceAdapter):
             "POST", "/v1/deliveries/quote",
             json=payload,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            raise DeliveryQuoteUnavailableError("DiddiSend delivery quote unavailable") from exc
         data = response.json()
-        return int(data.get("quoted_price", data.get("amount_minor", data.get("delivery_fee", data.get("quote", 0)))))
+        amount = _quote_amount_minor(data.get("quoted_price"))
+        if amount is None:
+            amount = _quote_amount_minor(data.get("amount_minor"))
+        if amount is None:
+            amount = _quote_amount_minor(data.get("delivery_fee"))
+        if amount is None:
+            amount = _quote_amount_minor(data.get("quote"))
+        if amount is None:
+            raise DeliveryQuoteUnavailableError("DiddiSend returned an invalid delivery quote")
+        return amount
 
     async def create_delivery(self, command: DeliveryCommand, payload: dict) -> dict:
         financial_breakdown = payload.get("financial_breakdown")

@@ -344,3 +344,18 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 
 - Déployer manuellement le commit sur Portainer.
 - Rejouer `POST /v1/cart/lines`, puis le devis checkout.
+
+## S24-I — devis DiddiSend
+
+- L’adaptateur accepte maintenant les réponses numériques et les réponses
+  structurées (`quote.amount_minor`, `quote.amount.value`, etc.).
+- Une erreur upstream DiddiSend est exposée comme `502
+  DELIVERY_QUOTE_UNAVAILABLE`, au lieu d’un HTTP 500 non documenté.
+- Vérifications locales : 87 tests passés et Ruff OK.
+
+### Vérifications de déploiement en attente — S24-I
+
+- Déployer manuellement le commit sur Portainer.
+- Rejouer le devis avec des coordonnées de retrait et de livraison distinctes.
+- Si DiddiMap renvoie encore une distance nulle, corriger les coordonnées du
+  scénario de test côté appelant ; ce n’est pas une erreur de parsing Shop.
