@@ -13,6 +13,7 @@ from app_base.modules.claims.domain import Claim, ClaimDecision, ClaimStatus
 SUPPORTED_REFUND_METHODS = {"wave", "mtn_momo", "orange_money"}
 from app_base.modules.orders.domain.entities import FulfillmentStatus, Order, PaymentStatus
 from app_base.modules.rewards.application import RewardsService
+from app_base.shared_kernel.money import ceil_xof, floor_available_xof
 
 
 class FinancialPort:
@@ -112,6 +113,7 @@ class FinanceService:
         return claim
 
     async def decide(self, claim_id: str, decision: ClaimDecision, amount_to_refund: int = 0) -> Claim:
+        amount_to_refund = ceil_xof(amount_to_refund)
         claim = await self.claims.get(claim_id)
         if claim is None or claim.status != ClaimStatus.OPEN:
             raise ConflictError("claim is not open")
@@ -149,7 +151,11 @@ class FinanceService:
                 order.payment_status = PaymentStatus.RELEASE_PENDING
                 operation = f"shop:release:{order.id}:1"
                 if order.metadata.get("release_operation") != operation:
-                    await self.financial.release(order.id, order.metadata.get("net_seller_minor", order.total_minor), operation)
+                    await self.financial.release(
+                        order.id,
+                        floor_available_xof(order.metadata.get("net_seller_minor", order.total_minor)),
+                        operation,
+                    )
                     order.metadata["release_operation"] = operation
         order.transition(FulfillmentStatus.CLOSED, reason=f"claim.decided:{decision.value}", actor="support")
         await self.claims.save(claim)
@@ -173,7 +179,11 @@ class FinanceService:
         order.payment_status = PaymentStatus.RELEASE_PENDING
         operation = f"shop:release:{order.id}:1"
         if order.metadata.get("release_operation") != operation:
-            await self.financial.release(order.id, order.metadata.get("net_seller_minor", order.total_minor), operation)
+            await self.financial.release(
+                order.id,
+                floor_available_xof(order.metadata.get("net_seller_minor", order.total_minor)),
+                operation,
+            )
             order.metadata["release_operation"] = operation
         await self.orders.repository.save(order)
         return order

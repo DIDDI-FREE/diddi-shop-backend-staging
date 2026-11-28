@@ -953,3 +953,18 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : rapport d’intégration DiddiSupport du 2026-11-28 ; Agent, à valider
   par le rejeu staging.
 - Impact : route Support, OpenAPI, documentation et test de liaison.
+
+### D-075 — Politique d'arrondi monétaire XOF
+- Date : 2026-11-28
+- Phase / sous-lot : S25-A
+- Décision : arrondir vers le haut tout montant dû, prix, frais, paiement,
+  remboursement, remise, récompense, devis ou payout ; arrondir vers le bas
+  tout solde disponible. Utiliser `Decimal`, sans migration de base.
+- Pourquoi : garantir des montants XOF entiers et éviter qu'un solde rendu
+  disponible dépasse le solde réellement détenu.
+- Alternatives écartées : Python `round()` bancaire, conversion float, arrondi
+  vers le bas des créances, ou modification destructive des données existantes.
+- Source : Utilisateur ; contrat XOF DiddiShop.
+- Impact : contrats API, catalogue, checkout, finance, webhooks et adaptateurs
+  DiddiPay/DiddiSend/DiddiRewards ; contrat externe à appliquer dans leurs
+  dépôts respectifs.

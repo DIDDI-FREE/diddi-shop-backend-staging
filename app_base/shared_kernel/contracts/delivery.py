@@ -2,9 +2,11 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from app_base.shared_kernel.money import XofAmount
+
 
 class DeliveryQuote(BaseModel):
-    amount_minor: int
+    amount_minor: XofAmount
     currency: Literal["XOF"] = "XOF"
     expires_at: str | None = None
     provider_reference: str

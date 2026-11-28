@@ -19,6 +19,7 @@ from app_base.shared_kernel.contracts.payments import (
     require_payment_return,
     valid_customer_phone,
 )
+from app_base.shared_kernel.money import ceil_xof
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +131,7 @@ class CheckoutApplicationService:
                     "address": shop.pickup_address,
                 })
             delivery_fee = await self.delivery_quotes.quote(shop_id, lines, quote_context)
+            delivery_fee = ceil_xof(delivery_fee)
             breakdowns.append({
                 "shop_id": shop_id,
                 "subtotal_minor": items_total,
@@ -177,6 +179,7 @@ class CheckoutApplicationService:
                         "address": shop.pickup_address,
                     })
                 delivery_fee = await self.delivery_quotes.quote(shop_id, lines, quote_context or None)
+                delivery_fee = ceil_xof(delivery_fee)
                 order_id = str(uuid4())
                 initial_total = items_total + delivery_fee
                 reward_reservation = None

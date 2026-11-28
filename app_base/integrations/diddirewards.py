@@ -1,12 +1,13 @@
 from app_base.integrations.base import ServiceAdapter
 from app_base.shared_kernel.contracts.rewards import RewardQuote, RewardReservation
+from app_base.shared_kernel.money import normalize_money_tree
 
 
 class DiddiRewardsAdapter(ServiceAdapter):
     _shop_prefix = "/internal/v1/rewards/integrations/diddishop"
 
     async def quote(self, payload: dict) -> RewardQuote:
-        response = await self.request("POST", f"{self._shop_prefix}/benefits/quote", json=payload)
+        response = await self.request("POST", f"{self._shop_prefix}/benefits/quote", json=normalize_money_tree(payload))
         response.raise_for_status()
         return RewardQuote.model_validate(response.json())
 
@@ -15,7 +16,7 @@ class DiddiRewardsAdapter(ServiceAdapter):
             "POST",
             f"{self._shop_prefix}/benefits/reserve",
             headers={"Idempotency-Key": idempotency_key},
-            json=payload,
+            json=normalize_money_tree(payload),
         )
         response.raise_for_status()
         return RewardReservation.model_validate(response.json())
@@ -25,7 +26,7 @@ class DiddiRewardsAdapter(ServiceAdapter):
             "POST",
             f"{self._shop_prefix}/benefits/confirm",
             headers={"Idempotency-Key": idempotency_key},
-            json=payload,
+            json=normalize_money_tree(payload),
         )
         response.raise_for_status()
         return response.json()
@@ -48,7 +49,7 @@ class DiddiRewardsAdapter(ServiceAdapter):
             "POST",
             f"{self._shop_prefix}/benefits/correct",
             headers={"Idempotency-Key": idempotency_key},
-            json=payload,
+            json=normalize_money_tree(payload),
         )
         response.raise_for_status()
         return response.json()

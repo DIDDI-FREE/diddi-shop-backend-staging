@@ -13,6 +13,7 @@ from app_base.core.api_contracts import (
 from app_base.core.auth_deps import Actor, current_actor
 from app_base.modules.claims.domain import ClaimDecision
 from app_base.modules.finance import FinanceService
+from app_base.shared_kernel.money import XofAmount
 
 router = APIRouter(prefix="/v1/claims", tags=["claims"])
 
@@ -29,7 +30,7 @@ class OpenClaimRequest(BaseModel):
 
 class DecideClaimRequest(BaseModel):
     decision: ClaimDecision
-    amount_to_refund: int = Field(default=0, ge=0)
+    amount_to_refund: XofAmount = Field(default=0, ge=0)
 
 
 class CancelOrderRequest(BaseModel):

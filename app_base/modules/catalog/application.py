@@ -9,6 +9,7 @@ from app_base.modules.catalog.domain import (
     ProductStatus,
 )
 from app_base.modules.shops.domain import ShopRepository, ShopStatus
+from app_base.shared_kernel.money import ceil_xof
 
 
 class CatalogService:
@@ -18,6 +19,7 @@ class CatalogService:
         self.files = files
 
     async def create(self, owner_id: str, shop_id: str, title: str, description: str, price_minor: int, stock: int, category: str, photo_file_ids: list[str]) -> Product:
+        price_minor = ceil_xof(price_minor)
         shop = await self.shops.get(shop_id)
         if shop is None or shop.owner_id != owner_id:
             raise ConflictError("shop ownership invalid")
@@ -116,6 +118,8 @@ class CatalogService:
         stock: int | None = None,
         category: str | None = None,
     ) -> Product:
+        if price_minor is not None:
+            price_minor = ceil_xof(price_minor)
         product = await self.get(product_id)
         shop = await self.shops.get(product.shop_id)
         if shop is None or shop.owner_id != owner_id:

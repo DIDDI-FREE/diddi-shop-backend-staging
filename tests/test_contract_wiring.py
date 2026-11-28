@@ -11,8 +11,8 @@ from app_base.integrations.diddifiles import DiddiFilesAdapter
 from app_base.integrations.diddipay import DiddiPayAdapter
 from app_base.integrations.diddirewards import DiddiRewardsAdapter
 from app_base.integrations.diddisend import DiddiSendAdapter
-from app_base.modules.checkout.application.checkout_service import _technical_sender_email
 from app_base.integrations.diddisupport import DiddiSupportAdapter
+from app_base.modules.checkout.application.checkout_service import _technical_sender_email
 from app_base.shared_kernel.contracts.delivery import DeliveryCommand
 from app_base.shared_kernel.contracts.payments import PaymentIntentCommand
 

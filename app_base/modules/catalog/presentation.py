@@ -1,12 +1,13 @@
 from pydantic import BaseModel, Field, field_validator
 
 from app_base.modules.catalog.domain import ALLOWED_PRODUCT_IMAGE_MIME_TYPES, MAX_PRODUCT_PHOTOS
+from app_base.shared_kernel.money import XofAmount
 
 
 class CreateProductRequest(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     description: str = Field(default="", max_length=5000)
-    price_minor: int = Field(ge=0)
+    price_minor: XofAmount = Field(ge=0)
     stock: int = Field(ge=0)
     category: str = Field(min_length=1, max_length=120)
     photo_file_ids: list[str] = Field(default_factory=list, max_length=MAX_PRODUCT_PHOTOS)
@@ -15,7 +16,7 @@ class CreateProductRequest(BaseModel):
 class UpdateProductRequest(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = Field(default=None, max_length=5000)
-    price_minor: int | None = Field(default=None, ge=0)
+    price_minor: XofAmount | None = Field(default=None, ge=0)
     stock: int | None = Field(default=None, ge=0)
     category: str | None = Field(default=None, min_length=1, max_length=120)
 

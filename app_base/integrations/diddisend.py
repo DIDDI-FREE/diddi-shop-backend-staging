@@ -7,6 +7,7 @@ from app_base.core.errors import (
 from app_base.core.request_context import get_request_context
 from app_base.integrations.base import ServiceAdapter
 from app_base.shared_kernel.contracts.delivery import DeliveryCommand, DeliveryRequest
+from app_base.shared_kernel.money import ceil_xof, normalize_money_tree
 
 
 def _quote_amount_minor(value: object) -> int | None:
@@ -14,7 +15,7 @@ def _quote_amount_minor(value: object) -> int | None:
         return None
     if isinstance(value, (int, float, str)):
         try:
-            amount = int(value)
+            amount = ceil_xof(value)
         except (TypeError, ValueError):
             return None
         return amount if amount >= 0 else None
@@ -85,12 +86,12 @@ class DiddiSendAdapter(ServiceAdapter):
             pickup_address=payload["pickup_address"],
             dropoff_location=payload["dropoff_location"],
             dropoff_address=payload["dropoff_address"],
-            package=payload["package"],
+            package=normalize_money_tree(payload["package"]),
             ready_at=payload.get("ready_at"),
             # DiddiSend's Food-style contract serializes the quoted amount as
             # a string, while the Shop domain keeps minor units as integers.
-            quoted_price=str(payload["quoted_price"]),
-            financial_breakdown=financial_breakdown,
+            quoted_price=str(ceil_xof(payload["quoted_price"])),
+            financial_breakdown=normalize_money_tree(financial_breakdown) if financial_breakdown else None,
             origin_payment_reference=payload.get("origin_payment_reference"),
         )
         context = get_request_context()

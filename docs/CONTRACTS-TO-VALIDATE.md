@@ -149,3 +149,22 @@ DiddiFiles, DiddiRewards et DiddiComms. DiddiSupport expose bien son OpenAPI et
 ses routes internal, mais son `/health` public retourne 404. DiddiObserve ne
 publie pas de `/health` HTML ; sa chaîne OTLP doit être vérifiée avec le
 credential dédié et les marqueurs synthétiques prévus par la remise.
+
+## Politique monétaire XOF — 2026-11-28
+
+DiddiShop accepte et émet uniquement des montants XOF exprimés en entiers.
+Toute valeur monétaire entrante avec une fraction est arrondie vers le haut
+(`Decimal` + `ROUND_CEILING`) avant validation, calcul, persistance ou appel
+sortant : prix, sous-totaux, frais, PaymentIntent, remboursements, remises,
+récompenses, devis et payouts.
+
+Un solde disponible est différent d'une créance ou d'un prix : il est arrondi
+vers le bas (`ROUND_FLOOR`) afin de ne jamais rendre disponible plus que le
+solde réellement détenu. Cette règle s'applique à `available_balance` et à ses
+variantes de contrat, sans modifier les colonnes ni réécrire les anciennes
+données. Les payloads JSON historiques sont normalisés à la lecture.
+
+Les adaptateurs DiddiPay, DiddiSend et DiddiRewards doivent conserver cette
+convention sur leurs propres calculs, réponses et écritures. DiddiShop ne
+modifie pas les dépôts de ces services : leurs équipes doivent appliquer la
+même règle à leurs PaymentIntents, quotes, payouts, refunds et soldes.

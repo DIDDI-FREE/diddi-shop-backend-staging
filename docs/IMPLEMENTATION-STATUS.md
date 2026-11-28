@@ -643,10 +643,28 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
   plus de `/orders/{id}` pour compatibilité avec le client Support existant.
 - Correction locale : les réponses de contexte utilisent l’enveloppe
   `diddi.context.v1` avec timestamps UTC ISO 8601.
-- Vérifications locales : 245 tests, Compose staging et MkDocs strict.
+- Vérifications locales : 254 tests, Compose staging et MkDocs strict.
 
 ### Vérifications de déploiement en attente — S24-Z
 
 - Déploiement manuel par l’utilisateur depuis GitHub.
 - Rejouer le test de liaison DiddiSupport et vérifier les deux chemins ainsi
   que les champs `protocol`, `resource_id`, `data`, `as_of` et `fetched_at`.
+
+## S25-A — normalisation monétaire XOF
+
+Les montants entrants et sortants sont désormais des entiers XOF. Les prix,
+frais, remises, PaymentIntents, remboursements, récompenses, devis et payouts
+arrondissent vers le haut. Les soldes disponibles arrondissent vers le bas.
+La normalisation des JSON historiques à la lecture ne modifie pas la base et
+n'ajoute aucune migration. Les changements externes requis dans DiddiPay,
+DiddiSend et DiddiRewards sont documentés dans
+`docs/CONTRACTS-TO-VALIDATE.md`.
+
+### Vérifications de déploiement en attente — S25-A
+
+- Déploiement manuel par l'utilisateur depuis GitHub.
+- Rejouer un checkout, un remboursement, une livraison prépayée et un flux
+  Rewards avec valeurs fractionnaires simulées ; vérifier les entiers XOF.
+- Vérifier côté DiddiPay, DiddiSend et DiddiRewards que leurs propres soldes,
+  payouts et PaymentIntents appliquent la même politique.

@@ -9,6 +9,7 @@ from app_base.core.errors import (
     PaymentReturnInvalidError,
     PaymentReturnRequiredError,
 )
+from app_base.shared_kernel.money import XofAmount
 
 CUSTOMER_PHONE_PATTERN = r"^\+[1-9][0-9]{7,14}$"
 DEFAULT_PAYMENT_RETURN_URL = "https://diddishop-backend.diddifree.com/payments/return"
@@ -68,7 +69,7 @@ def require_payment_return(return_url: str | None, return_target: str | None) ->
 class PaymentIntentCommand(PaymentReturnOptions):
     checkout_id: str
     business_reference: str
-    amount_minor: int
+    amount_minor: XofAmount
     currency: Literal["XOF"] = "XOF"
     idempotency_key: str
     payment_method: Literal["wave", "mtn_momo", "orange_money"] = "wave"
@@ -79,5 +80,5 @@ class PaymentStatus(BaseModel):
     payment_id: str
     business_reference: str
     status: Literal["pending", "succeeded", "failed", "refunded", "partially_refunded"]
-    amount_minor: int
+    amount_minor: XofAmount
     currency: Literal["XOF"]

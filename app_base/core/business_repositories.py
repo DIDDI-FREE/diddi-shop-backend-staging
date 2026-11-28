@@ -22,6 +22,7 @@ from app_base.modules.claims.domain import Claim
 from app_base.modules.delivery.domain import DeliveryProjection
 from app_base.modules.orders.domain.entities import Order
 from app_base.modules.shops.domain import Shop
+from app_base.shared_kernel.money import normalize_money_tree
 
 
 def _dump(value) -> str:
@@ -29,7 +30,7 @@ def _dump(value) -> str:
 
 
 def _load(payload: str) -> dict:
-    return json.loads(payload)
+    return normalize_money_tree(json.loads(payload))
 
 
 def _cart(payload: str) -> Cart:

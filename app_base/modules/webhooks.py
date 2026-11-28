@@ -9,6 +9,7 @@ from app_base.shared_kernel.contracts.events import (
     DiddiSendCallbackEnvelope,
     ExternalEvent,
 )
+from app_base.shared_kernel.money import normalize_money_tree
 from app_base.workers.in_memory_inbox import InMemoryProcessedEvents
 
 router = APIRouter(prefix="/internal/v1/webhooks", tags=["webhooks"])
@@ -46,7 +47,7 @@ def _normalize_diddipay_event(raw: object) -> tuple[ExternalEvent, bool]:
 
     if {"id", "type", "occurred_at", "data"}.issubset(raw):
         envelope = DiddiPayCallbackEnvelope.model_validate(raw)
-        payload = dict(envelope.data)
+        payload = normalize_money_tree(dict(envelope.data))
         checkout_id = payload.get("checkout_id") or _checkout_id_from_business_reference(
             payload.get("business_reference")
         )
@@ -63,7 +64,9 @@ def _normalize_diddipay_event(raw: object) -> tuple[ExternalEvent, bool]:
             True,
         )
 
-    return ExternalEvent.model_validate(raw), False
+    event = ExternalEvent.model_validate(raw)
+    event.payload = normalize_money_tree(event.payload)
+    return event, False
 
 
 def _normalize_diddisend_event(raw: object) -> tuple[ExternalEvent, bool]:
@@ -73,7 +76,7 @@ def _normalize_diddisend_event(raw: object) -> tuple[ExternalEvent, bool]:
 
     if {"event_id", "event_type", "delivery_id", "occurred_at", "data"}.issubset(raw):
         envelope = DiddiSendCallbackEnvelope.model_validate(raw)
-        payload = dict(envelope.data)
+        payload = normalize_money_tree(dict(envelope.data))
         payload.setdefault("delivery_id", envelope.delivery_id)
         payload.setdefault("order_reference", envelope.order_reference)
         payload.setdefault("status", envelope.status)
@@ -94,7 +97,9 @@ def _normalize_diddisend_event(raw: object) -> tuple[ExternalEvent, bool]:
             True,
         )
 
-    return ExternalEvent.model_validate(raw), False
+    event = ExternalEvent.model_validate(raw)
+    event.payload = normalize_money_tree(event.payload)
+    return event, False
 
 
 @router.post("/diddipay", response_model=WebhookResponse)

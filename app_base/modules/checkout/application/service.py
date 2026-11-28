@@ -6,6 +6,7 @@ from app_base.modules.checkout.domain_interfaces import (
     CheckoutPricingPort,
     CheckoutRewardsPort,
 )
+from app_base.shared_kernel.money import ceil_xof
 
 
 @dataclass
@@ -22,7 +23,7 @@ class CheckoutService:
             await self.rewards.quote_and_reserve(
                 customer_id,
                 campaign_id,
-                int(priced["total_minor"]),
+                ceil_xof(priced["total_minor"]),
                 f"diddishop:benefit-reservation:{cart_id}:1",
             )
             if self.rewards and campaign_id

@@ -10,6 +10,7 @@ from app_base.modules.catalog.domain import Product
 from app_base.modules.checkout.domain import Checkout
 from app_base.modules.orders.domain.entities import Order
 from app_base.modules.shops.domain import Shop
+from app_base.shared_kernel.money import XofAmount
 
 
 def _normalize_payment_datetime(value: object) -> object:
@@ -32,7 +33,7 @@ class ProductResponse(BaseModel):
     shop_id: str
     title: str
     description: str
-    price_minor: int
+    price_minor: XofAmount
     currency: Literal["XOF"]
     stock: int
     category: str
@@ -73,13 +74,13 @@ class CartLineResponse(BaseModel):
     shop_id: str
     quantity: int = Field(ge=1)
     title: str
-    unit_price_minor: int = Field(ge=0)
-    line_total_minor: int = Field(ge=0)
+    unit_price_minor: XofAmount = Field(ge=0)
+    line_total_minor: XofAmount = Field(ge=0)
 
 
 class CartShopSubtotalResponse(BaseModel):
     shop_id: str
-    subtotal_minor: int = Field(ge=0)
+    subtotal_minor: XofAmount = Field(ge=0)
 
 
 class CartResponse(BaseModel):
@@ -88,7 +89,7 @@ class CartResponse(BaseModel):
     currency: Literal["XOF"]
     lines: list[CartLineResponse]
     line_count: int = Field(ge=0)
-    subtotal_minor: int = Field(ge=0)
+    subtotal_minor: XofAmount = Field(ge=0)
     shop_subtotals: list[CartShopSubtotalResponse]
 
 
@@ -96,7 +97,7 @@ class OrderResponse(BaseModel):
     id: str
     shop_id: str
     checkout_id: str
-    total_minor: int
+    total_minor: XofAmount
     currency: Literal["XOF"]
     fulfillment_status: Literal[
         "PAYMENT_PENDING",
@@ -126,9 +127,9 @@ class OrderResponse(BaseModel):
     version: int = Field(ge=0)
     payment_intent_id: str | None
     items: list["OrderLineResponse"]
-    subtotal_minor: int = Field(ge=0)
-    delivery_fee_minor: int = Field(ge=0)
-    discount_minor: int = Field(ge=0)
+    subtotal_minor: XofAmount = Field(ge=0)
+    delivery_fee_minor: XofAmount = Field(ge=0)
+    discount_minor: XofAmount = Field(ge=0)
     created_at: str
     seller_confirmation_deadline: str | None
     recipient_name: str | None
@@ -142,9 +143,9 @@ class OrderResponse(BaseModel):
 class OrderLineResponse(BaseModel):
     product_id: str
     title: str
-    unit_price_minor: int = Field(ge=0)
+    unit_price_minor: XofAmount = Field(ge=0)
     quantity: int = Field(gt=0)
-    line_total_minor: int = Field(ge=0)
+    line_total_minor: XofAmount = Field(ge=0)
 
 
 class OrderListResponse(BaseModel):
@@ -161,7 +162,7 @@ class CheckoutPaymentNextAction(BaseModel):
 
 class CheckoutPaymentResponse(BaseModel):
     payment_intent_id: str | None
-    amount_minor: int
+    amount_minor: XofAmount
     currency: Literal["XOF"]
     status: str
     payment_method: str | None = None
@@ -179,14 +180,14 @@ class CheckoutPaymentResponse(BaseModel):
 class CheckoutResponse(BaseModel):
     id: str
     customer_id: str
-    total_minor: int
+    total_minor: XofAmount
     currency: Literal["XOF"]
     status: Literal["payment_pending", "payment_succeeded", "payment_failed"]
     order_ids: list[str]
     payment: CheckoutPaymentResponse
-    subtotal_minor: int = Field(ge=0)
-    delivery_fee_minor: int = Field(ge=0)
-    discount_minor: int = Field(ge=0)
+    subtotal_minor: XofAmount = Field(ge=0)
+    delivery_fee_minor: XofAmount = Field(ge=0)
+    discount_minor: XofAmount = Field(ge=0)
     shop_breakdowns: list["CheckoutShopBreakdownResponse"]
     payment_attempt: int = Field(ge=1)
     created_at: str
@@ -194,18 +195,18 @@ class CheckoutResponse(BaseModel):
 
 class CheckoutShopBreakdownResponse(BaseModel):
     shop_id: str
-    subtotal_minor: int = Field(ge=0)
-    delivery_fee_minor: int = Field(ge=0)
-    discount_minor: int = Field(ge=0)
-    total_minor: int = Field(ge=0)
+    subtotal_minor: XofAmount = Field(ge=0)
+    delivery_fee_minor: XofAmount = Field(ge=0)
+    discount_minor: XofAmount = Field(ge=0)
+    total_minor: XofAmount = Field(ge=0)
 
 
 class CheckoutQuoteResponse(BaseModel):
     currency: Literal["XOF"]
-    subtotal_minor: int = Field(ge=0)
-    delivery_fee_minor: int = Field(ge=0)
-    discount_minor: int = Field(ge=0)
-    total_minor: int = Field(ge=0)
+    subtotal_minor: XofAmount = Field(ge=0)
+    delivery_fee_minor: XofAmount = Field(ge=0)
+    discount_minor: XofAmount = Field(ge=0)
+    total_minor: XofAmount = Field(ge=0)
     shop_breakdowns: list[CheckoutShopBreakdownResponse]
 
 
@@ -330,7 +331,7 @@ class ClaimResponse(BaseModel):
     opened_at: datetime
     status: Literal["open", "decided"]
     decision: Literal["buyer", "seller", "partial", "rejected"] | None = None
-    amount_to_refund: int = Field(ge=0)
+    amount_to_refund: XofAmount = Field(ge=0)
     decided_at: datetime | None = None
     reason_code: str
     evidence_file_ids: list[str]

@@ -3,6 +3,7 @@ from app_base.core.outbox import OutboxMessage, append_outbox, new_outbox_messag
 from app_base.modules.orders.domain.entities import FulfillmentStatus, Order, PaymentStatus
 from app_base.modules.orders.domain.interfaces import OrderRepository
 from app_base.modules.rewards.application import RewardsService
+from app_base.shared_kernel.money import ceil_xof
 
 
 class OrderService:
@@ -78,8 +79,8 @@ class OrderService:
         result = await self.rewards.consume(
             reward,
             order.id,
-            client_paid_minor=int(payload.get("amount_minor", order.total_minor)),
-            professional_payout_minor=int(order.metadata.get("professional_payout_minor", 0)),
+            client_paid_minor=ceil_xof(payload.get("amount_minor", order.total_minor)),
+            professional_payout_minor=ceil_xof(order.metadata.get("professional_payout_minor", 0)),
             diddi_contribution_minor=reward.discount_minor,
             payment_reference=payload.get("payment_reference") or payload.get("payment_intent_id"),
         )
@@ -92,7 +93,7 @@ class OrderService:
         reward = self.rewards.from_metadata(order.metadata["rewards"])
         if not reward.consumption_id:
             return
-        amount = int(payload.get("amount_minor", reward.discount_minor))
+        amount = ceil_xof(payload.get("amount_minor", reward.discount_minor))
         await self.rewards.correct(
             reward,
             payload.get("reason", "payment_refunded"),

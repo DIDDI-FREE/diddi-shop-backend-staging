@@ -1,6 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 from app_base.modules.rewards.domain import CampaignSnapshot, RewardReservation
+from app_base.shared_kernel.money import ceil_xof
 
 
 class RewardsService:
@@ -17,6 +18,7 @@ class RewardsService:
         *,
         expires_at: datetime | None = None,
     ) -> RewardReservation | None:
+        amount_initial_minor = ceil_xof(amount_initial_minor)
         if amount_initial_minor <= 0:
             return None
         existing = next((r for r in self.reservations.values() if r.operation_id == operation_id), None)
@@ -36,7 +38,7 @@ class RewardsService:
                 "consumer_id": customer_id,
                 "entitlement_id": quote.entitlement_id,
                 "service_operation_id": operation_id,
-                "requested_amount_minor": quote.discount_minor,
+                "requested_amount_minor": ceil_xof(quote.discount_minor),
                 "expires_at": expiry.isoformat(),
             },
             operation_id,
@@ -75,10 +77,10 @@ class RewardsService:
         result = await self.adapter.confirm({
             "reservation_id": reservation.reservation_id,
             "service_operation_id": order_id,
-            "applied_discount_minor": reservation.discount_minor,
-            "client_paid_minor": client_paid_minor,
-            "professional_payout_minor": professional_payout_minor,
-            "diddi_contribution_minor": diddi_contribution_minor,
+            "applied_discount_minor": ceil_xof(reservation.discount_minor),
+            "client_paid_minor": ceil_xof(client_paid_minor),
+            "professional_payout_minor": ceil_xof(professional_payout_minor),
+            "diddi_contribution_minor": ceil_xof(diddi_contribution_minor),
             "payment_reference": payment_reference,
         }, f"diddishop:benefit-confirmation:{order_id}:1")
         reservation.consumption_id = result.get("consumption_id")
@@ -103,7 +105,7 @@ class RewardsService:
         return await self.adapter.correct(
             {
                 "consumption_id": reservation.consumption_id,
-                "amount_minor": amount_minor,
+                "amount_minor": ceil_xof(amount_minor),
                 "reason": reason,
                 "payment_reference": payment_reference,
             },

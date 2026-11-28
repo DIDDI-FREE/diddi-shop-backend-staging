@@ -11,6 +11,7 @@ from app_base.core.api_contracts import (
 from app_base.core.auth_deps import Actor, current_actor
 from app_base.core.idempotency import IdempotencyRecord, replay_or_none, request_hash
 from app_base.modules.claims.domain import ClaimDecision
+from app_base.shared_kernel.money import XofAmount
 
 router = APIRouter(prefix="/v1/admin/shop", tags=["admin-shop"])
 
@@ -35,7 +36,7 @@ async def capabilities(_actor: Actor = Depends(admin_actor)):
 
 class AdminDecisionRequest(BaseModel):
     decision: ClaimDecision
-    amount_to_refund: int = Field(default=0, ge=0)
+    amount_to_refund: XofAmount = Field(default=0, ge=0)
     reason: str = Field(min_length=1, max_length=1000)
 
 

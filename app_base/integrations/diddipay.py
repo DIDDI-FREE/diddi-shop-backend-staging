@@ -5,6 +5,7 @@ from app_base.shared_kernel.contracts.payments import (
     require_customer_phone,
     require_payment_return,
 )
+from app_base.shared_kernel.money import ceil_xof, normalize_money_fields
 
 RETURN_REJECTION_CODES = {
     "PAYMENT_RETURN_TARGET_CONFLICT", "PAYMENT_RETURN_TARGET_FORBIDDEN",
@@ -21,7 +22,7 @@ class DiddiPayAdapter(ServiceAdapter):
         }
         request_payload = {
             "business_reference": command.business_reference,
-            "amount": command.amount_minor,
+            "amount": ceil_xof(command.amount_minor),
             "currency": command.currency,
             "channel": "mobile_money",
             "network": network_by_method[command.payment_method],
@@ -57,6 +58,7 @@ class DiddiPayAdapter(ServiceAdapter):
                 }
         response.raise_for_status()
         payload = response.json()
+        payload = normalize_money_fields(payload, "amount", "amount_minor", "refund_amount", "fee_amount")
         if "payment_intent_id" not in payload and payload.get("id"):
             payload["payment_intent_id"] = payload["id"]
         if "amount_minor" not in payload and payload.get("amount") is not None:
@@ -81,12 +83,13 @@ class DiddiPayAdapter(ServiceAdapter):
             "POST", f"/payment-intents/{order_id}/refunds",
             headers={"Idempotency-Key": idempotency_key},
             json={
-                "amount": amount_minor,
+                "amount": ceil_xof(amount_minor),
                 "reason": "diddishop_order",
             },
         )
         response.raise_for_status()
         payload = response.json()
+        payload = normalize_money_fields(payload, "amount", "amount_minor", "refund_amount", "fee_amount")
         if "refund_id" not in payload and payload.get("id"):
             payload["refund_id"] = payload["id"]
         return payload
