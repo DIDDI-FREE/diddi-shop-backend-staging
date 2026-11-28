@@ -4,6 +4,7 @@ from app_base.core.api_contracts import (
     SupportCaseResponse,
     SupportContextResponse,
     support_context_response,
+    support_context_stub_response,
 )
 from app_base.core.auth_deps import Actor, current_service_actor
 
@@ -11,8 +12,9 @@ router = APIRouter(prefix="/internal/v1/support", tags=["support"])
 
 
 @router.get("/orders/{order_id}/context", response_model=SupportContextResponse)
+@router.get("/order/{order_id}/context", response_model=SupportContextResponse, include_in_schema=False)
 async def order_context(order_id: str, _actor: Actor = Depends(current_service_actor)):
-    return {"order": {"id": order_id}, "delivery": None, "claim": None, "owner_service": "diddishop", "source_of_truth": {"status": "projection_not_configured"}}
+    return support_context_stub_response(order_id)
 
 
 @router.get("/orders/{order_id}/context/live", response_model=SupportContextResponse)

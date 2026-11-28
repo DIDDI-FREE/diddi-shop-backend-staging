@@ -545,9 +545,11 @@ pas recalculées par DiddiShop.
 ### `GET /internal/v1/support/orders/{order_id}/context`
 
 - Auth : réseau/S2S interne.
-- Réponse : `order`, `delivery`, `claim`, `owner_service` et `source_of_truth`.
-- Cette route renvoie actuellement `projection_not_configured` dans son mode
-  simple.
+- Alias de compatibilité : `GET /internal/v1/support/order/{order_id}/context`.
+- Réponse : enveloppe `diddi.context.v1` avec `protocol`, `origin_service`,
+  `resource_type`, `resource_id`, `data`, `redacted_fields`, `as_of` et
+  `fetched_at`.
+- `as_of` et `fetched_at` sont des timestamps UTC ISO 8601.
 
 ### `GET /internal/v1/support/orders/{order_id}/context/live`
 

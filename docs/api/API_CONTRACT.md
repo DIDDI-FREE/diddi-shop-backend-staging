@@ -106,6 +106,7 @@ Les routes suivantes sont la surface métier actuellement montée par
 | GET | `/v1/admin/shop/orders/{order_id}` | Lire une commande pour opérateur |
 | POST | `/v1/admin/shop/claims/{claim_id}/decision` | Décision opérateur idempotente |
 | GET | `/internal/v1/support/orders/{order_id}/context` | Contexte support |
+| GET | `/internal/v1/support/order/{order_id}/context` | Alias contexte support |
 | GET | `/internal/v1/support/orders/{order_id}/context/live` | Contexte support enrichi |
 | POST | `/internal/v1/support/orders/{order_id}/cases` | Créer un cas support |
 | GET | `/internal/v1/comms/health` | Santé de l’adaptateur Comms |

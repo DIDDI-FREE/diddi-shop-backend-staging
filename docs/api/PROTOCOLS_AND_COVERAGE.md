@@ -151,7 +151,8 @@ route de création livraison.
 | GET | `/internal/v1/comms/health` | `CommsHealthResponse` |
 | GET | `/internal/v1/observability/health` | `ObservabilityHealthResponse` |
 | GET | `/internal/v1/rewards/health` | `RewardsHealthResponse` |
-| GET | `/internal/v1/support/orders/{order_id}/context` | `SupportContextResponse` |
+| GET | `/internal/v1/support/orders/{order_id}/context` | `diddi.context.v1` |
+| GET | `/internal/v1/support/order/{order_id}/context` | `diddi.context.v1` (alias) |
 | GET | `/internal/v1/support/orders/{order_id}/context/live` | `SupportContextResponse` |
 | POST | `/internal/v1/support/orders/{order_id}/cases` | `SupportCaseResponse` |
 | POST | `/internal/v1/webhooks/diddipay` | `WebhookResponse` |

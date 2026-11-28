@@ -143,3 +143,4 @@ Référence : `tasks/plan.md`. DiddiMap est explicitement hors périmètre.
 - [x] S24-W — transmettre la référence PaymentIntent aux livraisons prépayées
 - [x] S24-X — mapper les refus DiddiSend et documenter la visibilité inter-client DiddiPay
 - [x] S24-Y — aligner order_reference sur business_reference pour verify coverage
+- [x] S24-Z — aligner route et enveloppe du contexte DiddiSupport

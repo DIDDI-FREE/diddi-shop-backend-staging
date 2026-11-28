@@ -17,7 +17,7 @@ def _normalize_payment_datetime(value: object) -> object:
         parsed = value
     elif isinstance(value, str):
         try:
-            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            parsed = datetime.fromisoformat(value)
         except ValueError:
             return value
     else:
@@ -287,11 +287,14 @@ class AdminOrderResponse(BaseModel):
 
 
 class SupportContextResponse(BaseModel):
-    order: dict[str, Any]
-    delivery: DeliveryResponse | None
-    claim: "ClaimResponse | None"
-    owner_service: str
-    source_of_truth: dict[str, str]
+    protocol: Literal["diddi.context.v1"]
+    origin_service: Literal["diddishop"]
+    resource_type: Literal["order"]
+    resource_id: str
+    data: dict[str, Any]
+    redacted_fields: list[str]
+    as_of: datetime
+    fetched_at: datetime
 
 
 class SupportCaseResponse(BaseModel):
@@ -404,12 +407,43 @@ def admin_order_response(order: Any, delivery: Any | None) -> dict[str, Any]:
 
 
 def support_context_response(context: dict[str, Any]) -> dict[str, Any]:
-    return {
+    fetched_at = datetime.now(UTC)
+    data = {
         "order": order_response(context["order"]),
         "delivery": delivery_response(context["delivery"], context["order"].id) if context.get("delivery") else None,
         "claim": claim_response(context["claim"]) if context.get("claim") else None,
         "owner_service": context["owner_service"],
         "source_of_truth": context["source_of_truth"],
+    }
+    return {
+        "protocol": "diddi.context.v1",
+        "origin_service": "diddishop",
+        "resource_type": "order",
+        "resource_id": context["order"].id,
+        "data": data,
+        "redacted_fields": [],
+        "as_of": fetched_at,
+        "fetched_at": fetched_at,
+    }
+
+
+def support_context_stub_response(order_id: str) -> dict[str, Any]:
+    fetched_at = datetime.now(UTC)
+    return {
+        "protocol": "diddi.context.v1",
+        "origin_service": "diddishop",
+        "resource_type": "order",
+        "resource_id": order_id,
+        "data": {
+            "order": {"id": order_id},
+            "delivery": None,
+            "claim": None,
+            "owner_service": "diddishop",
+            "source_of_truth": {"status": "projection_not_configured"},
+        },
+        "redacted_fields": [],
+        "as_of": fetched_at,
+        "fetched_at": fetched_at,
     }
 
 

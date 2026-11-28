@@ -636,3 +636,17 @@ PyJWT au build. Aucun changement Portainer n’a été effectué.
 - Déploiement manuel depuis GitHub.
 - Rejouer `/ready` avec une commande nouvellement payée et confirmer la
   création de livraison sans nouveau PaymentIntent.
+
+## S24-Z — route et enveloppe DiddiSupport
+
+- Correction locale : la route de contexte accepte désormais `/order/{id}` en
+  plus de `/orders/{id}` pour compatibilité avec le client Support existant.
+- Correction locale : les réponses de contexte utilisent l’enveloppe
+  `diddi.context.v1` avec timestamps UTC ISO 8601.
+- Vérifications locales : 245 tests, Compose staging et MkDocs strict.
+
+### Vérifications de déploiement en attente — S24-Z
+
+- Déploiement manuel par l’utilisateur depuis GitHub.
+- Rejouer le test de liaison DiddiSupport et vérifier les deux chemins ainsi
+  que les champs `protocol`, `resource_id`, `data`, `as_of` et `fetched_at`.

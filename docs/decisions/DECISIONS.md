@@ -940,3 +940,16 @@ Les décisions agent à valider sont conservées explicitement dans cette sectio
 - Source : contrat Pay/Send transmis le 2026-11-28 ; code Shop audité ; Agent,
   décision à valider en staging.
 - Impact : checkout, livraison, callbacks DiddiSend et recette E2E.
+
+### D-074 — Compatibilité du contexte DiddiSupport
+- Date : 2026-11-28
+- Phase / sous-lot : S24-Z
+- Décision : exposer l’alias `/internal/v1/support/order/{order_id}/context`
+  et normaliser les réponses vers l’enveloppe `diddi.context.v1`.
+- Pourquoi : le client DiddiSupport utilise le singulier et attend le protocole
+  standard ; l’alias évite une rupture pendant la migration.
+- Alternatives écartées : modifier uniquement DiddiSupport, supprimer la route
+  plurielle, ou conserver l’enveloppe historique non versionnée.
+- Source : rapport d’intégration DiddiSupport du 2026-11-28 ; Agent, à valider
+  par le rejeu staging.
+- Impact : route Support, OpenAPI, documentation et test de liaison.
